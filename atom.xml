@@ -10,7 +10,7 @@
   <link href="https://blog.zzc.dpdns.org/atom.xml" rel="self"/>
   <rights>All rights reserved 2026, zzc-blog</rights>
   <title>zzc-blog</title>
-  <updated>2026-07-05T11:23:39.028Z</updated>
+  <updated>2026-07-05T11:27:37.228Z</updated>
   <entry>
     <author>
       <name>zzc-blog</name>
@@ -19,7 +19,7 @@
     <category term="数据库" scheme="https://blog.zzc.dpdns.org/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E6%8D%AE%E5%BA%93/"/>
     <category term="MySQL" scheme="https://blog.zzc.dpdns.org/tags/MySQL/"/>
     <content>
-      <![CDATA[<h2 id="1-什么是-MySQL"><a href="#1-什么是-MySQL" class="headerlink" title="1. 什么是 MySQL"></a>1. 什么是 MySQL</h2><p><img src="C:/Users/zhangzhicai/AppData/Roaming/Typora/typora-user-images/image-20260705192309410.png" alt="image-20260705192309410"><em>MySQL 是最流行的关系型数据库管理系统，在 WEB 应用方面 MySQL 是最好的 RDBMS(Relational Database Management System：关系数据库管理系统)应用软件之一。</em></p>]]>
+      <![CDATA[<h2 id="1-什么是-MySQL"><a href="#1-什么是-MySQL" class="headerlink" title="1. 什么是 MySQL"></a>1. 什么是 MySQL</h2><p><img src="https://hexo-1304867193.cos.ap-guangzhou.myqcloud.com/images/image-20260705192730300.png" alt="image-20260705192730300"></p><p><em>MySQL 是最流行的关系型数据库管理系统，在 WEB 应用方面 MySQL 是最好的 RDBMS(Relational Database Management System：关系数据库管理系统)应用软件之一。</em></p>]]>
     </content>
     <id>https://blog.zzc.dpdns.org/2026/07/05/Mysql%E5%9F%BA%E7%A1%80/</id>
     <link href="https://blog.zzc.dpdns.org/2026/07/05/Mysql%E5%9F%BA%E7%A1%80/"/>
@@ -28,7 +28,7 @@
       <![CDATA[<h2 id="1-什么是-MySQL"><a href="#1-什么是-MySQL" class="headerlink" title="1. 什么是 MySQL"></a>1. 什么是 MySQL</h2><p><img]]>
     </summary>
     <title>Mysql基础</title>
-    <updated>2026-07-05T11:23:39.028Z</updated>
+    <updated>2026-07-05T11:27:37.228Z</updated>
   </entry>
   <entry>
     <author>
