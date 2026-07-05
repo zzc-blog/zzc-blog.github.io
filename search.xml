@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search> 
+  
+  
+    
+    <entry>
+      <title>JVM学习</title>
+      <link href="/2026/07/05/JVM%E5%AD%A6%E4%B9%A0/"/>
+      <url>/2026/07/05/JVM%E5%AD%A6%E4%B9%A0/</url>
+      
+        <content type="html"><![CDATA[<h2 id="1-什么是JVM"><a href="#1-什么是JVM" class="headerlink" title="1. 什么是JVM"></a>1. 什么是JVM</h2><p><img src="https://hexo-1304867193.cos.ap-guangzhou.myqcloud.com/images/image-20260705145041732.png" alt="image-20260705145041732"></p><h2 id="2-运行时数据区"><a href="#2-运行时数据区" class="headerlink" title="2. 运行时数据区"></a>2. 运行时数据区</h2><h3 id="1-程序计数器"><a href="#1-程序计数器" class="headerlink" title="1. 程序计数器"></a>1. 程序计数器</h3><p><img src="https://hexo-1304867193.cos.ap-guangzhou.myqcloud.com/images/image-20260705145052850.png" alt="image-20260705145052850"></p><h3 id="2-JVM-栈"><a href="#2-JVM-栈" class="headerlink" title="2. JVM 栈"></a>2. JVM 栈</h3><p><img src="https://hexo-1304867193.cos.ap-guangzhou.myqcloud.com/images/image-20260705145102783.png" alt="image-20260705145102783"></p><h3 id="3-堆"><a href="#3-堆" class="headerlink" title="3. 堆"></a>3. 堆</h3><p><img src="https://hexo-1304867193.cos.ap-guangzhou.myqcloud.com/images/image-20260705145114131.png" alt="image-20260705145114131"></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 技术 </category>
+          
+          <category> Java </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> JVM </tag>
+            
+            <tag> Java </tag>
+            
+            <tag> JVM原理 </tag>
+            
+            <tag> 内存管理 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+  
+  
+</search>
