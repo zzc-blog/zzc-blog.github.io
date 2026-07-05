@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" width="1440" height="900">
+  <defs>
+    <linearGradient id="sky-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e8f4fd"/>
+      <stop offset="50%" stop-color="#f0f8ff"/>
+      <stop offset="100%" stop-color="#fdf6e3"/>
+    </linearGradient>
+    <radialGradient id="sun-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff9c4" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#fff9c4" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dot-grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <circle cx="30" cy="30" r="1.2" fill="#90caf9" opacity="0.15"/>
+    </pattern>
+    <pattern id="line-pattern" width="80" height="80" patternUnits="userSpaceOnUse">
+      <path d="M 0 40 L 80 40" stroke="#e3f2fd" stroke-width="0.5" opacity="0.4"/>
+      <path d="M 40 0 L 40 80" stroke="#e3f2fd" stroke-width="0.5" opacity="0.4"/>
+    </pattern>
+  </defs>
+  <rect width="1440" height="900" fill="url(#sky-grad)"/>
+  <circle cx="720" cy="120" r="200" fill="url(#sun-glow)"/>
+  <rect width="1440" height="900" fill="url(#dot-grid)"/>
+  <rect width="1440" height="900" fill="url(#line-pattern)"/>
+</svg>
