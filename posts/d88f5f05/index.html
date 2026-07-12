@@ -1,0 +1,1538 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>字节码文件解析 | zzc-blog</title><meta name="author" content="zzc-blog"><meta name="copyright" content="zzc-blog"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="什么是字节码字节码文件是 Java 虚拟机（JVM）能够识别和执行的中间代码文件，通常以 .class 后缀存储。它由 Java 或其他 JVM 语言（Kotlin、Scala 等）的编译器生成，是连接源代码与机器码的桥梁。 JVM 平台上的字节码文件   类型 扩展名 说明    标准 Java 字节码 .class 由 javac 编译 Java 源文件生成，严格遵循 JVM 规范。   其他">
+<meta property="og:type" content="article">
+<meta property="og:title" content="字节码文件解析">
+<meta property="og:url" content="https://zzcblog.ccwu.cc/posts/d88f5f05/index.html">
+<meta property="og:site_name" content="zzc-blog">
+<meta property="og:description" content="什么是字节码字节码文件是 Java 虚拟机（JVM）能够识别和执行的中间代码文件，通常以 .class 后缀存储。它由 Java 或其他 JVM 语言（Kotlin、Scala 等）的编译器生成，是连接源代码与机器码的桥梁。 JVM 平台上的字节码文件   类型 扩展名 说明    标准 Java 字节码 .class 由 javac 编译 Java 源文件生成，严格遵循 JVM 规范。   其他">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zzcblog.ccwu.cc/img/cover/frontend.jpg">
+<meta property="article:published_time" content="2026-07-10T02:44:05.000Z">
+<meta property="article:modified_time" content="2026-07-12T11:34:31.870Z">
+<meta property="article:author" content="zzc-blog">
+<meta property="article:tag" content="Class">
+<meta property="article:tag" content="JVM">
+<meta property="article:tag" content="字节码">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://zzcblog.ccwu.cc/img/cover/frontend.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "字节码文件解析",
+  "url": "https://zzcblog.ccwu.cc/posts/d88f5f05/",
+  "image": "https://zzcblog.ccwu.cc/img/cover/frontend.jpg",
+  "datePublished": "2026-07-10T02:44:05.000Z",
+  "dateModified": "2026-07-12T11:34:31.870Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "zzc-blog",
+      "url": "https://zzcblog.ccwu.cc"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/butterfly-icon.png"><link rel="canonical" href="https://zzcblog.ccwu.cc/posts/d88f5f05/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1.14/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":true,"pagination":{"enable":true,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":true,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: zzc-blog","link":"链接: ","source":"来源: zzc-blog","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: true,
+  isAnchor: true,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '字节码文件解析',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><style>#footer,#footer a,#footer .copyright,#footer .framework-info,#footer .footer_custom_text{color:#555}#footer a:hover{color:#49B1F5}</style><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="zzc-blog" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      if ($loadingBox.classList.contains('loaded')) return
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+
+  if (document.readyState === 'complete') {
+    preloader.endLoading()
+  } else {
+    window.addEventListener('load', preloader.endLoading)
+    document.addEventListener('DOMContentLoaded', preloader.endLoading)
+    // Add timeout protection: force end after 7 seconds
+    setTimeout(preloader.endLoading, 7000)
+  }
+
+  if (true) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div class="bg-animation" id="web_bg" style="background-image: url(/img/bg-day.svg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/error-page.svg'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">13</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 图库</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-heart"></i><span> 关于</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-info-circle"></i><span> 关于本站</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(/img/cover/frontend.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">zzc-blog</span></a><a class="nav-page-title" href="/"><span class="site-name">字节码文件解析</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 图库</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-heart"></i><span> 关于</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-info-circle"></i><span> 关于本站</span></a></li></ul></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">字节码文件解析</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-07-10T02:44:05.000Z" title="发表于 2026-07-10 10:44:05">2026-07-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-12T11:34:31.870Z" title="更新于 2026-07-12 19:34:31">2026-07-12</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java/">Java</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3.6k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>12分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:365,&quot;messagePrev&quot;:&quot;本文最后更新于&quot;,&quot;messageNext&quot;:&quot;天前，部分内容可能已过时，请注意辨别。&quot;,&quot;postUpdate&quot;:&quot;2026-07-12 19:34:31&quot;}" hidden></div><h2 id="什么是字节码"><a href="#什么是字节码" class="headerlink" title="什么是字节码"></a>什么是字节码</h2><p>字节码文件是 Java 虚拟机（JVM）能够识别和执行的中间代码文件，通常以 <code>.class</code> 后缀存储。它由 Java 或其他 JVM 语言（Kotlin、Scala 等）的编译器生成，是连接源代码与机器码的桥梁。</p>
+<h3 id="JVM-平台上的字节码文件"><a href="#JVM-平台上的字节码文件" class="headerlink" title="JVM 平台上的字节码文件"></a>JVM 平台上的字节码文件</h3><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>扩展名</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>标准 Java 字节码</strong></td>
+<td><code>.class</code></td>
+<td>由 <code>javac</code> 编译 Java 源文件生成，严格遵循 JVM 规范。</td>
+</tr>
+<tr>
+<td><strong>其他 JVM 语言字节码</strong></td>
+<td><code>.class</code></td>
+<td>Kotlin、Groovy、Scala、Clojure 等语言编译后也生成标准的 <code>.class</code> 文件，只是内部常量池和方法体不同。</td>
+</tr>
+<tr>
+<td><strong>动态生成的字节码</strong></td>
+<td>无独立文件</td>
+<td>运行时通过 ASM、CGLib、ByteBuddy 等库在内存中直接生成字节码（如 Spring AOP 代理类），不写入磁盘。</td>
+</tr>
+<tr>
+<td><strong>打包后的字节码</strong></td>
+<td><code>.jar</code>、<code>.war</code>、<code>.ear</code></td>
+<td>本质上是 ZIP 压缩包，内含多个 <code>.class</code> 文件及其他资源。</td>
+</tr>
+</tbody></table>
+<p>你提到的“网络传输或存储的序列化二进制流”确实是另一种二进制数据，但它 <strong>不是字节码文件</strong>。两者虽然都是二进制流，但用途和格式完全不同：</p>
+<h3 id="字节码文件与序列化数据"><a href="#字节码文件与序列化数据" class="headerlink" title="字节码文件与序列化数据"></a>字节码文件与序列化数据</h3><table>
+<thead>
+<tr>
+<th>对比维度</th>
+<th>字节码文件 (.class)</th>
+<th>序列化数据 (.ser &#x2F; 网络流)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>用途</strong></td>
+<td>JVM 加载执行类</td>
+<td>持久化对象状态或网络传输</td>
+</tr>
+<tr>
+<td><strong>格式</strong></td>
+<td>严格遵循 JVM 规范（魔数 CAFEBABE、常量池、方法表等）</td>
+<td>遵循 Java 序列化协议（魔数 ACED0005、类描述符、字段值等）</td>
+</tr>
+<tr>
+<td><strong>消费方</strong></td>
+<td>JVM 的类加载子系统</td>
+<td>反序列化时的 ObjectInputStream</td>
+</tr>
+<tr>
+<td><strong>生命周期</strong></td>
+<td>编译时生成，运行时加载</td>
+<td>运行时动态产生，用于跨进程通信或存储</td>
+</tr>
+</tbody></table>
+<p><strong>总结</strong>：序列化二进制流是 <strong>对象数据的快照</strong>，字节码文件是 <strong>类定义的蓝图</strong>。两者都可以在网络传输，但前者用于传递数据，后者用于传递可执行代码。</p>
+<h2 id="字节码结构"><a href="#字节码结构" class="headerlink" title="字节码结构"></a>字节码结构</h2><p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://fastly.jsdelivr.net/gh/zzc-blog/img-bed@main/images/aa50889b82dfd281d16ae25b67080baf.png" alt="image-20260710104502076"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://fastly.jsdelivr.net/gh/zzc-blog/img-bed@main/images/4634fe9e9da77091b57250b451206357.png" alt="image-20260710124850840"></p>
+<h2 id="字节码文件整体结构总览"><a href="#字节码文件整体结构总览" class="headerlink" title="字节码文件整体结构总览"></a>字节码文件整体结构总览</h2><table>
+<thead>
+<tr>
+<th align="left"><strong>序号</strong></th>
+<th align="left"><strong>数据段名称</strong></th>
+<th align="left"><strong>数据类型（大小）</strong></th>
+<th align="left"><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">1</td>
+<td align="left">魔数 (Magic Number)</td>
+<td align="left">u4 (4 字节)</td>
+<td align="left">固定值为 <code>0xCAFEBABE</code>，用于标识该文件是一个合法的 Java Class 文件。</td>
+</tr>
+<tr>
+<td align="left">2</td>
+<td align="left">次版本号 (Minor Version)</td>
+<td align="left">u2 (2 字节)</td>
+<td align="left">编译此 Class 文件所使用的 JDK 副版本号。</td>
+</tr>
+<tr>
+<td align="left">3</td>
+<td align="left">主版本号 (Major Version)</td>
+<td align="left">u2 (2 字节)</td>
+<td align="left">编译此 Class 文件所使用的 JDK 主版本号（例如 61 对应 Java 17）。</td>
+</tr>
+<tr>
+<td align="left">4</td>
+<td align="left">常量池计数</td>
+<td align="left">u2 (2 字节)</td>
+<td align="left">表示常量池中常量的数量（从 1 开始计数，0 保留）。</td>
+</tr>
+<tr>
+<td align="left">5</td>
+<td align="left">常量池 (Constant Pool)</td>
+<td align="left">cp_info [] (变长)</td>
+<td align="left">存储字面量和符号引用（如类名、方法名、字段名、字符串等）。</td>
+</tr>
+<tr>
+<td align="left">6</td>
+<td align="left">访问标志</td>
+<td align="left">u2 (2 字节)</td>
+<td align="left">标识该类或接口的访问权限与属性（如 public、abstract、final 等）。</td>
+</tr>
+<tr>
+<td align="left">7</td>
+<td align="left">当前类索引</td>
+<td align="left">u2 (2 字节)</td>
+<td align="left">指向常量池中的一个 <code>CONSTANT_Class_info</code>，表示本类的全限定名。</td>
+</tr>
+<tr>
+<td align="left">8</td>
+<td align="left">父类索引</td>
+<td align="left">u2 (2 字节)</td>
+<td align="left">指向常量池中的一个 <code>CONSTANT_Class_info</code>，表示父类的全限定名。</td>
+</tr>
+<tr>
+<td align="left">9</td>
+<td align="left">接口计数器</td>
+<td align="left">u2 (2 字节)</td>
+<td align="left">表示该类实现的接口数量。</td>
+</tr>
+<tr>
+<td align="left">10</td>
+<td align="left">接口索引表</td>
+<td align="left">u2 [] (每项 2 字节)</td>
+<td align="left">按顺序指向常量池中的 <code>CONSTANT_Class_info</code>，表示所有实现的接口。</td>
+</tr>
+<tr>
+<td align="left">11</td>
+<td align="left">字段计数器</td>
+<td align="left">u2 (2 字节)</td>
+<td align="left">表示该类中声明的字段数量（包括静态和非静态）。</td>
+</tr>
+<tr>
+<td align="left">12</td>
+<td align="left">字段表 (Fields)</td>
+<td align="left">field_info [] (变长)</td>
+<td align="left">描述每个字段的名称、类型、修饰符及可选属性（如 ConstantValue）。</td>
+</tr>
+<tr>
+<td align="left">13</td>
+<td align="left">方法计数器</td>
+<td align="left">u2 (2 字节)</td>
+<td align="left">表示该类中声明的方法数量（包括构造器 <code>&lt;init&gt;</code> 和静态初始化器 <code>&lt;clinit&gt;</code>）。</td>
+</tr>
+<tr>
+<td align="left">14</td>
+<td align="left">方法表 (Methods)</td>
+<td align="left">method_info [] (变长)</td>
+<td align="left">描述每个方法的名称、参数、返回类型、修饰符及字节码指令（Code 属性）。</td>
+</tr>
+<tr>
+<td align="left">15</td>
+<td align="left">属性计数器</td>
+<td align="left">u2 (2 字节)</td>
+<td align="left">表示该类级别的属性数量。</td>
+</tr>
+<tr>
+<td align="left">16</td>
+<td align="left">属性表 (Attributes)</td>
+<td align="left">attribute_info [] (变长)</td>
+<td align="left">存放该类级别的附加信息（如 SourceFile、InnerClasses、BootstrapMethods 等）。</td>
+</tr>
+</tbody></table>
+<h2 id="版本号（Minor-Version-Major-Version）"><a href="#版本号（Minor-Version-Major-Version）" class="headerlink" title="版本号（Minor Version &amp; Major Version）"></a>版本号（Minor Version &amp; Major Version）</h2><table>
+<thead>
+<tr>
+<th>字段名</th>
+<th>大小</th>
+<th>位置（相对偏移）</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>次版本号</td>
+<td>u2</td>
+<td>4-5</td>
+<td>编译该 Class 文件所使用的 JDK 副版本号。通常为 0，除非使用特定预览特性。</td>
+</tr>
+<tr>
+<td>主版本号</td>
+<td>u2</td>
+<td>6-7</td>
+<td>编译该 Class 文件所使用的 JDK 主版本号。例如： - 52 → Java 8 - 55 → Java 11 - 61 → Java 17 - 65 → Java 21</td>
+</tr>
+</tbody></table>
+<p><strong>作用：</strong></p>
+<p>JVM 启动时会校验主版本号是否小于等于当前 JVM 支持的最高版本。若高于当前 JVM 版本，会抛出 <code>UnsupportedClassVersionError</code>。次版本号通常为 0，但在某些特殊预览功能下可能非零。</p>
+<h2 id="访问标志（access-flags）"><a href="#访问标志（access-flags）" class="headerlink" title="访问标志（access_flags）"></a>访问标志（access_flags）</h2><table>
+<thead>
+<tr>
+<th>字段名</th>
+<th>大小</th>
+<th>位置（相对偏移）</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>访问标志</td>
+<td>u2</td>
+<td>8-9</td>
+<td>使用位掩码标识该类或接口的访问权限和特性。</td>
+</tr>
+</tbody></table>
+<p><strong>常用标志位</strong>（可组合）：</p>
+<table>
+<thead>
+<tr>
+<th>标志名称</th>
+<th>十六进制值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ACC_PUBLIC</td>
+<td>0x0001</td>
+<td>声明为 public，可从包外访问</td>
+</tr>
+<tr>
+<td>ACC_FINAL</td>
+<td>0x0010</td>
+<td>声明为 final，不允许被继承</td>
+</tr>
+<tr>
+<td>ACC_SUPER</td>
+<td>0x0020</td>
+<td>使用 invokespecial 指令时需增强语义（JDK 1.0.2+ 必须设置）</td>
+</tr>
+<tr>
+<td>ACC_INTERFACE</td>
+<td>0x0200</td>
+<td>这是一个接口，而非类</td>
+</tr>
+<tr>
+<td>ACC_ABSTRACT</td>
+<td>0x0400</td>
+<td>声明为 abstract，不能实例化</td>
+</tr>
+<tr>
+<td>ACC_SYNTHETIC</td>
+<td>0x1000</td>
+<td>由编译器生成的合成类（非源码显式定义）</td>
+</tr>
+<tr>
+<td>ACC_ANNOTATION</td>
+<td>0x2000</td>
+<td>声明为注解类型（隐含 ACC_INTERFACE）</td>
+</tr>
+<tr>
+<td>ACC_ENUM</td>
+<td>0x4000</td>
+<td>声明为枚举类型</td>
+</tr>
+<tr>
+<td>ACC_MODULE</td>
+<td>0x8000</td>
+<td>这是一个模块（Java 9+）</td>
+</tr>
+</tbody></table>
+<p><strong>示例</strong>：</p>
+<ul>
+<li><code>public class Hello</code> → 标志值 &#x3D; 0x0021（ACC_PUBLIC + ACC_SUPER）</li>
+<li><code>public interface MyInterface</code> → 标志值 &#x3D; 0x0601（ACC_PUBLIC + ACC_INTERFACE + ACC_ABSTRACT）</li>
+<li><code>enum Color</code> → 标志值 &#x3D; 0x4031（ACC_PUBLIC + ACC_FINAL + ACC_SUPER + ACC_ENUM）</li>
+</ul>
+<h2 id="常量池结构"><a href="#常量池结构" class="headerlink" title="常量池结构"></a><strong>常量池结构</strong></h2><p><strong>前置字节类型说明</strong></p>
+<ul>
+<li><code>u1</code>：无符号 1 字节（8bit）</li>
+<li><code>u2</code>：无符号 2 字节（16bit）</li>
+<li><code>u4</code>：无符号 4 字节（32bit）</li>
+<li><code>u8</code>：无符号 8 字节（64bit）</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>序号</th>
+<th>常量结构体名</th>
+<th>业务释义</th>
+<th>成员字段</th>
+<th>字节类型</th>
+<th>字段详细解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>CONSTANT_Utf8_info</td>
+<td>UTF8 编码原始字符串（底层字符串存储载体）</td>
+<td>tag</td>
+<td>u1</td>
+<td>tag 固定值 &#x3D; 1</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>length</td>
+<td>u2</td>
+<td>后续 bytes 数组的字节长度</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>bytes</td>
+<td>u1 [length]</td>
+<td>变体 UTF-8 编码的字符字节流，存类名、字段名、方法名、描述符等原始文本</td>
+</tr>
+<tr>
+<td>3</td>
+<td>CONSTANT_Integer_info</td>
+<td>int 整型字面量</td>
+<td>tag</td>
+<td>u1</td>
+<td>tag 固定值 &#x3D; 3</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>bytes</td>
+<td>u4</td>
+<td>大端（高位在前）存储的 4 字节 int 数值</td>
+</tr>
+<tr>
+<td>4</td>
+<td>CONSTANT_Float_info</td>
+<td>float 单精度浮点字面量</td>
+<td>tag</td>
+<td>u1</td>
+<td>tag 固定值 &#x3D; 4</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>bytes</td>
+<td>u4</td>
+<td>大端存储 IEEE754 规范的 4 字节 float</td>
+</tr>
+<tr>
+<td>5</td>
+<td>CONSTANT_Long_info</td>
+<td>long 长整型字面量</td>
+<td>tag</td>
+<td>u1</td>
+<td>tag 固定值 &#x3D; 5（常量池占 2 索引槽）</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>bytes</td>
+<td>u8</td>
+<td>大端存储 8 字节 long 整数</td>
+</tr>
+<tr>
+<td>6</td>
+<td>CONSTANT_Double_info</td>
+<td>double 双精度浮点字面量</td>
+<td>tag</td>
+<td>u1</td>
+<td>tag 固定值 &#x3D; 6（常量池占 2 索引槽）</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>bytes</td>
+<td>u8</td>
+<td>大端存储 IEEE754 规范的 8 字节 double</td>
+</tr>
+<tr>
+<td>7</td>
+<td>CONSTANT_Class_info</td>
+<td>类 &#x2F; 接口的符号引用</td>
+<td>tag</td>
+<td>u1</td>
+<td>tag 固定值 &#x3D; 7</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>name_index</td>
+<td>u2</td>
+<td>索引指向 <strong>CONSTANT_Utf8_info</strong>，内容是类的全限定名（如 <code>java/lang/String</code>）</td>
+</tr>
+<tr>
+<td>8</td>
+<td>CONSTANT_String_info</td>
+<td>String 字符串字面量（代码里双引号字面量）</td>
+<td>tag</td>
+<td>u1</td>
+<td>tag 固定值 &#x3D; 8</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>string_index</td>
+<td>u2</td>
+<td>索引指向 CONSTANT_Utf8_info，读取 UTF8 原始字符串内容</td>
+</tr>
+<tr>
+<td>9</td>
+<td>CONSTANT_Fieldref_info</td>
+<td>成员字段的符号引用</td>
+<td>tag</td>
+<td>u1</td>
+<td>tag 固定值 &#x3D; 9</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>class_index</td>
+<td>u2</td>
+<td>索引指向 CONSTANT_Class_info：标记字段归属哪个类 &#x2F; 接口</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>name_and_type_index</td>
+<td>u2</td>
+<td>索引指向 CONSTANT_NameAndType_info：存字段名 + 字段类型描述符</td>
+</tr>
+<tr>
+<td>10</td>
+<td>CONSTANT_Methodref_info</td>
+<td>普通类成员方法的符号引用</td>
+<td>tag</td>
+<td>u1</td>
+<td>tag 固定值 &#x3D; 10</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>class_index</td>
+<td>u2</td>
+<td>索引指向 CONSTANT_Class_info：标记方法归属的类</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>name_and_type_index</td>
+<td>u2</td>
+<td>索引指向 CONSTANT_NameAndType_info：存方法名 + 方法签名描述符</td>
+</tr>
+<tr>
+<td>11</td>
+<td>CONSTANT_InterfaceMethodref_info</td>
+<td>接口定义方法的符号引用</td>
+<td>tag</td>
+<td>u1</td>
+<td>tag 固定值 &#x3D; 11</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>class_index</td>
+<td>u2</td>
+<td>索引指向 CONSTANT_Class_info：标记方法归属的接口</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>name_and_type_index</td>
+<td>u2</td>
+<td>索引指向 CONSTANT_NameAndType_info：接口方法名 + 方法签名</td>
+</tr>
+<tr>
+<td>12</td>
+<td>CONSTANT_NameAndType_info</td>
+<td>名称 + 类型签名（不存完整符号引用，做通用拆分复用）</td>
+<td>tag</td>
+<td>u1</td>
+<td>tag 固定值 &#x3D; 12</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>name_index</td>
+<td>u2</td>
+<td>Utf8 索引：字段 &#x2F; 方法的名字（如 <code>age</code>、<code>toString</code>）</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>descriptor_index</td>
+<td>u2</td>
+<td>Utf8 索引：类型描述符（字段：<code>I</code> 代表 int；方法：<code>()V</code> 代表无参无返回）</td>
+</tr>
+</tbody></table>
+<p><strong>JDK7 + 扩展新增常量（进阶补充，旧版 class 文件无）</strong></p>
+<table>
+<thead>
+<tr>
+<th>Tag 值</th>
+<th>常量结构体名</th>
+<th>业务释义</th>
+<th>成员字段</th>
+<th>字节类型</th>
+<th>字段详细说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>15</td>
+<td>CONSTANT_MethodHandle_info</td>
+<td>方法句柄（Lambda&#x2F;反射动态调用底层载体）</td>
+<td>tag</td>
+<td>u1</td>
+<td>固定值 &#x3D; 15，标识该常量为方法句柄类型</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>reference_kind</td>
+<td>u1</td>
+<td>引用类型分类，取值 1~9 共 9 种，决定句柄调用语义</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>reference_index</td>
+<td>u2</td>
+<td>指向常量池中其他项的索引，具体指向哪种常量由 reference_kind 决定</td>
+</tr>
+<tr>
+<td>16</td>
+<td>CONSTANT_MethodType_info</td>
+<td>方法类型签名（仅描述参数+返回值类型）</td>
+<td>tag</td>
+<td>u1</td>
+<td>固定值 &#x3D; 16，标识该常量为方法类型</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>descriptor_index</td>
+<td>u2</td>
+<td>索引指向 CONSTANT_Utf8_info，存储方法描述符（如 “(II)V” 表示两个 int 参数无返回值）</td>
+</tr>
+<tr>
+<td>17</td>
+<td>CONSTANT_InvokeDynamic_info</td>
+<td>动态调用点（Lambda 表达式、invokedynamic 指令底层依赖）</td>
+<td>tag</td>
+<td>u1</td>
+<td>固定值 &#x3D; 17，标识该常量为动态调用点</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>bootstrap_method_attr_index</td>
+<td>u2</td>
+<td>指向 Class 文件属性区中 BootstrapMethods 属性表的索引，定位引导方法</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>name_and_type_index</td>
+<td>u2</td>
+<td>索引指向 CONSTANT_NameAndType_info，存储动态方法名+方法签名描述符</td>
+</tr>
+</tbody></table>
+<h2 id="字段表"><a href="#字段表" class="headerlink" title="字段表"></a>字段表</h2><table>
+<thead>
+<tr>
+<th>序号</th>
+<th>字段名</th>
+<th>字节类型</th>
+<th>数量</th>
+<th>详细说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>—</td>
+<td>fields_count</td>
+<td>u2</td>
+<td>1</td>
+<td>字段表计数器，记录当前类&#x2F;接口声明的字段总数（不含继承的字段）</td>
+</tr>
+<tr>
+<td>1</td>
+<td>access_flags</td>
+<td>u2</td>
+<td>1</td>
+<td>字段访问标志：public&#x2F;private&#x2F;protected&#x2F;static&#x2F;final&#x2F;volatile&#x2F;transient 等</td>
+</tr>
+<tr>
+<td>2</td>
+<td>name_index</td>
+<td>u2</td>
+<td>1</td>
+<td>指向常量池 CONSTANT_Utf8_info，存储字段的简单名称（如 age、name）</td>
+</tr>
+<tr>
+<td>3</td>
+<td>descriptor_index</td>
+<td>u2</td>
+<td>1</td>
+<td>指向常量池 CONSTANT_Utf8_info，存储字段类型描述符（I &#x3D; int、Ljava&#x2F;lang&#x2F;String;&#x3D; 字符串）</td>
+</tr>
+<tr>
+<td>4</td>
+<td>attributes_count</td>
+<td>u2</td>
+<td>1</td>
+<td>字段属性表计数器，记录该字段附加的属性数量</td>
+</tr>
+<tr>
+<td>5</td>
+<td>attributes</td>
+<td>attribute_info</td>
+<td>attributes_count</td>
+<td>字段属性表，常见如 ConstantValue（静态常量值）、Synthetic、Deprecated、Signature 等</td>
+</tr>
+</tbody></table>
+<h3 id="为什么叫“表”？"><a href="#为什么叫“表”？" class="headerlink" title="为什么叫“表”？"></a>为什么叫“表”？</h3><p>在字节码规范中，<strong>“表”特指这种计数+数组的变长结构</strong>。JVM 解析时，先读取一个 2 字节的计数，然后循环读取指定数量的条目。这种设计使得文件紧凑且易于扩展——你可以在末尾追加新的属性，只要更新计数器即可。</p>
+<h2 id="方法表"><a href="#方法表" class="headerlink" title="方法表"></a>方法表</h2><table>
+<thead>
+<tr>
+<th>序号</th>
+<th>字段名</th>
+<th>字节类型</th>
+<th>数量</th>
+<th>详细说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>—</td>
+<td>methods_count</td>
+<td>u2</td>
+<td>1</td>
+<td>方法表计数器，记录当前类&#x2F;接口声明的方法总数（不含继承方法）</td>
+</tr>
+<tr>
+<td>1</td>
+<td>access_flags</td>
+<td>u2</td>
+<td>1</td>
+<td>方法访问标志：public&#x2F;private&#x2F;protected&#x2F;static&#x2F;final&#x2F;synchronized&#x2F;native&#x2F;abstract 等</td>
+</tr>
+<tr>
+<td>2</td>
+<td>name_index</td>
+<td>u2</td>
+<td>1</td>
+<td>指向常量池 CONSTANT_Utf8_info，存储方法名（如 toString、<init> 构造器、<clinit> 静态初始化）</td>
+</tr>
+<tr>
+<td>3</td>
+<td>descriptor_index</td>
+<td>u2</td>
+<td>1</td>
+<td>指向常量池 CONSTANT_Utf8_info，存储方法签名描述符（如()V 无参无返回、(II)I 两 int 返 int）</td>
+</tr>
+<tr>
+<td>4</td>
+<td>attributes_count</td>
+<td>u2</td>
+<td>1</td>
+<td>方法属性表计数器</td>
+</tr>
+<tr>
+<td>5</td>
+<td>attributes</td>
+<td>attribute_info</td>
+<td>attributes_count</td>
+<td>方法属性表，核心属性为 Code（字节码指令体），还有 Exceptions、LineNumberTable、LocalVariableTable 等</td>
+</tr>
+</tbody></table>
+<h2 id="属性表"><a href="#属性表" class="headerlink" title="属性表"></a>属性表</h2><table>
+<thead>
+<tr>
+<th>属性名称</th>
+<th>出现位置</th>
+<th>属性作用</th>
+<th>JDK 版本</th>
+<th>核心内部字段</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Code</td>
+<td>方法表</td>
+<td>存储 Java 方法编译后的字节码指令、操作数栈、局部变量表、异常表</td>
+<td>JDK1.0+</td>
+<td>max_stack、max_locals、code_length、code []、exception_table、attributes</td>
+</tr>
+<tr>
+<td>ConstantValue</td>
+<td>字段表</td>
+<td>为 static final 常量赋值，指向常量池字面量</td>
+<td>JDK1.0+</td>
+<td>constantvalue_index（指向常量池常量）</td>
+</tr>
+<tr>
+<td>Exceptions</td>
+<td>方法表</td>
+<td>记录方法 throws 声明的受检异常列表</td>
+<td>JDK1.0+</td>
+<td>number_of_exceptions、exception_index_table []</td>
+</tr>
+<tr>
+<td>LineNumberTable</td>
+<td>Code 属性内</td>
+<td>字节码偏移量 → Java 源码行号映射，调试与异常栈追踪用</td>
+<td>JDK1.0+</td>
+<td>line_number_table_length、line_number_table []</td>
+</tr>
+<tr>
+<td>LocalVariableTable</td>
+<td>Code 属性内</td>
+<td>局部变量表描述：变量名、类型、作用域起止偏移、槽位索引</td>
+<td>JDK1.0+</td>
+<td>local_variable_table_length、local_variable_table []</td>
+</tr>
+<tr>
+<td>SourceFile</td>
+<td>Class 文件顶层</td>
+<td>记录源文件名（如 HelloWorld.java），异常栈显示用</td>
+<td>JDK1.0+</td>
+<td>sourcefile_index（指向 Utf8）</td>
+</tr>
+<tr>
+<td>BootstrapMethods</td>
+<td>Class 文件顶层</td>
+<td>invokedynamic 动态调用的引导方法列表，配合常量池 tag &#x3D; 17 使用</td>
+<td>JDK7+</td>
+<td>num_bootstrap_methods、bootstrap_methods []</td>
+</tr>
+<tr>
+<td>InnerClasses</td>
+<td>Class 文件顶层</td>
+<td>内部类&#x2F;外部类注册信息表</td>
+<td>JDK1.1+</td>
+<td>number_of_classes、inner_classes []</td>
+</tr>
+<tr>
+<td>Synthetic</td>
+<td>字段&#x2F;方法&#x2F;类</td>
+<td>标记该成员由编译器自动生成，非用户源码编写</td>
+<td>JDK1.1+</td>
+<td>无额外字段（仅 attribute_name_length &#x3D; 0）</td>
+</tr>
+<tr>
+<td>Deprecated</td>
+<td>字段&#x2F;方法&#x2F;类</td>
+<td>标记该成员已废弃，对应@Deprecated 注解</td>
+<td>JDK1.1+</td>
+<td>无额外字段</td>
+</tr>
+<tr>
+<td>Signature</td>
+<td>类&#x2F;字段&#x2F;方法</td>
+<td>存储泛型签名信息（类型擦除后保留泛型用于反射）</td>
+<td>JDK5+</td>
+<td>signature_index（指向 Utf8）</td>
+</tr>
+<tr>
+<td>StackMapTable</td>
+<td>Code 属性内</td>
+<td>栈映射帧，JDK6 后字节码校验器类型检查优化用</td>
+<td>JDK6+</td>
+<td>number_of_entries、entries []</td>
+</tr>
+<tr>
+<td>RuntimeVisibleAnnotations</td>
+<td>类&#x2F;字段&#x2F;方法</td>
+<td>运行时可见注解（@Retention(RUNTIME)），反射可读取</td>
+<td>JDK5+</td>
+<td>num_annotations、annotations []</td>
+</tr>
+<tr>
+<td>RuntimeInvisibleAnnotations</td>
+<td>类&#x2F;字段&#x2F;方法</td>
+<td>运行时不可见注解（@Retention(CLASS)），仅 class 文件保留</td>
+<td>JDK5+</td>
+<td>num_annotations、annotations []</td>
+</tr>
+</tbody></table>
+<h4 id="Code-属性（方法体）"><a href="#Code-属性（方法体）" class="headerlink" title="Code 属性（方法体）"></a>Code 属性（方法体）</h4><p>这是方法表中最重要的属性，存储了实际的字节码指令。</p>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>字段名</th>
+<th>字节类型</th>
+<th>数量</th>
+<th>详细说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>第一层</td>
+<td>attribute_name_index</td>
+<td>u2</td>
+<td>1</td>
+<td>属性名索引，指向常量池 CONSTANT_Utf8_info，固定字符串 “Code”</td>
+</tr>
+<tr>
+<td>第一层</td>
+<td>attribute_length</td>
+<td>u4</td>
+<td>1</td>
+<td>属性总长度（不含前 6 字节的 attribute_name_index+attribute_length 本身）</td>
+</tr>
+<tr>
+<td>第一层</td>
+<td>max_stack</td>
+<td>u2</td>
+<td>1</td>
+<td>操作数栈（Operand Stack）的最大深度，方法执行过程中栈顶不会超过该值</td>
+</tr>
+<tr>
+<td>第一层</td>
+<td>max_locals</td>
+<td>u2</td>
+<td>1</td>
+<td>局部变量表（Local Variable Table）所需的最大槽位数（slot 数），long&#x2F;double 占 2 槽</td>
+</tr>
+<tr>
+<td>第一层</td>
+<td>code_length</td>
+<td>u4</td>
+<td>1</td>
+<td>字节码指令的字节总长度，实际指令字节数 &#x3D; code_length</td>
+</tr>
+<tr>
+<td>第一层</td>
+<td>code</td>
+<td>u1</td>
+<td>code_length</td>
+<td>字节码指令流：Java 编译后的 JVM 指令序列，每条指令 1 字节操作码+可选操作数</td>
+</tr>
+<tr>
+<td>第一层</td>
+<td>exception_table_length</td>
+<td>u2</td>
+<td>1</td>
+<td>异常表条目数量</td>
+</tr>
+<tr>
+<td>第一层</td>
+<td>exception_table</td>
+<td>异常表条目</td>
+<td>exception_table_length</td>
+<td>异常处理器表，每条对应一个 try-catch 块</td>
+</tr>
+<tr>
+<td>→ 异常表内</td>
+<td>start_pc</td>
+<td>u2</td>
+<td>1</td>
+<td>try 块起始字节码偏移量（包含）</td>
+</tr>
+<tr>
+<td>→ 异常表内</td>
+<td>end_pc</td>
+<td>u2</td>
+<td>1</td>
+<td>try 块结束字节码偏移量（不包含）</td>
+</tr>
+<tr>
+<td>→ 异常表内</td>
+<td>handler_pc</td>
+<td>u2</td>
+<td>1</td>
+<td>异常处理器（catch 块）的起始字节码偏移量</td>
+</tr>
+<tr>
+<td>→ 异常表内</td>
+<td>catch_type</td>
+<td>u2</td>
+<td>1</td>
+<td>捕获异常类型：指向常量池 Class_info 索引；值为 0 表示 finally，捕获所有异常</td>
+</tr>
+<tr>
+<td>第一层</td>
+<td>attributes_count</td>
+<td>u2</td>
+<td>1</td>
+<td>Code 属性内部嵌套的子属性数量</td>
+</tr>
+<tr>
+<td>第一层</td>
+<td>attributes</td>
+<td>attribute_info</td>
+<td>attributes_count</td>
+<td>Code 的子属性集合，常见：LineNumberTable、LocalVariableTable、StackMapTable 等</td>
+</tr>
+<tr>
+<td>→ 子属性举例</td>
+<td>LineNumberTable</td>
+<td>attribute_info</td>
+<td>—</td>
+<td>字节码偏移量 →Java 源码行号映射表，用于 debug 调试和异常栈行号显示</td>
+</tr>
+<tr>
+<td>→ 子属性举例</td>
+<td>LocalVariableTable</td>
+<td>attribute_info</td>
+<td>—</td>
+<td>局部变量描述表：变量名、类型描述符、作用域起止偏移、局部变量槽位索引</td>
+</tr>
+<tr>
+<td>→ 子属性举例</td>
+<td>StackMapTable</td>
+<td>attribute_info</td>
+<td>—</td>
+<td>栈映射帧（JDK6+），类型检查校验器使用，减少运行时校验开销</td>
+</tr>
+<tr>
+<td>→ 子属性举例</td>
+<td>LocalVariableTypeTable</td>
+<td>attribute_info</td>
+<td>—</td>
+<td>泛型局部变量签名表（JDK5+），配合泛型类型擦除保留泛型信息</td>
+</tr>
+</tbody></table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://zzcblog.ccwu.cc">zzc-blog</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://zzcblog.ccwu.cc/posts/d88f5f05/">https://zzcblog.ccwu.cc/posts/d88f5f05/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://zzcblog.ccwu.cc" target="_blank">zzc-blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/JVM/">JVM</a><a class="post-meta__tags" href="/tags/Class/">Class</a><a class="post-meta__tags" href="/tags/%E5%AD%97%E8%8A%82%E7%A0%81/">字节码</a></div><div class="post-share"><div class="social-share" data-image="/img/cover/frontend.jpg" data-sites="wechat,weibo,qq,qzone"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/7025a55b/" title="JDK 工具"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/cover/reading.jpg" onerror="onerror=null;src='/img/default_top_img.svg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">JDK 工具</div></div><div class="info-2"><div class="info-item-1">1. javac1javac -g Hello.java  作用 默认情况下，javac只生成行号和源文件信息（相当于 -g:lines,source）。 加上 -g后，会额外包含局部变量的调试信息，方便在 IDE 或调试器中查看变量值、堆栈状态等。  常用变体   选项 含义    -g 生成所有调试信息（lines + vars + source）   -g:none 不生成任何调试信息   -g:lines 仅生成行号信息   -g:vars 仅生成局部变量信息   -g:source 仅生成源文件信息   2. javap基本帮助与版本 -help&#x2F; -?&#x2F; --help 输出此用法消息 -version 显示 javap 所在 JDK 的版本信息（非 class 文件版本）  访问级别控制（显示哪些成员） -public 仅显示公共类和成员 -protected 显示受保护的及公共类和成员 -p ||-private 显示所有类和成员（包括私有） -package 显示程序包、受保护的及公共类和成员（默认行为）  输出内容详细程度 -sysinfo ...</div></div></div></a><a class="pagination-related" href="/posts/f41a237a/" title="指针碰撞与空闲列表"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/cover/essay.jpg" onerror="onerror=null;src='/img/default_top_img.svg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">指针碰撞与空闲列表</div></div><div class="info-2"><div class="info-item-1">一、指针碰撞（Bump-the-Pointer）1. 原理假设堆内存是规整的——所有已使用的对象紧密排列在一端，空闲内存连续在另一端，中间只有一个分界指针（top pointer）作为边界。 分配新对象时：  检查空闲空间是否足够（top + size &lt;= end）。 如果够，直接将 top指针向后移动 size字节。 返回原来的 top地址给新对象。  整个过程就像推土机向前推进，一步到位，没有复杂计算。 1234567初始：|  已使用对象  |              空闲内存               |              ↑ top                            ↑ end分配对象 A 后：|  已使用对象  |  A  |         空闲内存          |                   ↑ top                       ↑ end  2. 适用条件 堆内存必须规整（无碎片）。 通常用于复制算法（年轻代）或标记-整理算法（老年代）。  3. 优点 极快：仅一次指针加法，无复杂数据结构操...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/f41a237a/" title="指针碰撞与空闲列表"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/cover/essay.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-08</div><div class="info-item-2">指针碰撞与空闲列表</div></div><div class="info-2"><div class="info-item-1">一、指针碰撞（Bump-the-Pointer）1. 原理假设堆内存是规整的——所有已使用的对象紧密排列在一端，空闲内存连续在另一端，中间只有一个分界指针（top pointer）作为边界。 分配新对象时：  检查空闲空间是否足够（top + size &lt;= end）。 如果够，直接将 top指针向后移动 size字节。 返回原来的 top地址给新对象。  整个过程就像推土机向前推进，一步到位，没有复杂计算。 1234567初始：|  已使用对象  |              空闲内存               |              ↑ top                            ↑ end分配对象 A 后：|  已使用对象  |  A  |         空闲内存          |                   ↑ top                       ↑ end  2. 适用条件 堆内存必须规整（无碎片）。 通常用于复制算法（年轻代）或标记-整理算法（老年代）。  3. 优点 极快：仅一次指针加法，无复杂数据结构操...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/error-page.svg'" alt="avatar"/></div><div class="author-info-name">zzc-blog</div><div class="author-info-description">一个热爱编程的后端开发者</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">13</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/zzc-blog"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/zzc-blog" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的博客！这里主要分享技术和生活。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%AD%97%E8%8A%82%E7%A0%81"><span class="toc-text">什么是字节码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#JVM-%E5%B9%B3%E5%8F%B0%E4%B8%8A%E7%9A%84%E5%AD%97%E8%8A%82%E7%A0%81%E6%96%87%E4%BB%B6"><span class="toc-text">JVM 平台上的字节码文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%97%E8%8A%82%E7%A0%81%E6%96%87%E4%BB%B6%E4%B8%8E%E5%BA%8F%E5%88%97%E5%8C%96%E6%95%B0%E6%8D%AE"><span class="toc-text">字节码文件与序列化数据</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E8%8A%82%E7%A0%81%E7%BB%93%E6%9E%84"><span class="toc-text">字节码结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E8%8A%82%E7%A0%81%E6%96%87%E4%BB%B6%E6%95%B4%E4%BD%93%E7%BB%93%E6%9E%84%E6%80%BB%E8%A7%88"><span class="toc-text">字节码文件整体结构总览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%89%88%E6%9C%AC%E5%8F%B7%EF%BC%88Minor-Version-Major-Version%EF%BC%89"><span class="toc-text">版本号（Minor Version &amp; Major Version）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BF%E9%97%AE%E6%A0%87%E5%BF%97%EF%BC%88access-flags%EF%BC%89"><span class="toc-text">访问标志（access_flags）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E9%87%8F%E6%B1%A0%E7%BB%93%E6%9E%84"><span class="toc-text">常量池结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E6%AE%B5%E8%A1%A8"><span class="toc-text">字段表</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%AB%E2%80%9C%E8%A1%A8%E2%80%9D%EF%BC%9F"><span class="toc-text">为什么叫“表”？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E8%A1%A8"><span class="toc-text">方法表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B1%9E%E6%80%A7%E8%A1%A8"><span class="toc-text">属性表</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Code-%E5%B1%9E%E6%80%A7%EF%BC%88%E6%96%B9%E6%B3%95%E4%BD%93%EF%BC%89"><span class="toc-text">Code 属性（方法体）</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/7025a55b/" title="JDK 工具"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/cover/reading.jpg" onerror="this.onerror=null;this.src='/img/default_top_img.svg'" alt="JDK 工具"/></a><div class="content"><a class="title" href="/posts/7025a55b/" title="JDK 工具">JDK 工具</a><time datetime="2026-07-10T11:24:57.000Z" title="发表于 2026-07-10 19:24:57">2026-07-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/d88f5f05/" title="字节码文件解析"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/cover/frontend.jpg" onerror="this.onerror=null;this.src='/img/default_top_img.svg'" alt="字节码文件解析"/></a><div class="content"><a class="title" href="/posts/d88f5f05/" title="字节码文件解析">字节码文件解析</a><time datetime="2026-07-10T02:44:05.000Z" title="发表于 2026-07-10 10:44:05">2026-07-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/f41a237a/" title="指针碰撞与空闲列表"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/cover/essay.jpg" onerror="this.onerror=null;this.src='/img/default_top_img.svg'" alt="指针碰撞与空闲列表"/></a><div class="content"><a class="title" href="/posts/f41a237a/" title="指针碰撞与空闲列表">指针碰撞与空闲列表</a><time datetime="2026-07-08T08:22:07.000Z" title="发表于 2026-07-08 16:22:07">2026-07-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/72f47432/" title="垃圾回收"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/cover/database.jpg" onerror="this.onerror=null;this.src='/img/default_top_img.svg'" alt="垃圾回收"/></a><div class="content"><a class="title" href="/posts/72f47432/" title="垃圾回收">垃圾回收</a><time datetime="2026-07-07T04:24:41.000Z" title="发表于 2026-07-07 12:24:41">2026-07-07</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/ffb663c0/" title="String字符串"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/cover/other.jpg" onerror="this.onerror=null;this.src='/img/default_top_img.svg'" alt="String字符串"/></a><div class="content"><a class="title" href="/posts/ffb663c0/" title="String字符串">String字符串</a><time datetime="2026-07-07T03:02:37.000Z" title="发表于 2026-07-07 11:02:37">2026-07-07</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/img/footer-bg.svg);"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By zzc-blog</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.5</a></span></div><div class="footer_custom_text"><i class="fas fa-heart" style="color: #FF7242"></i> 保持热爱，奔赴山海</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><script src="/js/tw_cn.js?v=5.5.5"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1.14/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page@5.2.0/instantpage.min.js" type="module"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@19.1.3/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.js"></script><div class="js-pjax"><script>(async () => {
+  const showKatex = () => {
+    document.querySelectorAll('#article-container .katex').forEach(el => el.classList.add('katex-show'))
+  }
+
+  if (!window.katex_js_css) {
+    window.katex_js_css = true
+    await btf.getCSS('https://cdn.jsdelivr.net/npm/katex@0.17.0/dist/katex.min.css')
+    if (false) {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/katex@0.17.0/dist/contrib/copy-tex.min.js')
+    }
+  }
+
+  showKatex()
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (false) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.15.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.5" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/click-heart.min.js" async="async" mobile="false"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章..." type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>
