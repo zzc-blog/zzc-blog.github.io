@@ -1,0 +1,644 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>位运算 | zzc-blog</title><meta name="author" content="zzc-blog"><meta name="copyright" content="zzc-blog"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="1. 原码、反码、补码 正数的原码、反码、补码都一样 负数的原码，就是最高位使用符号 1，代表负数，如 8bit 表示：10000010 代表 -2 的原码，反码就是符号为不变，其他位按位取反（0-> 1,1-> 0），得到 11111101,  补码=反码 + 1，得到补码：11111110  8 位来算：2 的补码 + -2 的补码 = 0000 0010 + 1111">
+<meta property="og:type" content="article">
+<meta property="og:title" content="位运算">
+<meta property="og:url" content="https://zzc-blog.github.io/posts/2633a26/index.html">
+<meta property="og:site_name" content="zzc-blog">
+<meta property="og:description" content="1. 原码、反码、补码 正数的原码、反码、补码都一样 负数的原码，就是最高位使用符号 1，代表负数，如 8bit 表示：10000010 代表 -2 的原码，反码就是符号为不变，其他位按位取反（0-> 1,1-> 0），得到 11111101,  补码=反码 + 1，得到补码：11111110  8 位来算：2 的补码 + -2 的补码 = 0000 0010 + 1111">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zzc-blog.github.io/cover/2.webp">
+<meta property="article:published_time" content="2026-08-24T04:34:29.000Z">
+<meta property="article:modified_time" content="2026-08-24T07:17:06.138Z">
+<meta property="article:author" content="zzc-blog">
+<meta property="article:tag" content="位运算">
+<meta property="article:tag" content="网络传输">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://zzc-blog.github.io/cover/2.webp"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "位运算",
+  "url": "https://zzc-blog.github.io/posts/2633a26/",
+  "image": "https://zzc-blog.github.io/cover/2.webp",
+  "datePublished": "2026-08-24T04:34:29.000Z",
+  "dateModified": "2026-08-24T07:17:06.138Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "zzc-blog",
+      "url": "https://zzc-blog.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.webp"><link rel="canonical" href="https://zzc-blog.github.io/posts/2633a26/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="//busuanzi.ibruce.info"><link rel="manifest" href="/manifest.json"><link rel="apple-touch-icon" sizes="180x180" href="/img/avarte.webp"><link rel="icon" type="image/png" sizes="32x32" href="/img/favicon.webp"><link rel="icon" type="image/png" sizes="16x16" href="/img/favicon.webp"><link rel="mask-icon" href="/img/avarte.webp" color="#5bbad5"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":true,"pagination":{"enable":true,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":true,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: zzc-blog","link":"链接: ","source":"来源: zzc-blog","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: true,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '位运算',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="preload" href="/cover/2.webp" as="image"><style>#footer,#footer a,#footer .copyright,#footer .framework-info,#footer .footer_custom_text{color:#FFFFFFB3}#footer a:hover{color:#49B1F5}</style><script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js')})}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="zzc-blog" type="application/atom+xml">
+<script>function loadCss(l){var d=document,h=d.head,s=d.createElement('link');s.rel='stylesheet';s.href=l;!function e(f){if (d.body)return f();setTimeout(function(){e(f)})}(function(){h.appendChild(s);});}loadCss('/style.css');loadCss('https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css');loadCss('https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.css');loadCss('https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1.14/dist/fancybox/fancybox.min.css');loadCss('https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css');</script><noscript><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1.14/dist/fancybox/fancybox.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css"></noscript></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      if ($loadingBox.classList.contains('loaded')) return
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+
+  if (document.readyState === 'complete') {
+    preloader.endLoading()
+  } else {
+    window.addEventListener('load', preloader.endLoading)
+    document.addEventListener('DOMContentLoaded', preloader.endLoading)
+    // Add timeout protection: force end after 7 seconds
+    setTimeout(preloader.endLoading, 7000)
+  }
+
+  if (true) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div class="bg-animation" id="web_bg" style="background-image: url(/cover/7.webp);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avarte.webp" onerror="this.onerror=null;this.src='/img/error-page.svg'" alt="avatar"></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">14</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">24</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-heart"></i><span> 关于</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-info-circle"></i><span> 关于本站</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(/cover/2.webp);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">zzc-blog</span></a><a class="nav-page-title" href="/"><span class="site-name">位运算</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-heart"></i><span> 关于</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-info-circle"></i><span> 关于本站</span></a></li></ul></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">位运算</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-08-24T04:34:29.000Z" title="发表于 2026-08-24 12:34:29">2026-08-24</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-24T07:17:06.138Z" title="更新于 2026-08-24 15:17:06">2026-08-24</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java/">Java</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>9分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:365,&quot;messagePrev&quot;:&quot;本文最后更新于&quot;,&quot;messageNext&quot;:&quot;天前，部分内容可能已过时，请注意辨别。&quot;,&quot;postUpdate&quot;:&quot;2026-08-24 15:17:06&quot;}" hidden=""></div><h2 id="1-原码、反码、补码"><a href="#1-原码、反码、补码" class="headerlink" title="1. 原码、反码、补码"></a>1. 原码、反码、补码</h2><ol>
+<li>正数的原码、反码、补码都一样</li>
+<li>负数的原码，就是最高位使用符号 1，代表负数，如 8bit 表示：<code>10000010</code> 代表 <code>-2</code> 的原码，反码就是符号为不变，其他位按位取反（0-&gt; 1,1-&gt; 0），得到 <code>11111101</code>,</li>
+</ol>
+<p><code>补码=反码 + 1</code>，得到补码：<code>11111110</code></p>
+<blockquote>
+<p>8 位来算：2 的补码 + -2 的补码 = 0000 0010 + 1111 1110 = 1 0000 0000，溢出，相当于 0</p>
+</blockquote>
+<ol start="3">
+<li>计算机中的计算都是使用补码来算的，底层存储的 bit 都是一样的，只是解读方式不一样</li>
+</ol>
+<blockquote>
+<p>A - B = A + (-B), A-B 相当于 加上 -B 的补码，-B = ~B + 1</p>
+</blockquote>
+<h2 id="2-int-类型-转-二进制（字符串表示）"><a href="#2-int-类型-转-二进制（字符串表示）" class="headerlink" title="2. int 类型 转 二进制（字符串表示）"></a>2. int 类型 转 二进制（字符串表示）</h2><figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 方法一，思路：</span></span><br><span class="line"><span class="comment">     * 从高位开始，每一位都一道最低位与1 进行 按位与，提取出该位，</span></span><br><span class="line"><span class="comment">     * 再使用 StringBuilder 拼接</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> n</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> String <span class="title function_">int2Binary</span><span class="params">(<span class="type">int</span> n)</span> {</span><br><span class="line">        <span class="comment">//System.out.println(Integer.toBinaryString(a));</span></span><br><span class="line">        <span class="type">StringBuilder</span> <span class="variable">sb</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringBuilder</span>();</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">31</span>; i &gt;= <span class="number">0</span>; i--) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">bit</span> <span class="operator">=</span> (n &gt;&gt;&gt; i) &amp; <span class="number">1</span>;</span><br><span class="line">            sb.append(bit);</span><br><span class="line">            <span class="comment">// 每 8 bit 分隔一下</span></span><br><span class="line">            <span class="comment">// 00000000 00000000 00000000 00000101</span></span><br><span class="line">            <span class="keyword">if</span> (i % <span class="number">8</span> == <span class="number">0</span> &amp;&amp; i != <span class="number">0</span>) {</span><br><span class="line">                sb.append(<span class="string">" "</span>);</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> sb.toString();</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 掩码：面具（mask）：0 代表遮住，1 代表露出来。</span></span><br><span class="line"><span class="comment">     * 得到 int 类型数字的二进制形式 （String表示）</span></span><br><span class="line"><span class="comment">     * `(1 &lt;&lt; i) &amp; n`得到的是**掩码**，</span></span><br><span class="line"><span class="comment">     * 该位为 1 时返回这个位的权重值（4、8、16…），</span></span><br><span class="line"><span class="comment">     * **不是 1**，不能直接 append；要判断`!=0`</span></span><br><span class="line"><span class="comment">     * 输出字符`'1'/'0'`。</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> n</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> String <span class="title function_">intToBinary</span><span class="params">(<span class="type">int</span> n)</span> {</span><br><span class="line">        <span class="type">StringBuilder</span> <span class="variable">sb</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringBuilder</span>();</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">31</span>; i &gt;= <span class="number">0</span>; i--) {</span><br><span class="line">            <span class="comment">// 00000000 00000000 00000000 00000101</span></span><br><span class="line">            <span class="comment">// 00000000 00000000 00000000 00000001</span></span><br><span class="line">            <span class="type">int</span> <span class="variable">bit</span> <span class="operator">=</span> (<span class="number">1</span> &lt;&lt; i) &amp; n;</span><br><span class="line">            <span class="keyword">if</span> (bit != <span class="number">0</span>) {</span><br><span class="line">                sb.append(<span class="string">"1"</span>);</span><br><span class="line">            } <span class="keyword">else</span> {</span><br><span class="line">                sb.append(<span class="string">"0"</span>);</span><br><span class="line">            }</span><br><span class="line">            <span class="keyword">if</span> (i % <span class="number">8</span> == <span class="number">0</span> &amp;&amp; i != <span class="number">0</span>) {</span><br><span class="line">                sb.append(<span class="string">" "</span>);</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> sb.toString();</span><br><span class="line">    }</span><br></pre></td></tr></tbody></table></figure>
+
+<p><code>注：其他类型，比如 long,byte,short转 binary 也一样，只需要各数据类型实际的位数即可</code></p>
+<h2 id="3-long-转字节数组-相互转换"><a href="#3-long-转字节数组-相互转换" class="headerlink" title="3. long 转字节数组 相互转换"></a>3. long 转字节数组 相互转换</h2><p><strong>为什么要进行转换？</strong></p>
+<p>答：long 在 Java 是 <strong>64 位，8 个字节</strong>。网络传输，要把一个 64 位 long 数字，拆成 8 个 byte 字节数组，才能放到网络报文里发送。</p>
+<p><strong>为什么网络只能一个字节一个字节往外发，不能直接发 64 位 long？</strong></p>
+<p><strong>1、硬件底层：网卡、TCP/IP 协议，设计的传输单位就是字节（8bit）</strong></p>
+<blockquote>
+<p>网卡在物理链路上，是以比特 bit 一位一位传的，但是协议层把 8 个 bit 打包成 1 个<strong>字节 byte</strong>，作为最小处理单元。</p>
+</blockquote>
+<p><strong>2、TCP 是字节流协议</strong></p>
+<p>TCP 是<strong>面向字节流</strong>：它传输的是一串无差别的字节序列。 TCP 只关心：“我要发送 N 个字节的数据”，它完全不懂上层的 Java 数据类型：long、int、double。</p>
+<p>TCP 的 socket 发送接口：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//输出流，只能丢byte[]字节数组</span></span><br><span class="line">outputStream.write(<span class="type">byte</span>[]);</span><br></pre></td></tr></tbody></table></figure>
+
+<p><strong>3、还有一个致命问题：大小端（字节序）</strong></p>
+<p>就算假设网卡可以直接丢 64 位整数：</p>
+<ul>
+<li>有的 CPU 是<strong>小端</strong>：内存里低字节放前面；</li>
+<li>有的 CPU 是<strong>大端</strong>：内存里高字节放前面。</li>
+</ul>
+<blockquote>
+<p>同一 long 数字，在不同 CPU 内存里，字节摆放顺序是反过来的。 如果直接把内存里的 long 二进制原样丢上网络，小端机器发的数据，大端机器收到解析出来就是完全错误的数字。</p>
+</blockquote>
+<p>所以网络协议强制约定：<strong>统一使用大端序（网络字节序）</strong>。 我们的<code>longToBytes</code>，就是手动按大端顺序，把 long 拆成字节数组。</p>
+<p><strong>4、内存存储 vs 网络传输，两件不一样的事</strong></p>
+<ol>
+<li><strong>CPU 内存里的 long</strong>：64 位，8 字节，CPU 可以直接读写，受本机 CPU 字节序影响。</li>
+<li><strong>网络上传输</strong>：跨机器通信，必须定义一个<strong>与 CPU 无关的标准二进制格式</strong>，也就是大端字节数组。</li>
+</ol>
+<blockquote>
+<p>直接把内存的 long 扔网络：不同机器解析结果不一样，协议就乱套。 所以必须我们手动做转换：long → 大端 byte []。</p>
+</blockquote>
+<p><strong>实战代码：</strong></p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment">/**</span></span><br><span class="line"><span class="comment"> * long 转字节数组</span></span><br><span class="line"><span class="comment"> * `8*(7‑i)`：计算右移步数，每次把目标字节挪到最右边。</span></span><br><span class="line"><span class="comment"> * `&amp;0xFF`清除符号扩展带来的高位垃圾，拿到真实字节值。</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> num</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">byte</span>[] longToBytes(<span class="type">long</span> num) {</span><br><span class="line">    <span class="comment">// 创建长度为 8 的 byte 数组</span></span><br><span class="line">    <span class="type">byte</span>[] bytes = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">8</span>];</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; <span class="number">8</span>; i++) {</span><br><span class="line">        bytes[i] = (<span class="type">byte</span>) ((num &gt;&gt; (<span class="number">8</span> * (<span class="number">7</span> - i)) &amp; <span class="number">0xFF</span>));</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">return</span> bytes;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 字节数组 转 long</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> bytes</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">long</span> <span class="title function_">BytesToLong</span><span class="params">(<span class="type">byte</span>[] bytes)</span> {</span><br><span class="line">    <span class="type">long</span> <span class="variable">res</span> <span class="operator">=</span> <span class="number">0L</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">byte</span> b : bytes) {</span><br><span class="line">        res = (res &lt;&lt; <span class="number">8</span>) | (b &amp; <span class="number">0xFF</span>);</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">return</span> res;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p><strong>练习：int 和 byte[] 之间的相互转换</strong></p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">     * int 转字节数组，大端（高位放在前）</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> num</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">byte</span>[] intToBytes(<span class="type">int</span> num) {</span><br><span class="line">        <span class="type">byte</span>[] bytes = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">4</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; <span class="number">4</span>; i++) {</span><br><span class="line">            bytes[i] = (<span class="type">byte</span>) ((num &gt;&gt; <span class="number">8</span> * (<span class="number">3</span> - i)) &amp; <span class="number">0xFF</span>);</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> bytes;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * byte[] 转 int</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> bytes</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">BytesToInt</span><span class="params">(<span class="type">byte</span>[] bytes)</span> {</span><br><span class="line">        <span class="type">int</span> <span class="variable">res</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">byte</span> b : bytes) {</span><br><span class="line">            res = (res &lt;&lt; <span class="number">8</span>) | (b &amp; <span class="number">0xFF</span>);</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    }</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="4-socket-实现文件上传，其中使用了-long-转-byte-int-转byte"><a href="#4-socket-实现文件上传，其中使用了-long-转-byte-int-转byte" class="headerlink" title="4. socket 实现文件上传，其中使用了 long 转 byte[], int 转byte[]"></a>4. socket 实现文件上传，其中使用了 long 转 byte[], int 转byte[]</h2><p>客户端代码：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.apitest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"><span class="keyword">import</span> java.net.Socket;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> zhangzhicai</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@version</span> 1.0</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@description</span>: 文件上传</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2026/8/24 13:23</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">FileUpload</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        <span class="comment">// 指定文件路径</span></span><br><span class="line">        <span class="type">File</span> <span class="variable">file</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">File</span>(<span class="string">"D:\\Pictures\\照片\\IMG_0639.JPG"</span>);</span><br><span class="line">        <span class="comment">// 获取文件名</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">fileName</span> <span class="operator">=</span> file.getName();</span><br><span class="line">        <span class="comment">// 获取文件大小，单位：字节</span></span><br><span class="line">        <span class="type">long</span> <span class="variable">fileLen</span> <span class="operator">=</span> file.length();</span><br><span class="line">        <span class="comment">// 使用 try-with-resource方法</span></span><br><span class="line">        <span class="keyword">try</span> (<span class="type">FileInputStream</span> <span class="variable">fi</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">FileInputStream</span>(file);</span><br><span class="line">             <span class="type">BufferedInputStream</span> <span class="variable">bi</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">BufferedInputStream</span>(fi);</span><br><span class="line">             <span class="type">Socket</span> <span class="variable">socket</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Socket</span>(<span class="string">"localhost"</span>, <span class="number">9999</span>);</span><br><span class="line">             <span class="type">OutputStream</span> <span class="variable">os</span> <span class="operator">=</span> socket.getOutputStream()) {</span><br><span class="line">            <span class="comment">// 1.文件名</span></span><br><span class="line">            <span class="type">byte</span>[] fileNameBytes = fileName.getBytes();</span><br><span class="line">            <span class="comment">// 2.发送文件扩展名的字节长度</span></span><br><span class="line">            <span class="type">byte</span>[] nameLenBuf = intToBytes(fileNameBytes.length);</span><br><span class="line">            os.write(nameLenBuf);</span><br><span class="line">            <span class="comment">// 3.发送文件名</span></span><br><span class="line">            os.write(fileNameBytes);</span><br><span class="line">            <span class="comment">// 3.发文件大小</span></span><br><span class="line">            <span class="type">byte</span>[] bytes = longToBytes(fileLen);</span><br><span class="line">            os.write(bytes);</span><br><span class="line">            <span class="comment">// 4.发文件二进制</span></span><br><span class="line">            <span class="type">int</span> len;</span><br><span class="line">            <span class="type">byte</span>[] buf = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">1024</span> * <span class="number">4</span>];</span><br><span class="line">            <span class="keyword">while</span> ((len = bi.read(buf)) != -<span class="number">1</span>) {</span><br><span class="line">                os.write(buf, <span class="number">0</span>, len);</span><br><span class="line">            }</span><br><span class="line">            <span class="comment">// TCP Socket 的输出流内部也有缓冲区。</span></span><br><span class="line">            <span class="comment">//write() 只是把数据写到 JDK 内存缓冲区，不一定立刻发给对面服务端。</span></span><br><span class="line">            <span class="comment">//os.flush()：强制把缓冲区里所有残留字节，发送到网络，发给对方。</span></span><br><span class="line">            <span class="comment">// 不是必须的</span></span><br><span class="line">            <span class="comment">// 原因：try‑with‑resources结束，会自动调用bo.close()，close()内部会先执行flush()，把缓冲区全部写到文件。</span></span><br><span class="line">            os.flush();</span><br><span class="line">            System.out.println(<span class="string">"发送完成！"</span>);</span><br><span class="line">        } <span class="keyword">catch</span> (IOException e) {</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(e);</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * long 转大端 8 字节数组</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> num</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">byte</span>[] longToBytes(<span class="type">long</span> num) {</span><br><span class="line">        <span class="comment">// 创建长度为 8 的 byte 数组</span></span><br><span class="line">        <span class="type">byte</span>[] bytes = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">8</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; <span class="number">8</span>; i++) {</span><br><span class="line">            bytes[i] = (<span class="type">byte</span>) ((num &gt;&gt; (<span class="number">8</span> * (<span class="number">7</span> - i)) &amp; <span class="number">0xFF</span>));</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> bytes;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * int转大端4字节数组</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">byte</span>[] intToBytes(<span class="type">int</span> num) {</span><br><span class="line">        <span class="type">byte</span>[] bytes = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">4</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; <span class="number">4</span>; i++) {</span><br><span class="line">            bytes[i] = (<span class="type">byte</span>) ((num &gt;&gt; (<span class="number">8</span> * (<span class="number">3</span> - i))) &amp; <span class="number">0xFF</span>);</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> bytes;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>服务端代码：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.apitest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"><span class="keyword">import</span> java.net.ServerSocket;</span><br><span class="line"><span class="keyword">import</span> java.net.Socket;</span><br><span class="line"><span class="keyword">import</span> java.util.UUID;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> zhangzhicai</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@version</span> 1.0</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@description</span>: TODO</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2026/8/24 13:25</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">FileServer</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        <span class="comment">// 保存目录，不是完整文件！</span></span><br><span class="line">        <span class="type">File</span> <span class="variable">saveDir</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">File</span>(<span class="string">"E:\\test\\img\\"</span>);</span><br><span class="line">        <span class="comment">// 文件夹不存在就创建</span></span><br><span class="line">        <span class="keyword">if</span> (!saveDir.exists()) {</span><br><span class="line">            saveDir.mkdirs();</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">try</span> (<span class="type">ServerSocket</span> <span class="variable">serverSocket</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ServerSocket</span>(<span class="number">9999</span>);) {</span><br><span class="line">            System.out.println(<span class="string">"文件服务器在运行..."</span>);</span><br><span class="line">            <span class="comment">// 使用 while 循环，保持服务端一直运行</span></span><br><span class="line">            <span class="keyword">while</span> (<span class="literal">true</span>) {</span><br><span class="line">                <span class="keyword">try</span> (<span class="type">Socket</span> <span class="variable">socket</span> <span class="operator">=</span> serverSocket.accept();</span><br><span class="line">                     <span class="type">InputStream</span> <span class="variable">is</span> <span class="operator">=</span> socket.getInputStream()) {</span><br><span class="line">                    <span class="comment">// 1.接收文件名长度,4 字节</span></span><br><span class="line">                    <span class="type">byte</span>[] fileNameBytes = is.readNBytes(<span class="number">4</span>);</span><br><span class="line">                    <span class="keyword">if</span> (fileNameBytes.length != <span class="number">4</span>) {</span><br><span class="line">                        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IOException</span>(<span class="string">"读取文件长度失败，数据流提前断开，只读到："</span> + fileNameBytes.length + <span class="string">"字节"</span>);</span><br><span class="line">                    }</span><br><span class="line">                    <span class="comment">// 将读取的4 字节bytes，转为int</span></span><br><span class="line">                    <span class="type">int</span> <span class="variable">fileNameLen</span> <span class="operator">=</span> bytesToInt(fileNameBytes);</span><br><span class="line">                    <span class="comment">// 2.接收文件名</span></span><br><span class="line">                    <span class="type">byte</span>[] fileNameBuf = is.readNBytes(fileNameLen);</span><br><span class="line">                    <span class="type">String</span> <span class="variable">fileName</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">String</span>(fileNameBuf, <span class="number">0</span>, fileNameLen);</span><br><span class="line">                    <span class="comment">// 获取文件后缀</span></span><br><span class="line">                    String[] strings = fileName.split(<span class="string">"\\."</span>);</span><br><span class="line">                    <span class="type">String</span> <span class="variable">suffix</span> <span class="operator">=</span> strings[<span class="number">1</span>];</span><br><span class="line">                    <span class="comment">// 3.读取 8 字节，为 文件大小</span></span><br><span class="line">                    <span class="type">byte</span>[] lenBuf = is.readNBytes(<span class="number">8</span>);</span><br><span class="line">                    <span class="keyword">if</span> (lenBuf.length != <span class="number">8</span>) {</span><br><span class="line">                        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IOException</span>(<span class="string">"读取文件长度失败，数据流提前断开，只读到："</span> + lenBuf.length + <span class="string">"字节"</span>);</span><br><span class="line">                    }</span><br><span class="line">                    <span class="type">long</span> <span class="variable">fileLen</span> <span class="operator">=</span> BytesToLong(lenBuf);</span><br><span class="line">                    <span class="comment">// 4. 读二进制文件</span></span><br><span class="line">                    <span class="comment">// 使用 UUID 生成上传后文件名</span></span><br><span class="line">                    fileName = UUID.randomUUID() + <span class="string">"."</span> + suffix;</span><br><span class="line">                    fileName = fileName.replace(<span class="string">"-"</span>, <span class="string">""</span>);</span><br><span class="line">                    <span class="type">File</span> <span class="variable">file</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">File</span>(saveDir, fileName);</span><br><span class="line">                    <span class="keyword">try</span> (<span class="type">FileOutputStream</span> <span class="variable">fo</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">FileOutputStream</span>(file);</span><br><span class="line">                         <span class="type">BufferedOutputStream</span> <span class="variable">bo</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">BufferedOutputStream</span>(fo);) {</span><br><span class="line">                        <span class="type">byte</span>[] buf = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">1024</span> * <span class="number">4</span>];</span><br><span class="line">                        <span class="type">int</span> len;</span><br><span class="line">                        <span class="type">long</span> <span class="variable">totalLen</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">                        <span class="comment">// 判断 totalLen &lt; fileLen,读取的文件大小是否到达文件总大小</span></span><br><span class="line">                        <span class="comment">// `in.read()` 返回 `-1` 的含义：**Socket 连接对方正常关闭输出流**。</span></span><br><span class="line">                        <span class="keyword">while</span> (totalLen &lt; fileLen &amp;&amp; (len = is.read(buf)) != -<span class="number">1</span>) {</span><br><span class="line">                            bo.write(buf, <span class="number">0</span>, len);</span><br><span class="line">                            totalLen += len;</span><br><span class="line">                        }</span><br><span class="line">                        <span class="comment">// 内部有一块内存缓冲区，write() 并不会立刻把字节写到磁盘文件，先写到内存缓冲区；缓冲区满了，才会自动刷入磁盘。</span></span><br><span class="line">                        <span class="comment">//bo.flush()：强制把缓冲区里残留的数据全部写入磁盘文件，清空缓冲区。</span></span><br><span class="line">                        bo.flush();</span><br><span class="line">                        System.out.println(<span class="string">"接收成功！"</span>);</span><br><span class="line">                        System.out.println(<span class="string">"文件名："</span> + fileName);</span><br><span class="line">                        System.out.println(<span class="string">"存储路径："</span> + file.getAbsolutePath());</span><br><span class="line">                    }</span><br><span class="line">                }</span><br><span class="line">            }</span><br><span class="line">        } <span class="keyword">catch</span> (IOException e) {</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(e);</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 字节数组 转 long</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> bytes</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">long</span> <span class="title function_">BytesToLong</span><span class="params">(<span class="type">byte</span>[] bytes)</span> {</span><br><span class="line">        <span class="type">long</span> <span class="variable">res</span> <span class="operator">=</span> <span class="number">0L</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">byte</span> b : bytes) {</span><br><span class="line">            res = (res &lt;&lt; <span class="number">8</span>) | (b &amp; <span class="number">0xFF</span>);</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 字节数组转 int</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> bytes</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">bytesToInt</span><span class="params">(<span class="type">byte</span>[] bytes)</span> {</span><br><span class="line">        <span class="type">int</span> <span class="variable">num</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">byte</span> b : bytes) {</span><br><span class="line">            num = (num &lt;&lt; <span class="number">8</span>) | (b &amp; <span class="number">0xFF</span>);</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> num;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://zzc-blog.github.io">zzc-blog</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://zzc-blog.github.io/posts/2633a26/">https://zzc-blog.github.io/posts/2633a26/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://zzc-blog.github.io" target="_blank">zzc-blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E4%BD%8D%E8%BF%90%E7%AE%97/">位运算</a><a class="post-meta__tags" href="/tags/%E7%BD%91%E7%BB%9C%E4%BC%A0%E8%BE%93/">网络传输</a></div><div class="post-share"><div class="social-share" data-image="/cover/2.webp" data-sites="wechat,weibo,qq,qzone"></div><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer=""></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/posts/2779e0a0/" title="手机变服务器：Termux + proot Ubuntu 家庭服务器全栈部署完全指南"><img class="cover" src="/cover/10.webp" onerror="onerror=null;src='/img/default_top_img.svg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">手机变服务器：Termux + proot Ubuntu 家庭服务器全栈部署完全指南</div></div><div class="info-2"><div class="info-item-1">手机变服务器：Termux + proot Ubuntu 个人服务器全栈部署完全指南 一台闲置的 Android 手机，跑起 Termux + proot-distro 的 Ubuntu 容器，就能承载博客、图库、搜索引擎、词典、网盘、对象存储、内网穿透、代理、数据库等十几个服务。本文从零开始，把环境搭建、核心服务部署、公网访问与运维排错整合成一份完整指南。  目录 Termux 入门与基础配置 Ubuntu Server 安装与基础配置 proot 容器服务自启动原理 Nginx 网关与站点配置 Hexo 博客部署与自动化运维 MinIO 对象存储与图床 SearXNG 元搜索引擎 OALD10 网页词典 Alist 文件云盘 内网穿透与远程访问 mihomo 科学上网代理 MySQL / MariaDB 数据库 服务管理脚本体系与故障排查   一、Termux 入门与基础配置Termux 是安卓无 root 运行的 Linux 终端模拟器，可以把一台闲置手机变成便携式 Linux 服务器。 1.1 安装与首次配置版本注意：不要安装 Google Play 上的旧版 ...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avarte.webp" onerror="this.onerror=null;this.src='/img/error-page.svg'" alt="avatar"></div><div class="author-info-name">zzc-blog</div><div class="author-info-description">一个热爱编程的后端开发者</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">14</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">24</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/zzc-blog"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/zzc-blog" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的博客！这里主要分享技术和生活。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%8E%9F%E7%A0%81%E3%80%81%E5%8F%8D%E7%A0%81%E3%80%81%E8%A1%A5%E7%A0%81"><span class="toc-text">1. 原码、反码、补码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-int-%E7%B1%BB%E5%9E%8B-%E8%BD%AC-%E4%BA%8C%E8%BF%9B%E5%88%B6%EF%BC%88%E5%AD%97%E7%AC%A6%E4%B8%B2%E8%A1%A8%E7%A4%BA%EF%BC%89"><span class="toc-text">2. int 类型 转 二进制（字符串表示）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-long-%E8%BD%AC%E5%AD%97%E8%8A%82%E6%95%B0%E7%BB%84-%E7%9B%B8%E4%BA%92%E8%BD%AC%E6%8D%A2"><span class="toc-text">3. long 转字节数组 相互转换</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-socket-%E5%AE%9E%E7%8E%B0%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%EF%BC%8C%E5%85%B6%E4%B8%AD%E4%BD%BF%E7%94%A8%E4%BA%86-long-%E8%BD%AC-byte-int-%E8%BD%ACbyte"><span class="toc-text">4. socket 实现文件上传，其中使用了 long 转 byte[], int 转byte[]</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/2633a26/" title="位运算"><img src="/cover/2.webp" onerror="this.onerror=null;this.src='/img/default_top_img.svg'" alt="位运算"></a><div class="content"><a class="title" href="/posts/2633a26/" title="位运算">位运算</a><time datetime="2026-08-24T04:34:29.000Z" title="发表于 2026-08-24 12:34:29">2026-08-24</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/2779e0a0/" title="手机变服务器：Termux + proot Ubuntu 家庭服务器全栈部署完全指南"><img src="/cover/10.webp" onerror="this.onerror=null;this.src='/img/default_top_img.svg'" alt="手机变服务器：Termux + proot Ubuntu 家庭服务器全栈部署完全指南"></a><div class="content"><a class="title" href="/posts/2779e0a0/" title="手机变服务器：Termux + proot Ubuntu 家庭服务器全栈部署完全指南">手机变服务器：Termux + proot Ubuntu 家庭服务器全栈部署完全指南</a><time datetime="2026-08-15T16:00:00.000Z" title="发表于 2026-08-16 00:00:00">2026-08-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/13fe9115/" title="Hexo 博客部署运维"><img src="/cover/14.webp" onerror="this.onerror=null;this.src='/img/default_top_img.svg'" alt="Hexo 博客部署运维"></a><div class="content"><a class="title" href="/posts/13fe9115/" title="Hexo 博客部署运维">Hexo 博客部署运维</a><time datetime="2026-07-30T09:24:57.000Z" title="发表于 2026-07-30 17:24:57">2026-07-30</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/7025a55b/" title="GitHub 图床 + Cloudflare Worker 加速代理"><img src="/cover/3.webp" onerror="this.onerror=null;this.src='/img/default_top_img.svg'" alt="GitHub 图床 + Cloudflare Worker 加速代理"></a><div class="content"><a class="title" href="/posts/7025a55b/" title="GitHub 图床 + Cloudflare Worker 加速代理">GitHub 图床 + Cloudflare Worker 加速代理</a><time datetime="2026-07-30T07:43:57.000Z" title="发表于 2026-07-30 15:43:57">2026-07-30</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/eac10654/" title="Android 私有云搭建与内网穿透完全指南"><img src="/cover/12.webp" onerror="this.onerror=null;this.src='/img/default_top_img.svg'" alt="Android 私有云搭建与内网穿透完全指南"></a><div class="content"><a class="title" href="/posts/eac10654/" title="Android 私有云搭建与内网穿透完全指南">Android 私有云搭建与内网穿透完全指南</a><time datetime="2026-07-30T07:42:57.000Z" title="发表于 2026-07-30 15:42:57">2026-07-30</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/cover/4.webp);"><div class="footer-other"><div class="footer-copyright"><span class="copyright">©&nbsp;2025 - 2026 By zzc-blog</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.5</a></span></div><div class="footer_custom_text"><i class="fas fa-heart" style="color: #FF7242"></i> 保持热爱，奔赴山海</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1.14/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page@5.2.0/instantpage.min.js" type="module"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.js"></script><div class="js-pjax"></div><script id="canvas_nest" defer="defer" color="73,177,245" opacity="0.5" zindex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/click-heart.min.js" async="async" mobile="false"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script async="" data-pjax="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章..." type="text"></div><hr><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div></div></div><script src="/bundle.js"></script><script>(async () => {
+  const showKatex = () => {
+    document.querySelectorAll('#article-container .katex').forEach(el => el.classList.add('katex-show'))
+  }
+
+  if (!window.katex_js_css) {
+    window.katex_js_css = true
+    await btf.getCSS('https://cdn.jsdelivr.net/npm/katex@0.17.0/dist/katex.min.css')
+    if (false) {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/katex@0.17.0/dist/contrib/copy-tex.min.js')
+    }
+  }
+
+  showKatex()
+})();
+(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (false) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.15.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})();
+document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script></body></html>
