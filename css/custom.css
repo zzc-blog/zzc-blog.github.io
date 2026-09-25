@@ -235,17 +235,6 @@ textarea {
   font-weight: 400;
 }
 
-/* 代码不要继承上面的字距和行高，否则行会变高、等宽字会散 */
-#article-container pre,
-#article-container code,
-#article-container kbd {
-  letter-spacing: 0;
-}
-
-#article-container pre,
-#article-container figure.highlight {
-  line-height: 1.7;
-}
 
 /* 二级标题补一条底部细线，章节感更强（主题只在标题左侧加了图标） */
 #article-container h2 {
@@ -260,11 +249,6 @@ textarea {
   padding: .9em 1.1em;
 }
 
-/* 代码块圆角，和卡片风格统一 */
-#article-container figure.highlight,
-#article-container .highlight {
-  
-}
 
 /* 正文图片：圆角 + 悬停轻微上浮 */
 #article-container img {
@@ -460,24 +444,6 @@ body,
   
 }
 
-#article-container figure.highlight,
-#article-container .highlight {
-  
-  
-  
-}
-
-#article-container pre,
-#article-container code,
-#article-container kbd {
-  
-}
-
-#article-container code:not([class*='language-']) {
-  border-radius: 4px;
-  background: #fafafa;
-  color: var(--zzc-day-text);
-}
 
 #footer {
   
@@ -535,9 +501,6 @@ body,
 
 [data-theme='dark'] #article-container h2 { border-bottom-color: #3b4354; }
 [data-theme='dark'] #article-container blockquote {    }
-[data-theme='dark'] #article-container figure.highlight,
-[data-theme='dark'] #article-container .highlight,
-[data-theme='dark'] #article-container code:not([class*='language-']) {    }
 
 [data-theme='dark'] #footer {
   
@@ -732,33 +695,6 @@ body,
 
 [data-theme='dark'] #page-header:not(.nav-fixed) #nav { background: rgba(33, 39, 55, .96); }
 
-/* 主题生成的代码表格必须铺满容器，避免右侧露出一块空白背景 */
-#article-container figure.highlight,
-#article-container figure.highlight > table,
-#article-container figure.highlight > table > tbody,
-#article-container figure.highlight .code,
-#article-container figure.highlight .code pre {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-#article-container figure.highlight > table {
-  display: table;
-  table-layout: fixed;
-  overflow: hidden;
-}
-
-#article-container figure.highlight .gutter { width: 3.2em; }
-#article-container figure.highlight .code { width: auto; }
-#article-container figure.highlight .code pre { min-width: 0; overflow-x: auto; }
-
-#article-container figure.highlight,
-#article-container figure.highlight .code,
-#article-container figure.highlight .code pre { background: #212121; }
-
-[data-theme='dark'] #article-container figure.highlight,
-[data-theme='dark'] #article-container figure.highlight .code,
-[data-theme='dark'] #article-container figure.highlight .code pre { background: #282c34; }
 
 /* 横幅顶部导航叠在图片上，滚动吸顶后才切换为独立背景 */
 #page-header:not(.nav-fixed) #nav {
@@ -806,28 +742,6 @@ body,
   color: #eaedf3 !important;
 }
 
-/* 行内代码：对应文章中由反引号包裹的短代码 */
-#article-container p code,
-#article-container li code,
-#article-container td code,
-#article-container blockquote code {
-  display: inline-block;
-  padding: 1px 6px;
-  border: 0;
-  border-radius: 4px;
-  background: #f0f0f0;
-  color: #282728;
-  font: 400 .9em/1.5 "JetBrains Mono NL", "JetBrains Mono", Consolas, "Noto Sans SC", monospace;
-  vertical-align: baseline;
-}
-
-[data-theme='dark'] #article-container p code,
-[data-theme='dark'] #article-container li code,
-[data-theme='dark'] #article-container td code,
-[data-theme='dark'] #article-container blockquote code {
-  background: #282c34;
-  color: #eaedf3;
-}
 
 :root {
   --global-bg: #fdfdfd;
@@ -1694,12 +1608,9 @@ body,
 #article-container a { color: #006cac; text-decoration: underline dashed; text-underline-offset: 3px; }
 #article-container a:hover { color: #004d7a; }
 #article-container blockquote { background: #e4eff5; border-left-color: #006cac; color: #282728; }
-#article-container figure.highlight,
-#article-container .highlight { background: #fafafa; border: 1px solid #ece9e9; border-radius: 6px; }
 #article-container pre,
 #article-container code,
 #article-container kbd { font-family: "JetBrains Mono NL", "JetBrains Mono", Consolas, "Noto Sans SC", monospace; }
-#article-container code:not([class*='language-']) { background: #fafafa; color: #282728; }
 #footer { font-family: "LXGW WenKai Screen", "LXGW WenKai", "Microsoft YaHei", sans-serif; border-top-color: #ece9e9; background: #fdfdfd; background-image: none; color: #282728; }
 #footer .footer-flex .footer-flex-title,
 #footer .footer-flex-content a,
@@ -1730,9 +1641,7 @@ body,
 [data-theme='dark'] #article-container a,
 [data-theme='dark'] #article-container a:hover { color: #ff6b00; }
 [data-theme='dark'] #article-container blockquote { background: #372e32; border-left-color: #ff6b00; color: #eaedf3; }
-[data-theme='dark'] #article-container figure.highlight,
-[data-theme='dark'] #article-container .highlight,
-[data-theme='dark'] #article-container code:not([class*='language-']) { background: #282c34; border-color: #ab4b08; color: #eaedf3; }
+
 [data-theme='dark'] #footer { border-top-color: #3b4354; background: #212737; background-image: none; color: #eaedf3; }
 [data-theme='dark'] #footer .footer-flex .footer-flex-title { color: #eaedf3; }
 [data-theme='dark'] #footer .footer-flex-content a,
@@ -2823,3 +2732,80 @@ body,
     max-width: none;
   }
 }
+
+/* ============================================================
+ * 修复代码块「复制成功」提示看不清
+ * ------------------------------------------------------------
+ * 【现象】
+ * 点代码块右上角的复制按钮，弹出的提示是「深底 + 深字」，
+ * 完全读不出来。实测计算样式：
+ *     背景 rgb(28, 28, 28)   （= #1c1c1c，来自 --hltools-bg）
+ *     文字 rgb(40, 39, 40)   （= #282728，继承自 body 正文色）
+ *
+ * 【原因（主题缺陷）】
+ * 主题的 .copy-notice 只声明了 background，没有声明 color：
+ *     .copy-notice {
+ *       position: absolute; z-index: 99999; padding: 2px 6px;
+ *       border-radius: 3px;
+ *       background: var(--hltools-bg);   ← 代码块工具栏的深色底
+ *       ...
+ *     }
+ * 而它是浮层，被 append 到 <body> 下（实测 parentElement 是 BODY），
+ * 于是 color 继承 body 的正文色 —— 浅色模式下正是 #282728 的深色。
+ * 深底配深字，就这样了。
+ *
+ * 【修法】
+ * 补上主题漏掉的 color。背景既是 --hltools-bg（固定深色，不随主题
+ * 明暗变化），文字就该用固定的浅色，两种模式下都清晰。
+ * 取 #eaedf3（与本站暗色正文同色系），对比度足够。
+ *
+ * ⚠️ 只补 color，不动 background —— 保持与工具栏一致的观感。
+ * ============================================================ */
+
+.copy-notice {
+  color: #eaedf3;
+}
+
+/* ============================================================
+ * 阅读模式下禁用代码块折叠（显示完整代码）
+ * ------------------------------------------------------------
+ * 【现象】
+ * 进阅读模式后，长代码块被硬裁到 320px，看不到后面的内容，
+ * 而且【无法展开】—— 展开按钮和工具栏一起被隐藏了。
+ *
+ * 【原因】
+ * 两面夹击：
+ *   1. 折叠限高是主题按 code_blocks.height_limit 生成的：
+ *        .container .code-expand-btn:not(.expand-done) ~ table
+ *        { overflow: hidden; height: 320px }
+ *      这条规则与阅读模式无关，进阅读模式后照旧生效。
+ *   2. 而主题的阅读模式会隐藏整个工具栏：
+ *        .read-mode .highlight-tools { display: none !important }
+ *      展开按钮 .code-expand-btn 虽然没被显式隐藏，
+ *      但它依赖工具栏区域，且此时用户既看不到折叠提示、
+ *      也没有明显的展开入口，实际等于「内容被吞了」。
+ *
+ * 【修法】
+ * 阅读模式的设计意图就是「专注阅读、完整呈现正文」——
+ * 此时不该再折叠。故在 .read-mode 下解除高度限制，
+ * 让代码块完整展开，并隐藏失去意义的展开按钮。
+ *
+ * ⚠️ 选择器必须带 .read-mode 且写在文件末尾：
+ *    要与主题那条带 !important 的 height 规则竞争，
+ *    靠更高特异性 + 更靠后的书写顺序取胜。
+ * ============================================================ */
+
+/* 阅读模式：解除折叠，完整显示代码 */
+.read-mode .container figure.highlight > .code-expand-btn ~ table,
+.read-mode .container figure.highlight > table {
+  max-height: none !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+/* 展开按钮在阅读模式下没有意义（工具栏已隐藏），一并去掉 */
+.read-mode .container figure.highlight > .code-expand-btn {
+  display: none !important;
+}
+
+
