@@ -1,0 +1,1750 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>字节码文件解析 | 拾遗录</title><meta name="author" content="青川"><meta name="copyright" content="青川"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="拆解 .class 字节码文件：先区分字节码与序列化数据的本质差异，再逐段说明文件整体结构、魔数与版本号、访问标志、常量池、字段表、方法表与属性表的组织方式。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="字节码文件解析">
+<meta property="og:url" content="https://zzc-blog.github.io/posts/d88f5f05/index.html">
+<meta property="og:site_name" content="拾遗录">
+<meta property="og:description" content="拆解 .class 字节码文件：先区分字节码与序列化数据的本质差异，再逐段说明文件整体结构、魔数与版本号、访问标志、常量池、字段表、方法表与属性表的组织方式。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img.zzc.dpdns.org/images/aa50889b82dfd281d16ae25b67080baf.png">
+<meta property="article:published_time" content="2026-07-10T02:44:05.000Z">
+<meta property="article:modified_time" content="2026-07-10T02:44:05.000Z">
+<meta property="article:author" content="青川">
+<meta property="article:tag" content="Class">
+<meta property="article:tag" content="JVM">
+<meta property="article:tag" content="字节码">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img.zzc.dpdns.org/images/aa50889b82dfd281d16ae25b67080baf.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "字节码文件解析",
+  "url": "https://zzc-blog.github.io/posts/d88f5f05/",
+  "image": "https://img.zzc.dpdns.org/images/aa50889b82dfd281d16ae25b67080baf.png",
+  "datePublished": "2026-07-10T02:44:05.000Z",
+  "dateModified": "2026-07-10T02:44:05.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "青川",
+      "url": "https://github.com/zzc-blog"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://zzc-blog.github.io/posts/d88f5f05/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.1.260810"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1.14/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        try {
+          const data = { value }
+
+          if (ttl != null) {
+            data.expiry = Date.now() + ttl * 86400000
+          }
+
+          localStorage.setItem(key, JSON.stringify(data))
+        } catch (e) {
+          console.error(e)
+        }
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":320,"highlightFullpage":true,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '字节码文件解析',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="preconnect" href="https://img.zzc.dpdns.org" crossorigin><link rel="dns-prefetch" href="https://img.zzc.dpdns.org"><link rel="stylesheet" href="https://npm.elemecdn.com/lxgw-wenkai-screen-webfont@1.7.0/style.css"><link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/@fontsource/noto-sans-sc@5.3.0/400.css"><link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/@fontsource/noto-sans-sc@5.3.0/500.css"><link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/@fontsource/noto-sans-sc@5.3.0/600.css"><link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/jetbrains-mono@1.0.6/css/jetbrains-mono-nl.min.css"><link rel="stylesheet" href="/css/custom.css?v=1e3615ef8a"><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="拾遗录" type="application/atom+xml">
+<style>#pbBack{position:fixed;z-index:89;display:none;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;height:38px;padding:0 14px;border-radius:999px;font-size:13.5px;line-height:1;white-space:nowrap;text-decoration:none !important;color:var(--btn-color,#fff);background:var(--btn-bg,#49b1f5);box-shadow:0 3px 12px rgba(0,0,0,.2);opacity:.9;transition:opacity .25s,background-color .3s}#pbBack.pb-show{display:inline-flex}#pbBack:hover{opacity:1;background:var(--btn-hover-color,#49b1f5)}#pbBack i{font-size:13px}#pbBack.pb-icon{width:38px;padding:0}#pbBack.pb-icon>span{display:none}#pbBack.pb-dock{left:14px;bottom:14px}@media print{#pbBack{display:none !important}}</style><style>/* 工具下拉里的外链项：右侧补一个外链箭头，提示"点了会跳出本站" */#zzcToolsNav .menus_item_child a.site-page::after{content:"\2197";margin-left:6px;font-size:.8em;opacity:.45}/* 名称过长时省略，避免下拉被撑得过宽 */#zzcToolsNav .menus_item_child a.site-page span{white-space:nowrap}</style></head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="/css/pace.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.webp" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar" loading='lazy'/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">25</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/random/"><i class="fa-fw fas fa-shuffle"></i><span> 随机文章</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 资源</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 图库</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-info-circle"></i><span> 关于</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></li><li><a class="site-page child" href="/messageboard/"><i class="fa-fw fas fa-comment-dots"></i><span> 留言板</span></a></li><li><a class="site-page child" href="/timeline/"><i class="fa-fw fas fa-clock-rotate-left"></i><span> 更新日志</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://img.zzc.dpdns.org/images/aa50889b82dfd281d16ae25b67080baf.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">拾遗录</span></a><a class="nav-page-title" href="/"><span class="site-name">字节码文件解析</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/random/"><i class="fa-fw fas fa-shuffle"></i><span> 随机文章</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 资源</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 图库</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-info-circle"></i><span> 关于</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></li><li><a class="site-page child" href="/messageboard/"><i class="fa-fw fas fa-comment-dots"></i><span> 留言板</span></a></li><li><a class="site-page child" href="/timeline/"><i class="fa-fw fas fa-clock-rotate-left"></i><span> 更新日志</span></a></li></ul></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">字节码文件解析</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-07-10T02:44:05.000Z" title="发表于 2026-07-10 10:44:05">2026-07-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-10T02:44:05.000Z" title="更新于 2026-07-10 10:44:05">2026-07-10</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java%E6%A0%B8%E5%BF%83/">Java核心</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java%E6%A0%B8%E5%BF%83/JVM/">JVM</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3784</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>16 分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:365,&quot;messagePrev&quot;:&quot;距离上次更新已经过了&quot;,&quot;messageNext&quot;:&quot;天，文章内容可能已过时。&quot;,&quot;postUpdate&quot;:&quot;2026-07-10 10:44:05&quot;}" hidden></div><h2 id="什么是字节码"><a href="#什么是字节码" class="headerlink" title="什么是字节码"></a>什么是字节码</h2><p>字节码文件是 Java 虚拟机（JVM）能够识别和执行的中间代码文件，通常以 <code>.class</code> 后缀存储。它由 Java 或其他 JVM 语言（Kotlin、Scala 等）的编译器生成，是连接源代码与机器码的桥梁。</p>
+<h3 id="JVM-平台上的字节码文件"><a href="#JVM-平台上的字节码文件" class="headerlink" title="JVM 平台上的字节码文件"></a>JVM 平台上的字节码文件</h3><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>扩展名</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>标准 Java 字节码</strong></td>
+<td><code>.class</code></td>
+<td>由 <code>javac</code> 编译 Java 源文件生成，严格遵循 JVM 规范。</td>
+</tr>
+<tr>
+<td><strong>其他 JVM 语言字节码</strong></td>
+<td><code>.class</code></td>
+<td>Kotlin、Groovy、Scala、Clojure 等语言编译后也生成标准的 <code>.class</code> 文件，只是内部常量池和方法体不同。</td>
+</tr>
+<tr>
+<td><strong>动态生成的字节码</strong></td>
+<td>无独立文件</td>
+<td>运行时通过 ASM、CGLib、ByteBuddy 等库在内存中直接生成字节码（如 Spring AOP 代理类），不写入磁盘。</td>
+</tr>
+<tr>
+<td><strong>打包后的字节码</strong></td>
+<td><code>.jar</code>、<code>.war</code>、<code>.ear</code></td>
+<td>本质上是 ZIP 压缩包，内含多个 <code>.class</code> 文件及其他资源。</td>
+</tr>
+</tbody></table>
+<p>你提到的“网络传输或存储的序列化二进制流”确实是另一种二进制数据，但它 <strong>不是字节码文件</strong>。两者虽然都是二进制流，但用途和格式完全不同：</p>
+<h3 id="字节码文件与序列化数据"><a href="#字节码文件与序列化数据" class="headerlink" title="字节码文件与序列化数据"></a>字节码文件与序列化数据</h3><table>
+<thead>
+<tr>
+<th>对比维度</th>
+<th>字节码文件 (.class)</th>
+<th>序列化数据 (.ser &#x2F; 网络流)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>用途</strong></td>
+<td>JVM 加载执行类</td>
+<td>持久化对象状态或网络传输</td>
+</tr>
+<tr>
+<td><strong>格式</strong></td>
+<td>严格遵循 JVM 规范（魔数 CAFEBABE、常量池、方法表等）</td>
+<td>遵循 Java 序列化协议（魔数 ACED0005、类描述符、字段值等）</td>
+</tr>
+<tr>
+<td><strong>消费方</strong></td>
+<td>JVM 的类加载子系统</td>
+<td>反序列化时的 ObjectInputStream</td>
+</tr>
+<tr>
+<td><strong>生命周期</strong></td>
+<td>编译时生成，运行时加载</td>
+<td>运行时动态产生，用于跨进程通信或存储</td>
+</tr>
+</tbody></table>
+<p><strong>总结</strong>：序列化二进制流是 <strong>对象数据的快照</strong>，字节码文件是 <strong>类定义的蓝图</strong>。两者都可以在网络传输，但前者用于传递数据，后者用于传递可执行代码。</p>
+<h2 id="字节码结构"><a href="#字节码结构" class="headerlink" title="字节码结构"></a>字节码结构</h2><p><img src="https://img.zzc.dpdns.org/images/aa50889b82dfd281d16ae25b67080baf.png" alt="image-20260710104502076" loading='lazy'></p>
+<p><img src="https://img.zzc.dpdns.org/images/4634fe9e9da77091b57250b451206357.png" alt="image-20260710124850840" loading='lazy'></p>
+<h2 id="字节码文件整体结构总览"><a href="#字节码文件整体结构总览" class="headerlink" title="字节码文件整体结构总览"></a>字节码文件整体结构总览</h2><table>
+<thead>
+<tr>
+<th align="left"><strong>序号</strong></th>
+<th align="left"><strong>数据段名称</strong></th>
+<th align="left"><strong>数据类型（大小）</strong></th>
+<th align="left"><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">1</td>
+<td align="left">魔数 (Magic Number)</td>
+<td align="left">u4 (4 字节)</td>
+<td align="left">固定值为 <code>0xCAFEBABE</code>，用于标识该文件是一个合法的 Java Class 文件。</td>
+</tr>
+<tr>
+<td align="left">2</td>
+<td align="left">次版本号 (Minor Version)</td>
+<td align="left">u2 (2 字节)</td>
+<td align="left">编译此 Class 文件所使用的 JDK 副版本号。</td>
+</tr>
+<tr>
+<td align="left">3</td>
+<td align="left">主版本号 (Major Version)</td>
+<td align="left">u2 (2 字节)</td>
+<td align="left">编译此 Class 文件所使用的 JDK 主版本号（例如 61 对应 Java 17）。</td>
+</tr>
+<tr>
+<td align="left">4</td>
+<td align="left">常量池计数</td>
+<td align="left">u2 (2 字节)</td>
+<td align="left">表示常量池中常量的数量（从 1 开始计数，0 保留）。</td>
+</tr>
+<tr>
+<td align="left">5</td>
+<td align="left">常量池 (Constant Pool)</td>
+<td align="left">cp_info [] (变长)</td>
+<td align="left">存储字面量和符号引用（如类名、方法名、字段名、字符串等）。</td>
+</tr>
+<tr>
+<td align="left">6</td>
+<td align="left">访问标志</td>
+<td align="left">u2 (2 字节)</td>
+<td align="left">标识该类或接口的访问权限与属性（如 public、abstract、final 等）。</td>
+</tr>
+<tr>
+<td align="left">7</td>
+<td align="left">当前类索引</td>
+<td align="left">u2 (2 字节)</td>
+<td align="left">指向常量池中的一个 <code>CONSTANT_Class_info</code>，表示本类的全限定名。</td>
+</tr>
+<tr>
+<td align="left">8</td>
+<td align="left">父类索引</td>
+<td align="left">u2 (2 字节)</td>
+<td align="left">指向常量池中的一个 <code>CONSTANT_Class_info</code>，表示父类的全限定名。</td>
+</tr>
+<tr>
+<td align="left">9</td>
+<td align="left">接口计数器</td>
+<td align="left">u2 (2 字节)</td>
+<td align="left">表示该类实现的接口数量。</td>
+</tr>
+<tr>
+<td align="left">10</td>
+<td align="left">接口索引表</td>
+<td align="left">u2 [] (每项 2 字节)</td>
+<td align="left">按顺序指向常量池中的 <code>CONSTANT_Class_info</code>，表示所有实现的接口。</td>
+</tr>
+<tr>
+<td align="left">11</td>
+<td align="left">字段计数器</td>
+<td align="left">u2 (2 字节)</td>
+<td align="left">表示该类中声明的字段数量（包括静态和非静态）。</td>
+</tr>
+<tr>
+<td align="left">12</td>
+<td align="left">字段表 (Fields)</td>
+<td align="left">field_info [] (变长)</td>
+<td align="left">描述每个字段的名称、类型、修饰符及可选属性（如 ConstantValue）。</td>
+</tr>
+<tr>
+<td align="left">13</td>
+<td align="left">方法计数器</td>
+<td align="left">u2 (2 字节)</td>
+<td align="left">表示该类中声明的方法数量（包括构造器 <code>&lt;init&gt;</code> 和静态初始化器 <code>&lt;clinit&gt;</code>）。</td>
+</tr>
+<tr>
+<td align="left">14</td>
+<td align="left">方法表 (Methods)</td>
+<td align="left">method_info [] (变长)</td>
+<td align="left">描述每个方法的名称、参数、返回类型、修饰符及字节码指令（Code 属性）。</td>
+</tr>
+<tr>
+<td align="left">15</td>
+<td align="left">属性计数器</td>
+<td align="left">u2 (2 字节)</td>
+<td align="left">表示该类级别的属性数量。</td>
+</tr>
+<tr>
+<td align="left">16</td>
+<td align="left">属性表 (Attributes)</td>
+<td align="left">attribute_info [] (变长)</td>
+<td align="left">存放该类级别的附加信息（如 SourceFile、InnerClasses、BootstrapMethods 等）。</td>
+</tr>
+</tbody></table>
+<h2 id="版本号（Minor-Version-Major-Version）"><a href="#版本号（Minor-Version-Major-Version）" class="headerlink" title="版本号（Minor Version &amp; Major Version）"></a>版本号（Minor Version &amp; Major Version）</h2><table>
+<thead>
+<tr>
+<th>字段名</th>
+<th>大小</th>
+<th>位置（相对偏移）</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>次版本号</td>
+<td>u2</td>
+<td>4-5</td>
+<td>编译该 Class 文件所使用的 JDK 副版本号。通常为 0，除非使用特定预览特性。</td>
+</tr>
+<tr>
+<td>主版本号</td>
+<td>u2</td>
+<td>6-7</td>
+<td>编译该 Class 文件所使用的 JDK 主版本号。例如： - 52 → Java 8 - 55 → Java 11 - 61 → Java 17 - 65 → Java 21</td>
+</tr>
+</tbody></table>
+<p><strong>作用：</strong></p>
+<p>JVM 启动时会校验主版本号是否小于等于当前 JVM 支持的最高版本。若高于当前 JVM 版本，会抛出 <code>UnsupportedClassVersionError</code>。次版本号通常为 0，但在某些特殊预览功能下可能非零。</p>
+<h2 id="访问标志（access-flags）"><a href="#访问标志（access-flags）" class="headerlink" title="访问标志（access_flags）"></a>访问标志（access_flags）</h2><table>
+<thead>
+<tr>
+<th>字段名</th>
+<th>大小</th>
+<th>位置（相对偏移）</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>访问标志</td>
+<td>u2</td>
+<td>8-9</td>
+<td>使用位掩码标识该类或接口的访问权限和特性。</td>
+</tr>
+</tbody></table>
+<p><strong>常用标志位</strong>（可组合）：</p>
+<table>
+<thead>
+<tr>
+<th>标志名称</th>
+<th>十六进制值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ACC_PUBLIC</td>
+<td>0x0001</td>
+<td>声明为 public，可从包外访问</td>
+</tr>
+<tr>
+<td>ACC_FINAL</td>
+<td>0x0010</td>
+<td>声明为 final，不允许被继承</td>
+</tr>
+<tr>
+<td>ACC_SUPER</td>
+<td>0x0020</td>
+<td>使用 invokespecial 指令时需增强语义（JDK 1.0.2+ 必须设置）</td>
+</tr>
+<tr>
+<td>ACC_INTERFACE</td>
+<td>0x0200</td>
+<td>这是一个接口，而非类</td>
+</tr>
+<tr>
+<td>ACC_ABSTRACT</td>
+<td>0x0400</td>
+<td>声明为 abstract，不能实例化</td>
+</tr>
+<tr>
+<td>ACC_SYNTHETIC</td>
+<td>0x1000</td>
+<td>由编译器生成的合成类（非源码显式定义）</td>
+</tr>
+<tr>
+<td>ACC_ANNOTATION</td>
+<td>0x2000</td>
+<td>声明为注解类型（隐含 ACC_INTERFACE）</td>
+</tr>
+<tr>
+<td>ACC_ENUM</td>
+<td>0x4000</td>
+<td>声明为枚举类型</td>
+</tr>
+<tr>
+<td>ACC_MODULE</td>
+<td>0x8000</td>
+<td>这是一个模块（Java 9+）</td>
+</tr>
+</tbody></table>
+<p><strong>示例</strong>：</p>
+<ul>
+<li><code>public class Hello</code> → 标志值 &#x3D; 0x0021（ACC_PUBLIC + ACC_SUPER）</li>
+<li><code>public interface MyInterface</code> → 标志值 &#x3D; 0x0601（ACC_PUBLIC + ACC_INTERFACE + ACC_ABSTRACT）</li>
+<li><code>enum Color</code> → 标志值 &#x3D; 0x4031（ACC_PUBLIC + ACC_FINAL + ACC_SUPER + ACC_ENUM）</li>
+</ul>
+<h2 id="常量池结构"><a href="#常量池结构" class="headerlink" title="常量池结构"></a><strong>常量池结构</strong></h2><p><strong>前置字节类型说明</strong></p>
+<ul>
+<li><code>u1</code>：无符号 1 字节（8bit）</li>
+<li><code>u2</code>：无符号 2 字节（16bit）</li>
+<li><code>u4</code>：无符号 4 字节（32bit）</li>
+<li><code>u8</code>：无符号 8 字节（64bit）</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>序号</th>
+<th>常量结构体名</th>
+<th>业务释义</th>
+<th>成员字段</th>
+<th>字节类型</th>
+<th>字段详细解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>CONSTANT_Utf8_info</td>
+<td>UTF8 编码原始字符串（底层字符串存储载体）</td>
+<td>tag</td>
+<td>u1</td>
+<td>tag 固定值 &#x3D; 1</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>length</td>
+<td>u2</td>
+<td>后续 bytes 数组的字节长度</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>bytes</td>
+<td>u1 [length]</td>
+<td>变体 UTF-8 编码的字符字节流，存类名、字段名、方法名、描述符等原始文本</td>
+</tr>
+<tr>
+<td>3</td>
+<td>CONSTANT_Integer_info</td>
+<td>int 整型字面量</td>
+<td>tag</td>
+<td>u1</td>
+<td>tag 固定值 &#x3D; 3</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>bytes</td>
+<td>u4</td>
+<td>大端（高位在前）存储的 4 字节 int 数值</td>
+</tr>
+<tr>
+<td>4</td>
+<td>CONSTANT_Float_info</td>
+<td>float 单精度浮点字面量</td>
+<td>tag</td>
+<td>u1</td>
+<td>tag 固定值 &#x3D; 4</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>bytes</td>
+<td>u4</td>
+<td>大端存储 IEEE754 规范的 4 字节 float</td>
+</tr>
+<tr>
+<td>5</td>
+<td>CONSTANT_Long_info</td>
+<td>long 长整型字面量</td>
+<td>tag</td>
+<td>u1</td>
+<td>tag 固定值 &#x3D; 5（常量池占 2 索引槽）</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>bytes</td>
+<td>u8</td>
+<td>大端存储 8 字节 long 整数</td>
+</tr>
+<tr>
+<td>6</td>
+<td>CONSTANT_Double_info</td>
+<td>double 双精度浮点字面量</td>
+<td>tag</td>
+<td>u1</td>
+<td>tag 固定值 &#x3D; 6（常量池占 2 索引槽）</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>bytes</td>
+<td>u8</td>
+<td>大端存储 IEEE754 规范的 8 字节 double</td>
+</tr>
+<tr>
+<td>7</td>
+<td>CONSTANT_Class_info</td>
+<td>类 &#x2F; 接口的符号引用</td>
+<td>tag</td>
+<td>u1</td>
+<td>tag 固定值 &#x3D; 7</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>name_index</td>
+<td>u2</td>
+<td>索引指向 <strong>CONSTANT_Utf8_info</strong>，内容是类的全限定名（如 <code>java/lang/String</code>）</td>
+</tr>
+<tr>
+<td>8</td>
+<td>CONSTANT_String_info</td>
+<td>String 字符串字面量（代码里双引号字面量）</td>
+<td>tag</td>
+<td>u1</td>
+<td>tag 固定值 &#x3D; 8</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>string_index</td>
+<td>u2</td>
+<td>索引指向 CONSTANT_Utf8_info，读取 UTF8 原始字符串内容</td>
+</tr>
+<tr>
+<td>9</td>
+<td>CONSTANT_Fieldref_info</td>
+<td>成员字段的符号引用</td>
+<td>tag</td>
+<td>u1</td>
+<td>tag 固定值 &#x3D; 9</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>class_index</td>
+<td>u2</td>
+<td>索引指向 CONSTANT_Class_info：标记字段归属哪个类 &#x2F; 接口</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>name_and_type_index</td>
+<td>u2</td>
+<td>索引指向 CONSTANT_NameAndType_info：存字段名 + 字段类型描述符</td>
+</tr>
+<tr>
+<td>10</td>
+<td>CONSTANT_Methodref_info</td>
+<td>普通类成员方法的符号引用</td>
+<td>tag</td>
+<td>u1</td>
+<td>tag 固定值 &#x3D; 10</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>class_index</td>
+<td>u2</td>
+<td>索引指向 CONSTANT_Class_info：标记方法归属的类</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>name_and_type_index</td>
+<td>u2</td>
+<td>索引指向 CONSTANT_NameAndType_info：存方法名 + 方法签名描述符</td>
+</tr>
+<tr>
+<td>11</td>
+<td>CONSTANT_InterfaceMethodref_info</td>
+<td>接口定义方法的符号引用</td>
+<td>tag</td>
+<td>u1</td>
+<td>tag 固定值 &#x3D; 11</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>class_index</td>
+<td>u2</td>
+<td>索引指向 CONSTANT_Class_info：标记方法归属的接口</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>name_and_type_index</td>
+<td>u2</td>
+<td>索引指向 CONSTANT_NameAndType_info：接口方法名 + 方法签名</td>
+</tr>
+<tr>
+<td>12</td>
+<td>CONSTANT_NameAndType_info</td>
+<td>名称 + 类型签名（不存完整符号引用，做通用拆分复用）</td>
+<td>tag</td>
+<td>u1</td>
+<td>tag 固定值 &#x3D; 12</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>name_index</td>
+<td>u2</td>
+<td>Utf8 索引：字段 &#x2F; 方法的名字（如 <code>age</code>、<code>toString</code>）</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>descriptor_index</td>
+<td>u2</td>
+<td>Utf8 索引：类型描述符（字段：<code>I</code> 代表 int；方法：<code>()V</code> 代表无参无返回）</td>
+</tr>
+</tbody></table>
+<p><strong>JDK7 + 扩展新增常量（进阶补充，旧版 class 文件无）</strong></p>
+<table>
+<thead>
+<tr>
+<th>Tag 值</th>
+<th>常量结构体名</th>
+<th>业务释义</th>
+<th>成员字段</th>
+<th>字节类型</th>
+<th>字段详细说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>15</td>
+<td>CONSTANT_MethodHandle_info</td>
+<td>方法句柄（Lambda&#x2F;反射动态调用底层载体）</td>
+<td>tag</td>
+<td>u1</td>
+<td>固定值 &#x3D; 15，标识该常量为方法句柄类型</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>reference_kind</td>
+<td>u1</td>
+<td>引用类型分类，取值 1~9 共 9 种，决定句柄调用语义</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>reference_index</td>
+<td>u2</td>
+<td>指向常量池中其他项的索引，具体指向哪种常量由 reference_kind 决定</td>
+</tr>
+<tr>
+<td>16</td>
+<td>CONSTANT_MethodType_info</td>
+<td>方法类型签名（仅描述参数+返回值类型）</td>
+<td>tag</td>
+<td>u1</td>
+<td>固定值 &#x3D; 16，标识该常量为方法类型</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>descriptor_index</td>
+<td>u2</td>
+<td>索引指向 CONSTANT_Utf8_info，存储方法描述符（如 “(II)V” 表示两个 int 参数无返回值）</td>
+</tr>
+<tr>
+<td>17</td>
+<td>CONSTANT_InvokeDynamic_info</td>
+<td>动态调用点（Lambda 表达式、invokedynamic 指令底层依赖）</td>
+<td>tag</td>
+<td>u1</td>
+<td>固定值 &#x3D; 17，标识该常量为动态调用点</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>bootstrap_method_attr_index</td>
+<td>u2</td>
+<td>指向 Class 文件属性区中 BootstrapMethods 属性表的索引，定位引导方法</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>name_and_type_index</td>
+<td>u2</td>
+<td>索引指向 CONSTANT_NameAndType_info，存储动态方法名+方法签名描述符</td>
+</tr>
+</tbody></table>
+<h2 id="字段表"><a href="#字段表" class="headerlink" title="字段表"></a>字段表</h2><table>
+<thead>
+<tr>
+<th>序号</th>
+<th>字段名</th>
+<th>字节类型</th>
+<th>数量</th>
+<th>详细说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>—</td>
+<td>fields_count</td>
+<td>u2</td>
+<td>1</td>
+<td>字段表计数器，记录当前类&#x2F;接口声明的字段总数（不含继承的字段）</td>
+</tr>
+<tr>
+<td>1</td>
+<td>access_flags</td>
+<td>u2</td>
+<td>1</td>
+<td>字段访问标志：public&#x2F;private&#x2F;protected&#x2F;static&#x2F;final&#x2F;volatile&#x2F;transient 等</td>
+</tr>
+<tr>
+<td>2</td>
+<td>name_index</td>
+<td>u2</td>
+<td>1</td>
+<td>指向常量池 CONSTANT_Utf8_info，存储字段的简单名称（如 age、name）</td>
+</tr>
+<tr>
+<td>3</td>
+<td>descriptor_index</td>
+<td>u2</td>
+<td>1</td>
+<td>指向常量池 CONSTANT_Utf8_info，存储字段类型描述符（I &#x3D; int、Ljava&#x2F;lang&#x2F;String;&#x3D; 字符串）</td>
+</tr>
+<tr>
+<td>4</td>
+<td>attributes_count</td>
+<td>u2</td>
+<td>1</td>
+<td>字段属性表计数器，记录该字段附加的属性数量</td>
+</tr>
+<tr>
+<td>5</td>
+<td>attributes</td>
+<td>attribute_info</td>
+<td>attributes_count</td>
+<td>字段属性表，常见如 ConstantValue（静态常量值）、Synthetic、Deprecated、Signature 等</td>
+</tr>
+</tbody></table>
+<h3 id="为什么叫“表”？"><a href="#为什么叫“表”？" class="headerlink" title="为什么叫“表”？"></a>为什么叫“表”？</h3><p>在字节码规范中，<strong>“表”特指这种计数+数组的变长结构</strong>。JVM 解析时，先读取一个 2 字节的计数，然后循环读取指定数量的条目。这种设计使得文件紧凑且易于扩展——你可以在末尾追加新的属性，只要更新计数器即可。</p>
+<h2 id="方法表"><a href="#方法表" class="headerlink" title="方法表"></a>方法表</h2><table>
+<thead>
+<tr>
+<th>序号</th>
+<th>字段名</th>
+<th>字节类型</th>
+<th>数量</th>
+<th>详细说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>—</td>
+<td>methods_count</td>
+<td>u2</td>
+<td>1</td>
+<td>方法表计数器，记录当前类&#x2F;接口声明的方法总数（不含继承方法）</td>
+</tr>
+<tr>
+<td>1</td>
+<td>access_flags</td>
+<td>u2</td>
+<td>1</td>
+<td>方法访问标志：public&#x2F;private&#x2F;protected&#x2F;static&#x2F;final&#x2F;synchronized&#x2F;native&#x2F;abstract 等</td>
+</tr>
+<tr>
+<td>2</td>
+<td>name_index</td>
+<td>u2</td>
+<td>1</td>
+<td>指向常量池 CONSTANT_Utf8_info，存储方法名（如 toString、<init> 构造器、<clinit> 静态初始化）</td>
+</tr>
+<tr>
+<td>3</td>
+<td>descriptor_index</td>
+<td>u2</td>
+<td>1</td>
+<td>指向常量池 CONSTANT_Utf8_info，存储方法签名描述符（如()V 无参无返回、(II)I 两 int 返 int）</td>
+</tr>
+<tr>
+<td>4</td>
+<td>attributes_count</td>
+<td>u2</td>
+<td>1</td>
+<td>方法属性表计数器</td>
+</tr>
+<tr>
+<td>5</td>
+<td>attributes</td>
+<td>attribute_info</td>
+<td>attributes_count</td>
+<td>方法属性表，核心属性为 Code（字节码指令体），还有 Exceptions、LineNumberTable、LocalVariableTable 等</td>
+</tr>
+</tbody></table>
+<h2 id="属性表"><a href="#属性表" class="headerlink" title="属性表"></a>属性表</h2><table>
+<thead>
+<tr>
+<th>属性名称</th>
+<th>出现位置</th>
+<th>属性作用</th>
+<th>JDK 版本</th>
+<th>核心内部字段</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Code</td>
+<td>方法表</td>
+<td>存储 Java 方法编译后的字节码指令、操作数栈、局部变量表、异常表</td>
+<td>JDK1.0+</td>
+<td>max_stack、max_locals、code_length、code []、exception_table、attributes</td>
+</tr>
+<tr>
+<td>ConstantValue</td>
+<td>字段表</td>
+<td>为 static final 常量赋值，指向常量池字面量</td>
+<td>JDK1.0+</td>
+<td>constantvalue_index（指向常量池常量）</td>
+</tr>
+<tr>
+<td>Exceptions</td>
+<td>方法表</td>
+<td>记录方法 throws 声明的受检异常列表</td>
+<td>JDK1.0+</td>
+<td>number_of_exceptions、exception_index_table []</td>
+</tr>
+<tr>
+<td>LineNumberTable</td>
+<td>Code 属性内</td>
+<td>字节码偏移量 → Java 源码行号映射，调试与异常栈追踪用</td>
+<td>JDK1.0+</td>
+<td>line_number_table_length、line_number_table []</td>
+</tr>
+<tr>
+<td>LocalVariableTable</td>
+<td>Code 属性内</td>
+<td>局部变量表描述：变量名、类型、作用域起止偏移、槽位索引</td>
+<td>JDK1.0+</td>
+<td>local_variable_table_length、local_variable_table []</td>
+</tr>
+<tr>
+<td>SourceFile</td>
+<td>Class 文件顶层</td>
+<td>记录源文件名（如 HelloWorld.java），异常栈显示用</td>
+<td>JDK1.0+</td>
+<td>sourcefile_index（指向 Utf8）</td>
+</tr>
+<tr>
+<td>BootstrapMethods</td>
+<td>Class 文件顶层</td>
+<td>invokedynamic 动态调用的引导方法列表，配合常量池 tag &#x3D; 17 使用</td>
+<td>JDK7+</td>
+<td>num_bootstrap_methods、bootstrap_methods []</td>
+</tr>
+<tr>
+<td>InnerClasses</td>
+<td>Class 文件顶层</td>
+<td>内部类&#x2F;外部类注册信息表</td>
+<td>JDK1.1+</td>
+<td>number_of_classes、inner_classes []</td>
+</tr>
+<tr>
+<td>Synthetic</td>
+<td>字段&#x2F;方法&#x2F;类</td>
+<td>标记该成员由编译器自动生成，非用户源码编写</td>
+<td>JDK1.1+</td>
+<td>无额外字段（仅 attribute_name_length &#x3D; 0）</td>
+</tr>
+<tr>
+<td>Deprecated</td>
+<td>字段&#x2F;方法&#x2F;类</td>
+<td>标记该成员已废弃，对应@Deprecated 注解</td>
+<td>JDK1.1+</td>
+<td>无额外字段</td>
+</tr>
+<tr>
+<td>Signature</td>
+<td>类&#x2F;字段&#x2F;方法</td>
+<td>存储泛型签名信息（类型擦除后保留泛型用于反射）</td>
+<td>JDK5+</td>
+<td>signature_index（指向 Utf8）</td>
+</tr>
+<tr>
+<td>StackMapTable</td>
+<td>Code 属性内</td>
+<td>栈映射帧，JDK6 后字节码校验器类型检查优化用</td>
+<td>JDK6+</td>
+<td>number_of_entries、entries []</td>
+</tr>
+<tr>
+<td>RuntimeVisibleAnnotations</td>
+<td>类&#x2F;字段&#x2F;方法</td>
+<td>运行时可见注解（@Retention(RUNTIME)），反射可读取</td>
+<td>JDK5+</td>
+<td>num_annotations、annotations []</td>
+</tr>
+<tr>
+<td>RuntimeInvisibleAnnotations</td>
+<td>类&#x2F;字段&#x2F;方法</td>
+<td>运行时不可见注解（@Retention(CLASS)），仅 class 文件保留</td>
+<td>JDK5+</td>
+<td>num_annotations、annotations []</td>
+</tr>
+</tbody></table>
+<h4 id="Code-属性（方法体）"><a href="#Code-属性（方法体）" class="headerlink" title="Code 属性（方法体）"></a>Code 属性（方法体）</h4><p>这是方法表中最重要的属性，存储了实际的字节码指令。</p>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>字段名</th>
+<th>字节类型</th>
+<th>数量</th>
+<th>详细说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>第一层</td>
+<td>attribute_name_index</td>
+<td>u2</td>
+<td>1</td>
+<td>属性名索引，指向常量池 CONSTANT_Utf8_info，固定字符串 “Code”</td>
+</tr>
+<tr>
+<td>第一层</td>
+<td>attribute_length</td>
+<td>u4</td>
+<td>1</td>
+<td>属性总长度（不含前 6 字节的 attribute_name_index+attribute_length 本身）</td>
+</tr>
+<tr>
+<td>第一层</td>
+<td>max_stack</td>
+<td>u2</td>
+<td>1</td>
+<td>操作数栈（Operand Stack）的最大深度，方法执行过程中栈顶不会超过该值</td>
+</tr>
+<tr>
+<td>第一层</td>
+<td>max_locals</td>
+<td>u2</td>
+<td>1</td>
+<td>局部变量表（Local Variable Table）所需的最大槽位数（slot 数），long&#x2F;double 占 2 槽</td>
+</tr>
+<tr>
+<td>第一层</td>
+<td>code_length</td>
+<td>u4</td>
+<td>1</td>
+<td>字节码指令的字节总长度，实际指令字节数 &#x3D; code_length</td>
+</tr>
+<tr>
+<td>第一层</td>
+<td>code</td>
+<td>u1</td>
+<td>code_length</td>
+<td>字节码指令流：Java 编译后的 JVM 指令序列，每条指令 1 字节操作码+可选操作数</td>
+</tr>
+<tr>
+<td>第一层</td>
+<td>exception_table_length</td>
+<td>u2</td>
+<td>1</td>
+<td>异常表条目数量</td>
+</tr>
+<tr>
+<td>第一层</td>
+<td>exception_table</td>
+<td>异常表条目</td>
+<td>exception_table_length</td>
+<td>异常处理器表，每条对应一个 try-catch 块</td>
+</tr>
+<tr>
+<td>→ 异常表内</td>
+<td>start_pc</td>
+<td>u2</td>
+<td>1</td>
+<td>try 块起始字节码偏移量（包含）</td>
+</tr>
+<tr>
+<td>→ 异常表内</td>
+<td>end_pc</td>
+<td>u2</td>
+<td>1</td>
+<td>try 块结束字节码偏移量（不包含）</td>
+</tr>
+<tr>
+<td>→ 异常表内</td>
+<td>handler_pc</td>
+<td>u2</td>
+<td>1</td>
+<td>异常处理器（catch 块）的起始字节码偏移量</td>
+</tr>
+<tr>
+<td>→ 异常表内</td>
+<td>catch_type</td>
+<td>u2</td>
+<td>1</td>
+<td>捕获异常类型：指向常量池 Class_info 索引；值为 0 表示 finally，捕获所有异常</td>
+</tr>
+<tr>
+<td>第一层</td>
+<td>attributes_count</td>
+<td>u2</td>
+<td>1</td>
+<td>Code 属性内部嵌套的子属性数量</td>
+</tr>
+<tr>
+<td>第一层</td>
+<td>attributes</td>
+<td>attribute_info</td>
+<td>attributes_count</td>
+<td>Code 的子属性集合，常见：LineNumberTable、LocalVariableTable、StackMapTable 等</td>
+</tr>
+<tr>
+<td>→ 子属性举例</td>
+<td>LineNumberTable</td>
+<td>attribute_info</td>
+<td>—</td>
+<td>字节码偏移量 →Java 源码行号映射表，用于 debug 调试和异常栈行号显示</td>
+</tr>
+<tr>
+<td>→ 子属性举例</td>
+<td>LocalVariableTable</td>
+<td>attribute_info</td>
+<td>—</td>
+<td>局部变量描述表：变量名、类型描述符、作用域起止偏移、局部变量槽位索引</td>
+</tr>
+<tr>
+<td>→ 子属性举例</td>
+<td>StackMapTable</td>
+<td>attribute_info</td>
+<td>—</td>
+<td>栈映射帧（JDK6+），类型检查校验器使用，减少运行时校验开销</td>
+</tr>
+<tr>
+<td>→ 子属性举例</td>
+<td>LocalVariableTypeTable</td>
+<td>attribute_info</td>
+<td>—</td>
+<td>泛型局部变量签名表（JDK5+），配合泛型类型擦除保留泛型信息</td>
+</tr>
+</tbody></table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/zzc-blog">青川</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://zzc-blog.github.io/posts/d88f5f05/">https://zzc-blog.github.io/posts/d88f5f05/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://zzc-blog.github.io" target="_blank">拾遗录</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/JVM/">JVM</a><a class="post-meta__tags" href="/tags/Class/">Class</a><a class="post-meta__tags" href="/tags/%E5%AD%97%E8%8A%82%E7%A0%81/">字节码</a></div><div class="post-share"><div class="social-share" data-image="https://img.zzc.dpdns.org/images/aa50889b82dfd281d16ae25b67080baf.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/7025a55b/" title="JDK 工具"><img class="cover" src="https://img.zzc.dpdns.org/images/1790042755579-f489e2b4f40983d7c5697c79ceeefd03.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post" loading='lazy'><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">JDK 工具</div></div><div class="info-2"><div class="info-item-1">记录 javac 与 javap 两个 JDK 自带工具的用法：-g 系列调试信息选项的含义与变体，以及 javap 的访问级别控制、输出详细程度和类文件头信息的解读方式。</div></div></div></a><a class="pagination-related" href="/posts/f41a237a/" title="指针碰撞与空闲列表"><img class="cover" src="https://img.zzc.dpdns.org/images/1790042794428-fd69845ad70409f6ab2183756b0b2bfa.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post" loading='lazy'><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">指针碰撞与空闲列表</div></div><div class="info-2"><div class="info-item-1">讲清 JVM 对象分配的两条路径：内存规整时用指针碰撞（一次指针加法、无碎片，适用于复制算法与标记-整理），内存碎片化时用空闲列表（灵活但需遍历链表、易产生碎片，CMS 老年代依赖它），并说明 TLAB 与 G1 Region 的实现差异及对应收集器。</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/f41a237a/" title="指针碰撞与空闲列表"><img class="cover" src="https://img.zzc.dpdns.org/images/1790042794428-fd69845ad70409f6ab2183756b0b2bfa.jpg" alt="cover" loading='lazy'><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-08</div><div class="info-item-2">指针碰撞与空闲列表</div></div><div class="info-2"><div class="info-item-1">讲清 JVM 对象分配的两条路径：内存规整时用指针碰撞（一次指针加法、无碎片，适用于复制算法与标记-整理），内存碎片化时用空闲列表（灵活但需遍历链表、易产生碎片，CMS 老年代依赖它），并说明 TLAB 与 G1 Region 的实现差异及对应收集器。</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div><div class="comment-switch"><span class="first-comment">Twikoo</span><span id="switch-btn"></span><span class="second-comment">Giscus</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.webp" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar" loading='lazy'/></div><div class="author-info-name">青川</div><div class="author-info-description">Java 开发者，记录日常开发中的思考与实践。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">25</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/zzc-blog"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://space.bilibili.com/382724227" target="_blank" title="Bilibili"><i class="fab fa-bilibili" style="color: #fb7299;"></i></a><a class="social-icon" href="https://www.nowcoder.com/users/641391113" target="_blank" title="牛客网"><i class="fas fa-code" style="color: #1bbf6c;"></i></a><a class="social-icon" href="https://leetcode.cn/u/si-yu-13/" target="_blank" title="力扣"><i class="fas fa-laptop-code" style="color: #f89f1b;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #f26522;"></i></a><a class="social-icon" href="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&amp;email=2542434555%40qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">这里记一些代码、服务器和折腾过程的笔记，欢迎去<a href="/messageboard/">留言板</a>留个脚印。</div></div><div class="card-widget card-clock" id="card-clock"><div class="item-headline"><i class="fas fa-clock"></i><span>授时时钟</span></div><div class="item-content"><div class="clock-panel">
+  <div class="clock-row clock-bjt">
+    <div class="clock-meta">
+      <span class="clock-label">北京时间 (BJT)</span>
+      <span class="clock-badge">UTC+8</span>
+    </div>
+    <div class="clock-time" id="clock-bjt">--:--:--</div>
+  </div>
+  <div class="clock-foot" id="clock-src" data-state="pending">正在对时…</div>
+</div>
+<style>
+  .card-clock .item-headline { display: flex; align-items: center; cursor: pointer; user-select: none; transition: color .2s; }
+  .card-clock .item-headline:hover { color: #4a7dbe; }
+  .card-clock .item-headline::after { content: ""; margin-left: auto; width: 7px; height: 7px; margin-top: 4px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-135deg); transition: transform .3s ease; opacity: .55; }
+  .card-clock.is-collapsed .item-headline::after { transform: rotate(45deg); margin-top: -2px; }
+  .card-clock .item-content { overflow: hidden; opacity: 1; transition: max-height .32s ease, opacity .32s ease; }
+  .card-clock.is-collapsed .item-content { opacity: 0; }
+  .card-clock .clock-row { background: #f8f9fa; border-radius: 10px; padding: 12px; border-left: 4px solid #e67e22; }
+  .card-clock .clock-row + .clock-row { margin-top: 10px; }
+  .card-clock .clock-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .card-clock .clock-label { font-size: 13px; color: #666; letter-spacing: .5px; }
+  .card-clock .clock-badge { font-size: 11px; color: #999; background: #e9ecef; padding: 2px 8px; border-radius: 12px; }
+  .card-clock .clock-time { font-size: 30px; font-weight: 600; letter-spacing: 2px; color: #2c3e50; font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace; font-variant-numeric: tabular-nums; }
+  .card-clock .clock-foot { margin-top: 12px; padding-top: 8px; font-size: 12px; color: #999; border-top: 1px dashed #dee2e6; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .card-clock .clock-foot::before { content: ""; flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; background: #d0d5dd; transition: background .3s; }
+  .card-clock .clock-foot[data-state='ok']::before { background: #4CAF50; }
+  [data-theme='dark'] .card-clock .clock-row { background: #1e1e1e; }
+  [data-theme='dark'] .card-clock .clock-label { color: rgba(255, 255, 255, .55); }
+  [data-theme='dark'] .card-clock .clock-badge { color: rgba(255, 255, 255, .5); background: rgba(255, 255, 255, .1); }
+  [data-theme='dark'] .card-clock .clock-time { color: rgba(255, 255, 255, .88); }
+  [data-theme='dark'] .card-clock .clock-foot { color: rgba(255, 255, 255, .4); border-top-color: rgba(255, 255, 255, .12); }
+  [data-theme='dark'] .card-clock .clock-foot::before { background: rgba(255, 255, 255, .25); }
+  [data-theme='dark'] .card-clock .clock-foot[data-state='ok']::before { background: #4CAF50; }
+</style>
+<script>
+  (function () {
+    /* ---------------- 折叠交互 ---------------- */
+    var cards = document.querySelectorAll('.card-clock');
+    for (var i = 0; i < cards.length; i++) {
+      (function (card) {
+        var head = card.querySelector('.item-headline');
+        var body = card.querySelector('.item-content');
+        if (!head || !body || head.dataset.clockToggle === '1') return;
+        head.dataset.clockToggle = '1';
+        head.setAttribute('role', 'button');
+        head.setAttribute('tabindex', '0');
+        head.setAttribute('aria-label', '展开或收起授时时钟');
+        body.style.maxHeight = body.scrollHeight + 'px';
+
+        function toggle() {
+          var collapsed = card.classList.toggle('is-collapsed');
+          body.style.maxHeight = collapsed ? '0px' : (body.scrollHeight + 'px');
+          head.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        }
+        head.addEventListener('click', toggle);
+        head.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+        });
+        window.addEventListener('resize', function () {
+          if (!card.classList.contains('is-collapsed')) body.style.maxHeight = body.scrollHeight + 'px';
+        });
+      })(cards[i]);
+    }
+
+    /* ---------------- 时钟渲染 ---------------- */
+    var elBjt = document.getElementById('clock-bjt');
+    var elSrc = document.getElementById('clock-src');
+    var offset = 0;                    // 权威时间 − 本机时间（毫秒）
+    var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+
+    function fmtBjt(ms) {              // 平移 8 小时后按 UTC 读字段 = 北京时间
+      var d = new Date(ms + 8 * 3600000);
+      return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) + ':' + pad(d.getUTCSeconds());
+    }
+    function render() {
+      if (elBjt) elBjt.textContent = fmtBjt(Date.now() + offset);
+    }
+    function mark(state, text) {
+      if (!elSrc) return;
+      elSrc.setAttribute('data-state', state);
+      elSrc.textContent = text;
+    }
+    function apply(serverMs, label) {
+      if (!serverMs || isNaN(serverMs)) return false;
+      offset = serverMs - Date.now();  // 只同步这一次，之后靠本机推算
+      mark('ok', '已联网校准 · ' + label);
+      render();
+      return true;
+    }
+
+    /* ---------------- JSONP 取时（绕过 CORS） ---------------- */
+    var seq = 0;
+    function jsonp(urlTpl, timeout, onData, onFail) {
+      var name = '__clockCb' + (++seq);
+      var s = document.createElement('script');
+      var done = false;
+      var timer = setTimeout(function () { finish(false); }, timeout);
+
+      function finish(ok, data) {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        try { delete window[name]; } catch (e) { window[name] = undefined; }
+        if (s.parentNode) { s.parentNode.removeChild(s); }
+        if (ok && data != null) { onData(data); } else { onFail(); }
+      }
+      window[name] = function (data) { finish(true, data); };
+      s.onerror = function () { finish(false); };
+      s.async = true;
+      s.src = urlTpl.replace('{cb}', name);
+      document.head.appendChild(s);
+    }
+
+    function fallback() {
+      offset = 0;
+      mark('off', '未校准 · 本机时钟');
+      render();
+    }
+    function tryTencent() {
+      jsonp('https://vv.video.qq.com/checktime?otype=json&callback={cb}&_=' + Date.now(), 3500,
+        function (r) { if (!(r && r.t && apply(r.t * 1000, '腾讯'))) fallback(); },
+        fallback);
+    }
+
+    jsonp('https://f.m.suning.com/api/ct.do?callback={cb}&_=' + Date.now(), 3500,
+      function (r) { if (!(r && r.currentTime && apply(+r.currentTime, '苏宁易购'))) tryTencent(); },
+      tryTencent);
+
+    /* ---------------- 启动 ---------------- */
+    render();
+    if (window.__clockTimer) { clearInterval(window.__clockTimer); }
+    window.__clockTimer = setInterval(render, 1000);
+  })();
+</script>
+</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%AD%97%E8%8A%82%E7%A0%81"><span class="toc-text">什么是字节码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#JVM-%E5%B9%B3%E5%8F%B0%E4%B8%8A%E7%9A%84%E5%AD%97%E8%8A%82%E7%A0%81%E6%96%87%E4%BB%B6"><span class="toc-text">JVM 平台上的字节码文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%97%E8%8A%82%E7%A0%81%E6%96%87%E4%BB%B6%E4%B8%8E%E5%BA%8F%E5%88%97%E5%8C%96%E6%95%B0%E6%8D%AE"><span class="toc-text">字节码文件与序列化数据</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E8%8A%82%E7%A0%81%E7%BB%93%E6%9E%84"><span class="toc-text">字节码结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E8%8A%82%E7%A0%81%E6%96%87%E4%BB%B6%E6%95%B4%E4%BD%93%E7%BB%93%E6%9E%84%E6%80%BB%E8%A7%88"><span class="toc-text">字节码文件整体结构总览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%89%88%E6%9C%AC%E5%8F%B7%EF%BC%88Minor-Version-Major-Version%EF%BC%89"><span class="toc-text">版本号（Minor Version &amp; Major Version）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BF%E9%97%AE%E6%A0%87%E5%BF%97%EF%BC%88access-flags%EF%BC%89"><span class="toc-text">访问标志（access_flags）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E9%87%8F%E6%B1%A0%E7%BB%93%E6%9E%84"><span class="toc-text">常量池结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E6%AE%B5%E8%A1%A8"><span class="toc-text">字段表</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%AB%E2%80%9C%E8%A1%A8%E2%80%9D%EF%BC%9F"><span class="toc-text">为什么叫“表”？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E8%A1%A8"><span class="toc-text">方法表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B1%9E%E6%80%A7%E8%A1%A8"><span class="toc-text">属性表</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Code-%E5%B1%9E%E6%80%A7%EF%BC%88%E6%96%B9%E6%B3%95%E4%BD%93%EF%BC%89"><span class="toc-text">Code 属性（方法体）</span></a></li></ol></li></ol></div></div><div class="card-widget card-post-series"><div class="item-headline"><i class="fa-solid fa-layer-group"></i><span>JVM</span></div><div class="aside-list"><div class="aside-list-item"><div class="content"><a class="title" href="/posts/5bc809d9/" title="JVM调优工具">JVM调优工具</a><time datetime="2026-07-15T04:17:34.000Z" title="发表于 2026-07-15 12:17:34">2026-07-15</time></div></div><div class="aside-list-item"><div class="content"><a class="title" href="/posts/d88f5f05/" title="字节码文件解析">字节码文件解析</a><time datetime="2026-07-10T02:44:05.000Z" title="发表于 2026-07-10 10:44:05">2026-07-10</time></div></div><div class="aside-list-item"><div class="content"><a class="title" href="/posts/f41a237a/" title="指针碰撞与空闲列表">指针碰撞与空闲列表</a><time datetime="2026-07-08T08:22:07.000Z" title="发表于 2026-07-08 16:22:07">2026-07-08</time></div></div><div class="aside-list-item"><div class="content"><a class="title" href="/posts/72f47432/" title="垃圾回收">垃圾回收</a><time datetime="2026-07-07T04:24:41.000Z" title="发表于 2026-07-07 12:24:41">2026-07-07</time></div></div><div class="aside-list-item"><div class="content"><a class="title" href="/posts/ffb663c0/" title="String字符串">String字符串</a><time datetime="2026-07-07T03:02:37.000Z" title="发表于 2026-07-07 11:02:37">2026-07-07</time></div></div></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/3610a686/" title="hello"><img src="https://img.zzc.dpdns.org/images/1789957733737-2a5cdfbc2eb21ead6978e8dd0056a712.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="hello" loading='lazy'/></a><div class="content"><a class="title" href="/posts/3610a686/" title="hello">hello</a><time datetime="2026-09-21T02:27:07.000Z" title="发表于 2026-09-21 10:27:07">2026-09-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/2633a26/" title="位运算"><img src="https://img.zzc.dpdns.org/images/1790042755579-f489e2b4f40983d7c5697c79ceeefd03.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="位运算" loading='lazy'/></a><div class="content"><a class="title" href="/posts/2633a26/" title="位运算">位运算</a><time datetime="2026-08-24T04:34:29.000Z" title="发表于 2026-08-24 12:34:29">2026-08-24</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/2779e0a0/" title="手机变服务器：Termux + proot Ubuntu 家庭服务器全栈部署完全指南"><img src="https://img.zzc.dpdns.org/images/1790042794428-fd69845ad70409f6ab2183756b0b2bfa.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="手机变服务器：Termux + proot Ubuntu 家庭服务器全栈部署完全指南" loading='lazy'/></a><div class="content"><a class="title" href="/posts/2779e0a0/" title="手机变服务器：Termux + proot Ubuntu 家庭服务器全栈部署完全指南">手机变服务器：Termux + proot Ubuntu 家庭服务器全栈部署完全指南</a><time datetime="2026-08-15T16:00:00.000Z" title="发表于 2026-08-16 00:00:00">2026-08-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/13fe9115/" title="Hexo 博客部署运维"><img src="https://img.zzc.dpdns.org/images/1790042781078-7a4f5f433f894cde0e9e0f19908c2306.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Hexo 博客部署运维" loading='lazy'/></a><div class="content"><a class="title" href="/posts/13fe9115/" title="Hexo 博客部署运维">Hexo 博客部署运维</a><time datetime="2026-07-30T09:24:57.000Z" title="发表于 2026-07-30 17:24:57">2026-07-30</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/5d8a35d1/" title="GitHub 图床 + Cloudflare Worker 加速代理"><img src="https://img.zzc.dpdns.org/images/1790042755579-f489e2b4f40983d7c5697c79ceeefd03.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="GitHub 图床 + Cloudflare Worker 加速代理" loading='lazy'/></a><div class="content"><a class="title" href="/posts/5d8a35d1/" title="GitHub 图床 + Cloudflare Worker 加速代理">GitHub 图床 + Cloudflare Worker 加速代理</a><time datetime="2026-07-30T07:43:57.000Z" title="发表于 2026-07-30 15:43:57">2026-07-30</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-flex"><div class="footer-flex-items"><div class="footer-flex-item"><div class="footer-flex-title">导航</div><div class="footer-flex-content"><a href="/" target="_blank" title="首页">首页</a><a href="/archives/" target="_blank" title="归档">归档</a><a href="/tags/" target="_blank" title="标签">标签</a><a href="/categories/" target="_blank" title="分类">分类</a><a href="/about/" target="_blank" title="关于">关于</a></div></div></div><div class="footer-flex-items"><div class="footer-flex-item"><div class="footer-flex-title">其他</div><div class="footer-flex-content"><a href="/Gallery/" target="_blank" title="图库">图库</a><a href="/music/" target="_blank" title="音乐">音乐</a><a href="/tools/" target="_blank" title="工具">工具</a><a href="/messageboard/" target="_blank" title="留言板">留言板</a><a href="/link/" target="_blank" title="友链">友链</a><a href="/timeline/" target="_blank" title="更新日志">更新日志</a></div></div></div><div class="footer-flex-items"><div class="footer-flex-item"><div class="footer-flex-title">框架</div><div class="footer-flex-content"><a href="https://hexo.io/zh-cn/" target="_blank" title="Hexo">Hexo</a><a href="https://butterfly.js.org/" target="_blank" title="Butterfly">Butterfly</a></div></div></div></div><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 青川</span><span class="framework-info"><span class="footer-separator">|</span><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.7.1.260810</a></span></div><div class="footer_custom_text">拾起遗落的，记下来。</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.1.260810"></script><script src="/js/main.js?v=5.7.1.260810"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1.14/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page@5.2.0/instantpage.min.js" type="module"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = {"lang":"zh-CN"}
+
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://zzc-twikoo.netlify.app/.netlify/functions/twikoo',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(res => {
+      countELement.textContent = res[0].count
+    }).catch(err => {
+      console.error(err)
+    })
+  }
+
+  const init = (el = document, path = location.pathname) => {
+    twikoo.init({
+      el: el.querySelector('#twikoo-wrap'),
+      envId: 'https://zzc-twikoo.netlify.app/.netlify/functions/twikoo',
+      region: '',
+      onCommentLoaded: () => {
+        btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      },
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || path
+    })
+
+    
+
+    isShuoshuo && (window.shuoshuoComment.destroyTwikoo = () => {
+      if (el.children.length) {
+        el.innerHTML = ''
+        el.classList.add('no-comment')
+      }
+    })
+  }
+
+  const loadTwikoo = (el, path) => {
+    if (typeof twikoo === 'object') setTimeout(() => init(el, path), 0)
+    else btf.getScript('https://registry.npmmirror.com/twikoo/2.0.5/files/dist/twikoo.all.min.js').then(() => init(el, path))
+  }
+
+  if (isShuoshuo) {
+    'Twikoo' === 'Twikoo'
+      ? window.shuoshuoComment = { loadComment: loadTwikoo }
+      : window.loadOtherComment = loadTwikoo
+    return
+  }
+
+  if ('Twikoo' === 'Twikoo' || !false) {
+    if (false) btf.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else loadTwikoo()
+  } else {
+    window.loadOtherComment = loadTwikoo
+  }
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = {"data-category":"Announcements","data-lang":"zh-CN","data-mapping":"pathname","data-strict":"1"}
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'zzc-blog/comments',
+      'data-repo-id': 'R_kgDOUj2zew',
+      'data-category-id': 'DIC_kwDOUj2ze84DGFpk',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Twikoo' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Twikoo' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script src="/js/click-effects-blank.js"></script><script src="/js/read-progress.js"></script><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="true"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/click-heart.min.js" async="async" mobile="false"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","meta[property=\"og:description\"]","link[rel=\"canonical\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"]):not([data-fancybox])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      if (!item.parentNode) return
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || ''
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    const responseURL = e.request && e.request.responseURL
+    if (e.request && e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : responseURL && (window.location.href = responseURL)
+    } else if (responseURL) {
+      window.location.href = responseURL
+    }
+  })
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.1.260810"></script></div></div><!-- lx-music-injected -->
+<style>#lx-music{--lx-accent:#49B1F5}</style>
+<link rel="stylesheet" href="/css/lx-music.css?v=6bcfa38cc8">
+<script>window.__LX_MUSIC__={"enable":true,"page_embed":true,"api":"https://lx-music-api.netlify.app","api_fallback":"","default_tab":"search","quality":"320k","volume":0.8,"collapsed":true,"remember":true,"bottom_gap":24,"drag":true,"lyric":true,"lyric_mode":"window","lyric_seek":true,"lyric_bg":"transparent","lyric_dir":"horizontal","lyric_size":16,"lyric_font":"","lyric_color":"","lyric_on":"","lyric_fill":"","lyric_karaoke":true,"mobile":true,"cache":true,"cache_ttl":21600,"favorite":true,"fav_max":200,"recent_max":100,"timeout":15000,"embed":""}</script>
+<script defer src="/js/lx-music.js?v=2769b30d1f"></script>
+<script>window.__PB_CFG__={"root":"/","text":"\u8fd4\u56de"};</script><script>;(function(){
+  "use strict";
+
+  /* ============================================================
+   * WHY THE BUTTON IS CREATED AT RUNTIME (not baked into the HTML)
+   * ------------------------------------------------------------
+   * This site uses pjax (no-reload page transitions). Baking
+   * <a id="pbBack"> into the post HTML causes two problems:
+   *   1) When leaving a post, the button node may survive the pjax
+   *      swap, so it also shows up on the home page;
+   *   2) When entering a post, whether that HTML gets swapped in
+   *      depends on the pjax container scope -> sometimes present,
+   *      sometimes missing.
+   * So instead: this script is always present and decides on every
+   * route change whether the current page is a post. If yes it
+   * creates and positions the button; if no it removes it.
+   * That decouples the button entirely from the pjax swap scope.
+   * ============================================================ */
+
+  var ID="pbBack";
+  var raf=0;
+  var bound=false;
+
+  /* Config injected at build time (see the filter below) */
+  var CFG=window.__PB_CFG__||{};
+  var ROOT=CFG.root||"/";
+  var TEXT=CFG.text||"\u8fd4\u56de";   /* fallback, escaped to survive encoding */
+
+  var GUTTER_MIN=64;   /* min free space left of the card to hug its edge */
+  var ICON_MIN=104;    /* below this width show the icon only */
+  var GAP=10;          /* gap between button and card left edge */
+
+  /* ---------- create / remove ---------- */
+  function create(){
+    var a=document.createElement("a");
+    a.id=ID;
+    a.href=ROOT;
+    a.setAttribute("role","button");
+    a.setAttribute("aria-label","\u8fd4\u56de\u4e0a\u4e00\u9875");
+    a.innerHTML='<i class="fas fa-arrow-left"></i><span></span>';
+    a.querySelector("span").textContent=TEXT;
+    a.addEventListener("click",onClick);
+    document.body.appendChild(a);
+    return a;
+  }
+
+  function onClick(e){
+    /* keep default behaviour for modifier / middle click (open home in new tab) */
+    if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||e.button!==0){return;}
+    e.preventDefault();
+    var ref="";
+    try{ref=document.referrer||"";}catch(err){ref="";}
+    /* only trust same-site referrers, so external visitors are not sent back out */
+    var fromSite=!!ref&&ref.indexOf(location.origin)===0;
+    if(fromSite&&window.history&&window.history.length>1){window.history.back();return;}
+    location.href=ROOT;
+  }
+
+  function navH(){
+    var n=document.getElementById("nav");
+    var h=n?n.getBoundingClientRect().height:0;
+    return h>0?h:60;   /* fall back to the theme nav height when unmeasurable */
+  }
+
+  /* ---------- positioning ---------- */
+  function place(){
+    raf=0;
+
+    var post=document.getElementById("post");
+    var btn=document.getElementById(ID);
+
+    /* Non-post pages (home / archive / tags ...): never create, and remove
+       an existing one. This is what fixes both the leftover button on the
+       home page and the stale position after a pjax swap. */
+    if(!post){
+      if(btn&&btn.parentNode){btn.parentNode.removeChild(btn);}
+      return;
+    }
+
+    if(!btn){btn=create();}
+
+    var r=post.getBoundingClientRect();
+    var vw=window.innerWidth||document.documentElement.clientWidth||0;
+    var vh=window.innerHeight||document.documentElement.clientHeight||0;
+
+    if(r.left>=GUTTER_MIN){
+      /* hug the card left edge; anchored by right, so no need to measure width */
+      btn.classList.remove("pb-dock");
+      if(r.left<ICON_MIN){btn.classList.add("pb-icon");}else{btn.classList.remove("pb-icon");}
+      btn.style.left="auto";
+      btn.style.right=Math.max(0,Math.round(vw-(r.left-GAP)))+"px";
+      var top=Math.round(r.top)+12;
+      var min=Math.round(navH())+12;
+      var max=vh-52;
+      if(max<min){max=min;}
+      if(top<min){top=min;}
+      if(top>max){top=max;}
+      btn.style.top=top+"px";
+      btn.style.bottom="auto";
+    }else{
+      /* narrow screen / stacked sidebar: dock to the bottom-left corner */
+      btn.classList.add("pb-dock");
+      btn.classList.remove("pb-icon");
+      btn.style.left="";
+      btn.style.right="";
+      btn.style.top="";
+      btn.style.bottom="";
+    }
+    btn.classList.add("pb-show");
+  }
+
+  function schedule(){
+    if(raf){return;}
+    raf=window.requestAnimationFrame?window.requestAnimationFrame(place):window.setTimeout(place,16);
+  }
+
+  function init(){
+    /* after a pjax swap the old node may be gone; place() recreates it if needed */
+    place();
+
+    if(!bound){
+      bound=true;
+      window.addEventListener("scroll",schedule,{passive:true});
+      window.addEventListener("resize",schedule);
+    }
+  }
+
+  /* first load */
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",init,{once:true});
+  }else{
+    init();
+  }
+
+  /* pjax navigation: re-evaluate whether this is a post page. The freshly
+     rendered layout may not be measurable yet, so re-measure a couple more
+     times to settle on the final position. */
+  document.addEventListener("pjax:complete",function(){
+    init();
+    schedule();
+    window.setTimeout(place,60);
+    window.setTimeout(place,250);
+  });
+
+  /* back/forward navigation, including bfcache restores */
+  window.addEventListener("pageshow",function(e){
+    if(e.persisted){init();}
+  });
+})();</script><script>window.__TOOLS__=[{"name":"100tools","url":"https://100tools.cn/","icon":"100"}];</script><script>;(function(){
+  "use strict";
+
+  /* ============================================================
+   * 导航栏「工具▾」：一级菜单项 + 外链下拉
+   * ------------------------------------------------------------
+   * 数据由构建期注入（window.__TOOLS__），加工具只改 source/_data/tools.yml。
+   *
+   * 本站开了 pjax，注入脚本只在首次加载执行一次。因此这里：
+   *   · 脚本注入到所有页面；
+   *   · 每次 pjax:complete 后重建下拉，避免切页后消失或残留。
+   * ============================================================ */
+
+  var TOOLS = window.__TOOLS__ || [];
+  if (!TOOLS.length) { return; }
+
+  var ITEM_ID = "zzcToolsNav";
+
+  /* 找导航栏的菜单容器。优先取顶部导航里的那个，
+     注意页面里还有侧边栏菜单（#sidebar-menus）也带 .menus_items，别选错。 */
+  function navItems(){
+    var nav = document.getElementById("nav");
+    if (!nav) { return null; }
+    return nav.querySelector(".menus_items");
+  }
+
+  function build(){
+    var wrap = document.createElement("div");
+    wrap.className = "menus_item";
+    wrap.id = ITEM_ID;
+
+    /* 一级标题：与其它菜单项结构保持一致（span.site-page.group），
+       这样主题自带的悬停展示 / 箭头旋转样式都能直接复用。 */
+    var head = document.createElement("span");
+    head.className = "site-page group";
+    head.innerHTML = '<i class="fa-fw fas fa-toolbox"></i><span> </span><i class="fas fa-chevron-down"></i>';
+    head.querySelector("span").textContent = "\u5de5\u5177";   /* 工具 */
+    wrap.appendChild(head);
+
+    var ul = document.createElement("ul");
+    ul.className = "menus_item_child";
+
+    TOOLS.forEach(function(t){
+      var li = document.createElement("li");
+      var a = document.createElement("a");
+      a.className = "site-page child";
+      a.href = t.url;
+      /* 外链一律新标签页打开，并切断 opener 引用（安全 + 不丢本站） */
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.title = t.name;
+
+      var i = document.createElement("i");
+      i.className = "fa-fw fas fa-arrow-up-right-from-square";
+      a.appendChild(i);
+
+      var sp = document.createElement("span");
+      sp.textContent = " " + t.name;
+      a.appendChild(sp);
+
+      li.appendChild(a);
+      ul.appendChild(li);
+    });
+
+    wrap.appendChild(ul);
+    return wrap;
+  }
+
+  /* 取菜单项的显示文字，去掉首尾空白。
+     ⚠️ 主题渲染出的文字带前导空格（模板里写的是 `span= ' ' + label`，
+        实际 textContent 形如 " 友链"）。所以判断"是否以某词开头"时
+        必须先 trim，否则 indexOf(...) === 0 永远不成立 —— 曾因此
+        导致定位失败、工具项被 appendChild 甩到菜单最末尾。 */
+  function labelOf(el){
+    var sp = el.querySelector(".site-page > span");
+    return sp ? String(sp.textContent || "").replace(/^\s+|\s+$/g, "") : "";
+  }
+
+  function mount(){
+    var items = navItems();
+    if (!items) { return; }
+
+    /* 幂等：已存在就先移除再重建，避免 pjax 反复切页后堆出多份 */
+    var old = document.getElementById(ITEM_ID);
+    if (old && old.parentNode) { old.parentNode.removeChild(old); }
+
+    /* 插到「友链」之前，即「资源」之后。
+       按文字定位而非写死索引，菜单顺序调整后依然正确。 */
+    var target = null;
+    var anchors = items.querySelectorAll(":scope > .menus_item");
+    for (var k = 0; k < anchors.length; k++) {
+      if (labelOf(anchors[k]).indexOf("\u53cb\u94fe") === 0) {   /* 友链 */
+        target = anchors[k];
+        break;
+      }
+    }
+
+    var node = build();
+    if (target) {
+      items.insertBefore(node, target);
+    } else {
+      items.appendChild(node);
+    }
+  }
+
+  function boot(){ mount(); }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  } else {
+    boot();
+  }
+
+  /* pjax 切页后导航会被换成新的 DOM，需要重新插入 */
+  document.addEventListener("pjax:complete", mount);
+  window.addEventListener("pageshow", function(e){ if (e.persisted) { mount(); } });
+})();</script></body></html>

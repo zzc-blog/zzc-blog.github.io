@@ -1,0 +1,1083 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>《从零到一：我用 Hexo + GitHub Pages 搭了一个博客》 | 拾遗录</title><meta name="author" content="青川"><meta name="copyright" content="青川"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="从安装 Hexo 开始，梳理 Node.js 版本要求、_config.yml 各项配置、主题与插件安装、文章与资源管理，直到部署到 GitHub Pages 的完整建站流程与踩坑记录。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《从零到一：我用 Hexo + GitHub Pages 搭了一个博客》">
+<meta property="og:url" content="https://zzc-blog.github.io/posts/fc67d995/index.html">
+<meta property="og:site_name" content="拾遗录">
+<meta property="og:description" content="从安装 Hexo 开始，梳理 Node.js 版本要求、_config.yml 各项配置、主题与插件安装、文章与资源管理，直到部署到 GitHub Pages 的完整建站流程与踩坑记录。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img.zzc.dpdns.org/images/521559cf8f478195220a2daa3879f04b.png">
+<meta property="article:published_time" content="2026-07-06T03:30:24.000Z">
+<meta property="article:modified_time" content="2026-07-06T03:30:24.000Z">
+<meta property="article:author" content="青川">
+<meta property="article:tag" content="GitHub">
+<meta property="article:tag" content="Hexo">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img.zzc.dpdns.org/images/521559cf8f478195220a2daa3879f04b.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "《从零到一：我用 Hexo + GitHub Pages 搭了一个博客》",
+  "url": "https://zzc-blog.github.io/posts/fc67d995/",
+  "image": "https://img.zzc.dpdns.org/images/521559cf8f478195220a2daa3879f04b.png",
+  "datePublished": "2026-07-06T03:30:24.000Z",
+  "dateModified": "2026-07-06T03:30:24.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "青川",
+      "url": "https://github.com/zzc-blog"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://zzc-blog.github.io/posts/fc67d995/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.1.260810"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1.14/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        try {
+          const data = { value }
+
+          if (ttl != null) {
+            data.expiry = Date.now() + ttl * 86400000
+          }
+
+          localStorage.setItem(key, JSON.stringify(data))
+        } catch (e) {
+          console.error(e)
+        }
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":320,"highlightFullpage":true,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '《从零到一：我用 Hexo + GitHub Pages 搭了一个博客》',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="preconnect" href="https://img.zzc.dpdns.org" crossorigin><link rel="dns-prefetch" href="https://img.zzc.dpdns.org"><link rel="stylesheet" href="https://npm.elemecdn.com/lxgw-wenkai-screen-webfont@1.7.0/style.css"><link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/@fontsource/noto-sans-sc@5.3.0/400.css"><link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/@fontsource/noto-sans-sc@5.3.0/500.css"><link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/@fontsource/noto-sans-sc@5.3.0/600.css"><link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/jetbrains-mono@1.0.6/css/jetbrains-mono-nl.min.css"><link rel="stylesheet" href="/css/custom.css?v=1e3615ef8a"><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="拾遗录" type="application/atom+xml">
+<style>#pbBack{position:fixed;z-index:89;display:none;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;height:38px;padding:0 14px;border-radius:999px;font-size:13.5px;line-height:1;white-space:nowrap;text-decoration:none !important;color:var(--btn-color,#fff);background:var(--btn-bg,#49b1f5);box-shadow:0 3px 12px rgba(0,0,0,.2);opacity:.9;transition:opacity .25s,background-color .3s}#pbBack.pb-show{display:inline-flex}#pbBack:hover{opacity:1;background:var(--btn-hover-color,#49b1f5)}#pbBack i{font-size:13px}#pbBack.pb-icon{width:38px;padding:0}#pbBack.pb-icon>span{display:none}#pbBack.pb-dock{left:14px;bottom:14px}@media print{#pbBack{display:none !important}}</style><style>/* 工具下拉里的外链项：右侧补一个外链箭头，提示"点了会跳出本站" */#zzcToolsNav .menus_item_child a.site-page::after{content:"\2197";margin-left:6px;font-size:.8em;opacity:.45}/* 名称过长时省略，避免下拉被撑得过宽 */#zzcToolsNav .menus_item_child a.site-page span{white-space:nowrap}</style></head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="/css/pace.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.webp" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar" loading='lazy'/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">25</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/random/"><i class="fa-fw fas fa-shuffle"></i><span> 随机文章</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 资源</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 图库</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-info-circle"></i><span> 关于</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></li><li><a class="site-page child" href="/messageboard/"><i class="fa-fw fas fa-comment-dots"></i><span> 留言板</span></a></li><li><a class="site-page child" href="/timeline/"><i class="fa-fw fas fa-clock-rotate-left"></i><span> 更新日志</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://img.zzc.dpdns.org/images/521559cf8f478195220a2daa3879f04b.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">拾遗录</span></a><a class="nav-page-title" href="/"><span class="site-name">《从零到一：我用 Hexo + GitHub Pages 搭了一个博客》</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/random/"><i class="fa-fw fas fa-shuffle"></i><span> 随机文章</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 资源</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 图库</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-info-circle"></i><span> 关于</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></li><li><a class="site-page child" href="/messageboard/"><i class="fa-fw fas fa-comment-dots"></i><span> 留言板</span></a></li><li><a class="site-page child" href="/timeline/"><i class="fa-fw fas fa-clock-rotate-left"></i><span> 更新日志</span></a></li></ul></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">《从零到一：我用 Hexo + GitHub Pages 搭了一个博客》</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-07-06T03:30:24.000Z" title="发表于 2026-07-06 11:30:24">2026-07-06</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-06T03:30:24.000Z" title="更新于 2026-07-06 11:30:24">2026-07-06</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/GitHub/">GitHub</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3644</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>18 分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:365,&quot;messagePrev&quot;:&quot;距离上次更新已经过了&quot;,&quot;messageNext&quot;:&quot;天，文章内容可能已过时。&quot;,&quot;postUpdate&quot;:&quot;2026-07-06 11:30:24&quot;}" hidden></div><h2 id="1-安装-Hexo"><a href="#1-安装-Hexo" class="headerlink" title="1. 安装 Hexo"></a>1. 安装 Hexo</h2><h3 id="1-1-什么是-Hexo？"><a href="#1-1-什么是-Hexo？" class="headerlink" title="1.1 什么是 Hexo？"></a>1.1 什么是 Hexo？</h3><p>Hexo 是一个快速、简洁且高效的博客框架。 Hexo 使用 <a target="_blank" rel="noopener" href="http://daringfireball.net/projects/markdown/">Markdown</a>（或其他标记语言）解析文章，在几秒内，即可利用靓丽的主题生成静态网页。</p>
+<h3 id="1-2-要求"><a href="#1-2-要求" class="headerlink" title="1.2 要求"></a>1.2 要求</h3><p>安装 Hexo 相当简单，只需要先安装下列应用程序即可：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://nodejs.org/">Node.js</a> (Node.js 版本需不低于 10.13，建议使用 Node.js 12.0 及以上版本)</li>
+<li><a target="_blank" rel="noopener" href="http://git-scm.com/">Git</a></li>
+</ul>
+<h3 id="1-3-安装-Hexo"><a href="#1-3-安装-Hexo" class="headerlink" title="1.3 安装 Hexo"></a>1.3 安装 Hexo</h3><p>所有必备的应用程序安装完成后，即可使用 npm 安装 Hexo。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install -g hexo-cli</span><br></pre></td></tr></table></figure>
+
+<p>安装以后，可以使用以下两种方式执行 Hexo：</p>
+<ol>
+<li><code>npx hexo &lt;command&gt;</code></li>
+<li>Linux 用户可以将 Hexo 所在的目录下的 <code>node_modules</code> 添加到环境变量之中即可直接使用 <code>hexo &lt;command&gt;</code>：</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;PATH=&quot;$PATH:./node_modules/.bin&quot;&#x27;</span> &gt;&gt; ~/.profile</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-4-Node-js-版本限制"><a href="#1-4-Node-js-版本限制" class="headerlink" title="1.4 Node.js 版本限制"></a>1.4 Node.js 版本限制</h3><table>
+<thead>
+<tr>
+<th align="left">Hexo 版本</th>
+<th align="left">最低版本 (Node.js 版本)</th>
+<th align="left">最高版本 (Node.js 版本)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">8.0+</td>
+<td align="left">20.19.0</td>
+<td align="left">latest</td>
+</tr>
+<tr>
+<td align="left">7.0+</td>
+<td align="left">14.0.0</td>
+<td align="left">latest</td>
+</tr>
+<tr>
+<td align="left">6.2+</td>
+<td align="left">12.13.0</td>
+<td align="left">latest</td>
+</tr>
+<tr>
+<td align="left">6.0+</td>
+<td align="left">12.13.0</td>
+<td align="left">18.5.0</td>
+</tr>
+<tr>
+<td align="left">5.0+</td>
+<td align="left">10.13.0</td>
+<td align="left">12.0.0</td>
+</tr>
+<tr>
+<td align="left">4.1 - 4.2</td>
+<td align="left">8.10</td>
+<td align="left">10.0.0</td>
+</tr>
+<tr>
+<td align="left">4.0</td>
+<td align="left">8.6</td>
+<td align="left">8.10.0</td>
+</tr>
+<tr>
+<td align="left">3.3 - 3.9</td>
+<td align="left">6.9</td>
+<td align="left">8.0.0</td>
+</tr>
+<tr>
+<td align="left">3.2 - 3.3</td>
+<td align="left">0.12</td>
+<td align="left">未知</td>
+</tr>
+<tr>
+<td align="left">3.0 - 3.1</td>
+<td align="left">0.10 或 iojs</td>
+<td align="left">未知</td>
+</tr>
+<tr>
+<td align="left">0.0.1 - 2.8</td>
+<td align="left">0.10</td>
+<td align="left">未知</td>
+</tr>
+</tbody></table>
+<p>安装 Hexo 完成后，请执行下列命令，Hexo 将会在指定文件夹中新建所需要的文件。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo init &lt;folder&gt;</span><br><span class="line"><span class="built_in">cd</span> &lt;folder&gt;</span><br><span class="line">pnpm install</span><br></pre></td></tr></table></figure>
+
+<p>初始化后，您的项目文件夹将如下所示：</p>
+<p><img src="https://img.zzc.dpdns.org/images/521559cf8f478195220a2daa3879f04b.png" alt="image-20260706114155246" loading='lazy'></p>
+<h3 id="1-5-配置-config-yml"><a href="#1-5-配置-config-yml" class="headerlink" title="1.5 配置 _config.yml"></a>1.5 配置 _config.yml</h3><p>网站的 <a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/docs/configuration">配置</a> 文件。 您可以在此配置大部分的参数。</p>
+<p>具体配置查看 <a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/docs/configuration#">官网_config.yml</a></p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"># Hexo Configuration</span><br><span class="line">## Docs<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//hexo.io/docs/configuration.html</span></span><br><span class="line">## Source<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//github.com/hexojs/hexo/</span></span><br><span class="line"></span><br><span class="line"># Site</span><br><span class="line">title<span class="punctuation">:</span> zzc-blog</span><br><span class="line">subtitle<span class="punctuation">:</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line">description<span class="punctuation">:</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line">keywords<span class="punctuation">:</span></span><br><span class="line">author<span class="punctuation">:</span> zzc-blog</span><br><span class="line">language<span class="punctuation">:</span> zh-CN</span><br><span class="line">timezone<span class="punctuation">:</span> Asia/Shanghai</span><br><span class="line"></span><br><span class="line"># URL</span><br><span class="line">## Set your site url here. For example<span class="punctuation">,</span> if you use GitHub Page<span class="punctuation">,</span> set url as <span class="string">&#x27;https://username.github.io/project&#x27;</span></span><br><span class="line"></span><br><span class="line">permalink<span class="punctuation">:</span> posts/<span class="punctuation">:</span>abbrlink/</span><br><span class="line">abbrlink<span class="punctuation">:</span></span><br><span class="line">  alg<span class="punctuation">:</span> crc32</span><br><span class="line">  rep<span class="punctuation">:</span> hex</span><br><span class="line">permalink_defaults<span class="punctuation">:</span></span><br><span class="line">pretty_urls<span class="punctuation">:</span></span><br><span class="line">  trailing_index<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  trailing_html<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"></span><br><span class="line">#permalink<span class="punctuation">:</span> <span class="punctuation">:</span>year/<span class="punctuation">:</span>month/<span class="punctuation">:</span>day/<span class="punctuation">:</span>title/</span><br><span class="line">#permalink_defaults<span class="punctuation">:</span></span><br><span class="line">#pretty_urls<span class="punctuation">:</span></span><br><span class="line">  #trailing_index<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  #trailing_html<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"></span><br><span class="line"># Directory</span><br><span class="line">source_dir<span class="punctuation">:</span> source</span><br><span class="line">public_dir<span class="punctuation">:</span> public</span><br><span class="line">tag_dir<span class="punctuation">:</span> tags</span><br><span class="line">archive_dir<span class="punctuation">:</span> archives</span><br><span class="line">category_dir<span class="punctuation">:</span> categories</span><br><span class="line">code_dir<span class="punctuation">:</span> downloads/code</span><br><span class="line">i18n_dir<span class="punctuation">:</span> <span class="punctuation">:</span>lang</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># Writing</span><br><span class="line">new_post_name<span class="punctuation">:</span> <span class="punctuation">:</span>title.md # File name of new posts</span><br><span class="line">default_layout<span class="punctuation">:</span> post</span><br><span class="line">titlecase<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span> # Transform title into titlecase</span><br><span class="line">external_link<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span> # Open external links in new tab</span><br><span class="line">  field<span class="punctuation">:</span> site # Apply to the whole site</span><br><span class="line">  exclude<span class="punctuation">:</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line">filename_case<span class="punctuation">:</span> <span class="number">0</span></span><br><span class="line">render_drafts<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">post_asset_folder<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">relative_link<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">future<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">syntax_highlighter<span class="punctuation">:</span> highlight.js</span><br><span class="line">highlight<span class="punctuation">:</span></span><br><span class="line">  line_number<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  auto_detect<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  tab_replace<span class="punctuation">:</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line">  wrap<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  hljs<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">prismjs<span class="punctuation">:</span></span><br><span class="line">  preprocess<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  line_number<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  tab_replace<span class="punctuation">:</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line"></span><br><span class="line"># Home page setting</span><br><span class="line"># path<span class="punctuation">:</span> Root path for your blogs index page. (default = <span class="string">&#x27;&#x27;</span>)</span><br><span class="line"># per_page<span class="punctuation">:</span> Posts displayed per page. (<span class="number">0</span> = disable pagination)</span><br><span class="line"># order_by<span class="punctuation">:</span> Posts order. (Order by date descending by default)</span><br><span class="line">index_generator<span class="punctuation">:</span></span><br><span class="line">  path<span class="punctuation">:</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line">  per_page<span class="punctuation">:</span> <span class="number">10</span></span><br><span class="line">  order_by<span class="punctuation">:</span> -date</span><br><span class="line"></span><br><span class="line"># Category &amp; Tag</span><br><span class="line">default_category<span class="punctuation">:</span> uncategorized</span><br><span class="line">category_map<span class="punctuation">:</span></span><br><span class="line">tag_map<span class="punctuation">:</span></span><br><span class="line"></span><br><span class="line"># Metadata elements</span><br><span class="line">## https<span class="punctuation">:</span><span class="comment">//developer.mozilla.org/en-US/docs/Web/HTML/Element/meta</span></span><br><span class="line">meta_generator<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"></span><br><span class="line"># Date / Time format</span><br><span class="line">## Hexo uses Moment.js to parse and display date</span><br><span class="line">## You can customize the date format as defined in</span><br><span class="line">## http<span class="punctuation">:</span><span class="comment">//momentjs.com/docs/#/displaying/format/</span></span><br><span class="line">date_format<span class="punctuation">:</span> YYYY-MM-DD</span><br><span class="line">time_format<span class="punctuation">:</span> HH<span class="punctuation">:</span>mm<span class="punctuation">:</span>ss</span><br><span class="line">## updated_option supports <span class="string">&#x27;mtime&#x27;</span><span class="punctuation">,</span> <span class="string">&#x27;date&#x27;</span><span class="punctuation">,</span> <span class="string">&#x27;empty&#x27;</span></span><br><span class="line">updated_option<span class="punctuation">:</span> <span class="string">&#x27;mtime&#x27;</span></span><br><span class="line"></span><br><span class="line"># Pagination</span><br><span class="line">## Set per_page to <span class="number">0</span> to disable pagination</span><br><span class="line">per_page<span class="punctuation">:</span> <span class="number">10</span></span><br><span class="line">pagination_dir<span class="punctuation">:</span> page</span><br><span class="line"></span><br><span class="line"># Include / Exclude file(s)</span><br><span class="line">## include<span class="punctuation">:</span>/exclude<span class="punctuation">:</span> options only apply to the <span class="string">&#x27;source/&#x27;</span> folder</span><br><span class="line">include<span class="punctuation">:</span></span><br><span class="line">exclude<span class="punctuation">:</span></span><br><span class="line">ignore<span class="punctuation">:</span></span><br><span class="line"></span><br><span class="line"># Extensions</span><br><span class="line">## Plugins<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//hexo.io/plugins/</span></span><br><span class="line">## Themes<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//hexo.io/themes/</span></span><br><span class="line">#theme<span class="punctuation">:</span> landscape</span><br><span class="line">theme<span class="punctuation">:</span> butterfly</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># Feed</span><br><span class="line">feed<span class="punctuation">:</span></span><br><span class="line">  type<span class="punctuation">:</span> atom</span><br><span class="line">  path<span class="punctuation">:</span> atom.xml</span><br><span class="line">  limit<span class="punctuation">:</span> <span class="number">20</span></span><br><span class="line">  hub<span class="punctuation">:</span></span><br><span class="line">  content<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  content_limit<span class="punctuation">:</span> <span class="number">140</span></span><br><span class="line">  content_limit_delim<span class="punctuation">:</span> <span class="string">&#x27; &#x27;</span></span><br><span class="line">  order_by<span class="punctuation">:</span> -date</span><br><span class="line">  icon<span class="punctuation">:</span> /img/favicon.webp</span><br><span class="line"></span><br><span class="line"># Deployment</span><br><span class="line">## Docs<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//hexo.io/docs/one-command-deployment</span></span><br><span class="line"></span><br><span class="line">url<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//blog.zzc.dpdns.org</span></span><br><span class="line"></span><br><span class="line">skip_render<span class="punctuation">:</span></span><br><span class="line">  - <span class="string">&#x27;CNAME&#x27;</span></span><br><span class="line">  </span><br><span class="line">  </span><br><span class="line"># https<span class="punctuation">:</span><span class="comment">//github.com/RayKr/hexo-auto-front-matter</span></span><br><span class="line">auto_front_matter<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"></span><br><span class="line">  # 控制 front-matter 字段的显示顺序（可选）</span><br><span class="line">  # 留空则保持原文件中字段的先后顺序</span><br><span class="line">  order<span class="punctuation">:</span></span><br><span class="line">    - title</span><br><span class="line">    - date</span><br><span class="line">    - categories</span><br><span class="line">    - tags</span><br><span class="line">    - cover</span><br><span class="line">    - description</span><br><span class="line"></span><br><span class="line">  # ---- 自动标题 ----</span><br><span class="line">  auto_title<span class="punctuation">:</span></span><br><span class="line">    enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    mode<span class="punctuation">:</span> <span class="number">1</span>   # <span class="number">1</span>=仅当 title 为空时自动填入；<span class="number">2</span>=始终覆盖</span><br><span class="line"></span><br><span class="line">  # ---- 自动日期 ----</span><br><span class="line">  auto_date<span class="punctuation">:</span></span><br><span class="line">    enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"></span><br><span class="line">  # ---- 自动分类 ----</span><br><span class="line">  # 逻辑同 hexo-auto-category，从文章所在文件夹路径推断分类</span><br><span class="line">  auto_categories<span class="punctuation">:</span></span><br><span class="line">    enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">    multiple<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span>   # <span class="literal"><span class="keyword">false</span></span>=将文件夹路径作为单级分类；<span class="literal"><span class="keyword">true</span></span>=每层文件夹作为一个分类层级</span><br><span class="line">    depth<span class="punctuation">:</span>            # 不填则取全部文件夹层级；填数字则只取前 N 层</span><br><span class="line"></span><br><span class="line">  # ---- 自动标签 ----</span><br><span class="line">  # 当 tags 字段为空时，自动把 categories 的内容复制到 tags</span><br><span class="line">  auto_tags<span class="punctuation">:</span></span><br><span class="line">    enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"></span><br><span class="line">  # ---- 自动封面 ----</span><br><span class="line">  # 根据最深层的分类名称匹配封面图片路径</span><br><span class="line">  auto_cover<span class="punctuation">:</span></span><br><span class="line">    enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    per_category<span class="punctuation">:</span></span><br><span class="line">      # 格式：父分类<span class="punctuation">:</span> <span class="punctuation">&#123;</span> 子分类<span class="punctuation">:</span> 图片路径 <span class="punctuation">&#125;</span></span><br><span class="line">      技术<span class="punctuation">:</span></span><br><span class="line">        Java<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/1.webp</span></span><br><span class="line">        数据库<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/5.webp</span></span><br><span class="line">        前端<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/25.webp</span></span><br><span class="line">        工具<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/1.webp</span></span><br><span class="line">        其他<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/6.webp</span></span><br><span class="line">      生活<span class="punctuation">:</span></span><br><span class="line">        随笔<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/24.webp</span></span><br><span class="line">        阅读<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/27.webp</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>package.json</strong></p>
+<p>应用程序的信息。 <a target="_blank" rel="noopener" href="https://ejs.co/">EJS</a>, <a target="_blank" rel="noopener" href="http://learnboost.github.io/stylus/">Stylus</a> 和 <a target="_blank" rel="noopener" href="http://daringfireball.net/projects/markdown/">Markdown</a> 渲染引擎 已默认安装，您可以自由移除。 如果您想，可以稍后卸载它们。</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;hexo-site&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;version&quot;</span><span class="punctuation">:</span> <span class="string">&quot;0.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;private&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;scripts&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;build&quot;</span><span class="punctuation">:</span> <span class="string">&quot;hexo generate&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;clean&quot;</span><span class="punctuation">:</span> <span class="string">&quot;hexo clean&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;deploy&quot;</span><span class="punctuation">:</span> <span class="string">&quot;hexo deploy&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;server&quot;</span><span class="punctuation">:</span> <span class="string">&quot;hexo server&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;hexo&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;version&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;dependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;hexo&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^7.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-generator-archive&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^2.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-generator-category&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^2.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-generator-index&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^3.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-generator-tag&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^2.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-renderer-ejs&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^2.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-renderer-marked&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^6.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-renderer-stylus&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^3.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-server&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^3.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-theme-landscape&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^1.0.0&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>个人博客需要依赖</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;hexo-site&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;version&quot;</span><span class="punctuation">:</span> <span class="string">&quot;0.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;private&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;scripts&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;build&quot;</span><span class="punctuation">:</span> <span class="string">&quot;hexo generate&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;clean&quot;</span><span class="punctuation">:</span> <span class="string">&quot;hexo clean&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;deploy&quot;</span><span class="punctuation">:</span> <span class="string">&quot;hexo deploy&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;server&quot;</span><span class="punctuation">:</span> <span class="string">&quot;hexo server&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;hexo&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;version&quot;</span><span class="punctuation">:</span> <span class="string">&quot;8.1.2&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;dependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;hexo&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^8.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-abbrlink&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^2.2.1&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-deployer-git&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^4.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-generator-archive&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^2.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-generator-category&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^2.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-generator-cname&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^0.3.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-generator-feed&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^4.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-generator-index&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^4.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-generator-search&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^2.4.3&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-generator-tag&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^2.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-renderer-ejs&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^2.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-renderer-marked&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^7.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-renderer-pug&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^3.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-renderer-stylus&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^3.0.1&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-server&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^3.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-theme-landscape&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^1.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-util&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^4.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hexo-wordcount&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^6.0.1&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;moment-timezone&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^0.6.2&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;devDependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;hexo-auto-front-matter&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^0.1.3&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>scaffolds</strong></p>
+<p><a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/docs/writing#%E6%A8%A1%E7%89%88%EF%BC%88Scaffold%EF%BC%89">模版</a> 文件夹。 当您新建文章时，Hexo 会根据 scaffold 来创建文件。</p>
+<p><strong>source</strong></p>
+<p>资源文件夹。 是存放用户资源的地方。 除 <code>_posts</code> 文件夹之外，开头命名为 <code>_</code> (下划线)的文件 &#x2F; 文件夹和隐藏的文件将会被忽略。 Markdown 和 HTML 文件会被解析并放到 <code>public</code> 文件夹，而其他文件会被拷贝过去。</p>
+<p><strong>themes</strong></p>
+<p><a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/docs/themes">主题</a> 文件夹。 Hexo 会根据主题来生成静态页面。</p>
+<p>这里使用 <code>butterfly</code> 主题</p>
+<p><img src="https://img.zzc.dpdns.org/images/fed349aca3bae88cc34806b94b5f0dc4.png" alt="image-20260706114959529" loading='lazy'></p>
+<p>其中</p>
+<p><img src="https://img.zzc.dpdns.org/images/b84a2403bf8da0a20b1e1f1c51504f82.png" alt="image-20260706115108881" loading='lazy'></p>
+<p>_config.butterfly.yml 为 butterfly 主题配置文件</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"># Butterfly 主题配置文件</span><br><span class="line"># 文档<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//butterfly.js.org/</span></span><br><span class="line"></span><br><span class="line"># ============================================================</span><br><span class="line"># 导航栏 Navigation</span><br><span class="line"># ============================================================</span><br><span class="line">nav<span class="punctuation">:</span></span><br><span class="line">  logo<span class="punctuation">:</span></span><br><span class="line">  display_title<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  display_post_title<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  fixed<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"></span><br><span class="line">menu<span class="punctuation">:</span></span><br><span class="line">  首页<span class="punctuation">:</span> / || fas fa-home</span><br><span class="line">  归档<span class="punctuation">:</span> /archives/ || fas fa-archive</span><br><span class="line">  标签<span class="punctuation">:</span> /tags/ || fas fa-tags</span><br><span class="line">  分类<span class="punctuation">:</span> /categories/ || fas fa-folder-open</span><br><span class="line">  图库<span class="punctuation">:</span> /gallery/ || fas fa-images</span><br><span class="line">  关于||fas fa-heart<span class="punctuation">:</span></span><br><span class="line">    关于本站<span class="punctuation">:</span> /about/ || fas fa-info-circle</span><br><span class="line"></span><br><span class="line"># ============================================================</span><br><span class="line"># 代码块 Code Blocks</span><br><span class="line"># ============================================================</span><br><span class="line">code_blocks<span class="punctuation">:</span></span><br><span class="line">  theme<span class="punctuation">:</span> darker</span><br><span class="line">  macStyle<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  height_limit<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  word_wrap<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  copy<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  language<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  shrink<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  fullpage<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"></span><br><span class="line"># ============================================================</span><br><span class="line"># 社交链接 Social</span><br><span class="line"># ============================================================</span><br><span class="line">social<span class="punctuation">:</span></span><br><span class="line">  fab fa-github<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//github.com/zzc-blog || Github || &#x27;#24292e&#x27;</span></span><br><span class="line"></span><br><span class="line"># ============================================================</span><br><span class="line"># 图片 Image</span><br><span class="line"># ============================================================</span><br><span class="line">favicon<span class="punctuation">:</span> /img/favicon.webp</span><br><span class="line"></span><br><span class="line">avatar<span class="punctuation">:</span></span><br><span class="line">  img<span class="punctuation">:</span> /img/avarte.webp</span><br><span class="line">  effect<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"></span><br><span class="line">disable_top_img<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">default_top_img<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/1.webp</span></span><br><span class="line">index_img<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/2.webp</span></span><br><span class="line">archive_img<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/3.webp</span></span><br><span class="line">tag_img<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/4.webp</span></span><br><span class="line">category_img<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/5.webp</span></span><br><span class="line"></span><br><span class="line">footer_img<span class="punctuation">:</span> /img/footer-bg.svg</span><br><span class="line">background<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/6.webp</span></span><br><span class="line"></span><br><span class="line">cover<span class="punctuation">:</span></span><br><span class="line">  index_enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  aside_enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  archives_enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  default_cover<span class="punctuation">:</span></span><br><span class="line">    - https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/1.webp</span></span><br><span class="line">    - https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/2.webp</span></span><br><span class="line">    - https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/3.webp</span></span><br><span class="line">    - https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/4.webp</span></span><br><span class="line">    - https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/5.webp</span></span><br><span class="line">    - https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/6.webp</span></span><br><span class="line">    - https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/7.webp</span></span><br><span class="line">    - https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/8.webp</span></span><br><span class="line">    - https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/9.webp</span></span><br><span class="line">    - https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/10.webp</span></span><br><span class="line"></span><br><span class="line">error_img<span class="punctuation">:</span></span><br><span class="line">  flink<span class="punctuation">:</span> /img/error-page.svg</span><br><span class="line">  post_page<span class="punctuation">:</span> /img/default_top_img.svg</span><br><span class="line"></span><br><span class="line">error_404<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  subtitle<span class="punctuation">:</span> <span class="string">&#x27;页面没有找到...&#x27;</span></span><br><span class="line">  background<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//img.zzc.dpdns.org/images/cover/7.webp</span></span><br><span class="line"></span><br><span class="line"># ============================================================</span><br><span class="line"># 文章元数据 Post Meta</span><br><span class="line"># ============================================================</span><br><span class="line">post_meta<span class="punctuation">:</span></span><br><span class="line">  page<span class="punctuation">:</span></span><br><span class="line">    date_type<span class="punctuation">:</span> created</span><br><span class="line">    date_format<span class="punctuation">:</span> date</span><br><span class="line">    categories<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    tags<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">    label<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  post<span class="punctuation">:</span></span><br><span class="line">    position<span class="punctuation">:</span> center</span><br><span class="line">    date_type<span class="punctuation">:</span> both</span><br><span class="line">    date_format<span class="punctuation">:</span> date</span><br><span class="line">    categories<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    tags<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    label<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"></span><br><span class="line"># ============================================================</span><br><span class="line"># 首页设置 Index Page</span><br><span class="line"># ============================================================</span><br><span class="line">index_site_info_top<span class="punctuation">:</span></span><br><span class="line">index_top_img_height<span class="punctuation">:</span></span><br><span class="line"></span><br><span class="line">subtitle<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  effect<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  typed_option<span class="punctuation">:</span></span><br><span class="line">  source<span class="punctuation">:</span> <span class="number">1</span></span><br><span class="line">  sub<span class="punctuation">:</span></span><br><span class="line">    - 记录技术成长，分享编程心得</span><br><span class="line">    - 专注 Java 后端开发</span><br><span class="line">    - 路漫漫其修远兮，吾将上下而求索</span><br><span class="line"></span><br><span class="line">index_layout<span class="punctuation">:</span> <span class="number">3</span></span><br><span class="line"></span><br><span class="line">index_post_content<span class="punctuation">:</span></span><br><span class="line">  method<span class="punctuation">:</span> <span class="number">2</span></span><br><span class="line">  length<span class="punctuation">:</span> <span class="number">500</span></span><br><span class="line"></span><br><span class="line"># ============================================================</span><br><span class="line"># 文章设置 Post Settings</span><br><span class="line"># ============================================================</span><br><span class="line">toc<span class="punctuation">:</span></span><br><span class="line">  post<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  page<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  number<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  expand<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  style_simple<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  scroll_percent<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"></span><br><span class="line">post_copyright<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  decode<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  author_href<span class="punctuation">:</span></span><br><span class="line">  license<span class="punctuation">:</span> CC BY-NC-SA <span class="number">4.0</span></span><br><span class="line">  license_url<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//creativecommons.org/licenses/by-nc-sa/4.0/</span></span><br><span class="line"></span><br><span class="line">reward<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  text<span class="punctuation">:</span></span><br><span class="line">  QR_code<span class="punctuation">:</span></span><br><span class="line"></span><br><span class="line">post_edit<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  url<span class="punctuation">:</span></span><br><span class="line"></span><br><span class="line">related_post<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  limit<span class="punctuation">:</span> <span class="number">6</span></span><br><span class="line">  date_type<span class="punctuation">:</span> created</span><br><span class="line"></span><br><span class="line">post_pagination<span class="punctuation">:</span> <span class="number">1</span></span><br><span class="line"></span><br><span class="line">noticeOutdate<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  style<span class="punctuation">:</span> flat</span><br><span class="line">  limit_day<span class="punctuation">:</span> <span class="number">365</span></span><br><span class="line">  position<span class="punctuation">:</span> top</span><br><span class="line">  message_prev<span class="punctuation">:</span> 本文最后更新于</span><br><span class="line">  message_next<span class="punctuation">:</span> 天前，部分内容可能已过时，请注意辨别。</span><br><span class="line"></span><br><span class="line"># ============================================================</span><br><span class="line"># 页脚 Footer</span><br><span class="line"># ============================================================</span><br><span class="line">footer<span class="punctuation">:</span></span><br><span class="line">  nav<span class="punctuation">:</span></span><br><span class="line">  owner<span class="punctuation">:</span></span><br><span class="line">    enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    since<span class="punctuation">:</span> <span class="number">2025</span></span><br><span class="line">  copyright<span class="punctuation">:</span></span><br><span class="line">    enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    version<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  custom_text<span class="punctuation">:</span> <span class="string">&#x27;&lt;i class=&quot;fas fa-heart&quot; style=&quot;color: #FF7242&quot;&gt;&lt;/i&gt; 保持热爱，奔赴山海&#x27;</span></span><br><span class="line"></span><br><span class="line"># ============================================================</span><br><span class="line"># 侧边栏 Aside（仿官方站风格）</span><br><span class="line"># ============================================================</span><br><span class="line">aside<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  hide<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  button<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  mobile<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  position<span class="punctuation">:</span> right</span><br><span class="line">  display<span class="punctuation">:</span></span><br><span class="line">    archive<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    tag<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    category<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  card_author<span class="punctuation">:</span></span><br><span class="line">    enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    description<span class="punctuation">:</span> 一个热爱编程的后端开发者</span><br><span class="line">    button<span class="punctuation">:</span></span><br><span class="line">      enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">      icon<span class="punctuation">:</span> fab fa-github</span><br><span class="line">      text<span class="punctuation">:</span> Follow Me</span><br><span class="line">      link<span class="punctuation">:</span> https<span class="punctuation">:</span><span class="comment">//github.com/zzc-blog</span></span><br><span class="line">  card_announcement<span class="punctuation">:</span></span><br><span class="line">    enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    content<span class="punctuation">:</span> 欢迎来到我的博客！这里主要分享技术和生活。</span><br><span class="line">  card_recent_post<span class="punctuation">:</span></span><br><span class="line">    enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    limit<span class="punctuation">:</span> <span class="number">5</span></span><br><span class="line">    sort<span class="punctuation">:</span> date</span><br><span class="line">    sort_order<span class="punctuation">:</span></span><br><span class="line">  card_newest_comments<span class="punctuation">:</span></span><br><span class="line">    enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">    sort_order<span class="punctuation">:</span></span><br><span class="line">    limit<span class="punctuation">:</span> <span class="number">6</span></span><br><span class="line">    storage<span class="punctuation">:</span> <span class="number">10</span></span><br><span class="line">    avatar<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  card_categories<span class="punctuation">:</span></span><br><span class="line">    enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    limit<span class="punctuation">:</span> <span class="number">8</span></span><br><span class="line">    expand<span class="punctuation">:</span> none</span><br><span class="line">    sort_order<span class="punctuation">:</span></span><br><span class="line">  card_tags<span class="punctuation">:</span></span><br><span class="line">    enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    limit<span class="punctuation">:</span> <span class="number">40</span></span><br><span class="line">    color<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">    custom_colors<span class="punctuation">:</span></span><br><span class="line">    orderby<span class="punctuation">:</span> random</span><br><span class="line">    order<span class="punctuation">:</span> <span class="number">1</span></span><br><span class="line">    sort_order<span class="punctuation">:</span></span><br><span class="line">  card_archives<span class="punctuation">:</span></span><br><span class="line">    enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    type<span class="punctuation">:</span> monthly</span><br><span class="line">    format<span class="punctuation">:</span> MMMM YYYY</span><br><span class="line">    order<span class="punctuation">:</span> <span class="number">-1</span></span><br><span class="line">    limit<span class="punctuation">:</span> <span class="number">8</span></span><br><span class="line">    sort_order<span class="punctuation">:</span></span><br><span class="line">  card_webinfo<span class="punctuation">:</span></span><br><span class="line">    enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    post_count<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    last_push_date<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    sort_order<span class="punctuation">:</span></span><br><span class="line">    runtime_date<span class="punctuation">:</span> <span class="number">2026</span>/<span class="number">05</span>/<span class="number">20</span> <span class="number">00</span><span class="punctuation">:</span><span class="number">00</span><span class="punctuation">:</span><span class="number">00</span></span><br><span class="line"></span><br><span class="line"># ============================================================</span><br><span class="line"># 右下角按钮 Right Side</span><br><span class="line"># ============================================================</span><br><span class="line">rightside_bottom<span class="punctuation">:</span></span><br><span class="line">translate<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  default<span class="punctuation">:</span> 繁</span><br><span class="line">  defaultEncoding<span class="punctuation">:</span> <span class="number">2</span></span><br><span class="line">  translateDelay<span class="punctuation">:</span> <span class="number">0</span></span><br><span class="line">  msgToTraditionalChinese<span class="punctuation">:</span> <span class="string">&#x27;繁&#x27;</span></span><br><span class="line">  msgToSimplifiedChinese<span class="punctuation">:</span> <span class="string">&#x27;简&#x27;</span></span><br><span class="line"></span><br><span class="line">readmode<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"></span><br><span class="line">darkmode<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  button<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  autoChangeMode<span class="punctuation">:</span> <span class="number">1</span></span><br><span class="line">  start<span class="punctuation">:</span></span><br><span class="line">  end<span class="punctuation">:</span></span><br><span class="line"></span><br><span class="line">rightside_scroll_percent<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"></span><br><span class="line">rightside_item_order<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  hide<span class="punctuation">:</span></span><br><span class="line">  show<span class="punctuation">:</span></span><br><span class="line"></span><br><span class="line">rightside_config_animation<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"></span><br><span class="line"># ============================================================</span><br><span class="line"># 全局设置 Global</span><br><span class="line"># ============================================================</span><br><span class="line">anchor<span class="punctuation">:</span></span><br><span class="line">  auto_update<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  click_to_scroll<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line"></span><br><span class="line">photofigcaption<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line"></span><br><span class="line">copy<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  copyright<span class="punctuation">:</span></span><br><span class="line">    enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    limit_count<span class="punctuation">:</span> <span class="number">150</span></span><br><span class="line"></span><br><span class="line">wordcount<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  post_wordcount<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  min2read<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  total_wordcount<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"></span><br><span class="line">busuanzi<span class="punctuation">:</span></span><br><span class="line">  site_uv<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  site_pv<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  page_pv<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"></span><br><span class="line"># ============================================================</span><br><span class="line"># 数学公式 Math</span><br><span class="line"># ============================================================</span><br><span class="line">math<span class="punctuation">:</span></span><br><span class="line">  use<span class="punctuation">:</span> katex</span><br><span class="line">  per_page<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  hide_scrollbar<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  mathjax<span class="punctuation">:</span></span><br><span class="line">    enableMenu<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    tags<span class="punctuation">:</span> none</span><br><span class="line">  katex<span class="punctuation">:</span></span><br><span class="line">    copy_tex<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line"></span><br><span class="line"># ============================================================</span><br><span class="line"># 搜索 Search</span><br><span class="line"># ============================================================</span><br><span class="line">search<span class="punctuation">:</span></span><br><span class="line">  use<span class="punctuation">:</span> local_search</span><br><span class="line">  placeholder<span class="punctuation">:</span> 搜索文章...</span><br><span class="line">  algolia_search<span class="punctuation">:</span></span><br><span class="line">    hitsPerPage<span class="punctuation">:</span> <span class="number">6</span></span><br><span class="line">  local_search<span class="punctuation">:</span></span><br><span class="line">    preload<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    top_n_per_article<span class="punctuation">:</span> <span class="number">1</span></span><br><span class="line">    unescape<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">    pagination<span class="punctuation">:</span></span><br><span class="line">      enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">      hitsPerPage<span class="punctuation">:</span> <span class="number">8</span></span><br><span class="line">    CDN<span class="punctuation">:</span></span><br><span class="line">  docsearch<span class="punctuation">:</span></span><br><span class="line">    appId<span class="punctuation">:</span></span><br><span class="line">    apiKey<span class="punctuation">:</span></span><br><span class="line">    indexName<span class="punctuation">:</span></span><br><span class="line">    option<span class="punctuation">:</span></span><br><span class="line"></span><br><span class="line"># ============================================================</span><br><span class="line"># 分享 Share</span><br><span class="line"># ============================================================</span><br><span class="line">share<span class="punctuation">:</span></span><br><span class="line">  use<span class="punctuation">:</span> sharejs</span><br><span class="line">  sharejs<span class="punctuation">:</span></span><br><span class="line">    sites<span class="punctuation">:</span> wechat<span class="punctuation">,</span>weibo<span class="punctuation">,</span>qq<span class="punctuation">,</span>qzone</span><br><span class="line">  addtoany<span class="punctuation">:</span></span><br><span class="line">    item<span class="punctuation">:</span> wechat<span class="punctuation">,</span>sina_weibo<span class="punctuation">,</span>facebook_messenger<span class="punctuation">,</span>email<span class="punctuation">,</span>copy_link</span><br><span class="line"></span><br><span class="line"># ============================================================</span><br><span class="line"># 评论区 Comments（暂不启用）</span><br><span class="line"># ============================================================</span><br><span class="line">comments<span class="punctuation">:</span></span><br><span class="line">  use<span class="punctuation">:</span></span><br><span class="line">  text<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  lazyload<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  count<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  card_post_count<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line"></span><br><span class="line"># ============================================================</span><br><span class="line"># 美化 / 特效 Beautify / Effect</span><br><span class="line"># ============================================================</span><br><span class="line">theme_color<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  main<span class="punctuation">:</span> <span class="string">&#x27;#49B1F5&#x27;</span></span><br><span class="line">  paginator<span class="punctuation">:</span> <span class="string">&#x27;#00c4b6&#x27;</span></span><br><span class="line">  button_hover<span class="punctuation">:</span> <span class="string">&#x27;#FF7242&#x27;</span></span><br><span class="line">  text_selection<span class="punctuation">:</span> <span class="string">&#x27;#00c4b6&#x27;</span></span><br><span class="line">  link_color<span class="punctuation">:</span> <span class="string">&#x27;#99a9bf&#x27;</span></span><br><span class="line">  meta_color<span class="punctuation">:</span> <span class="string">&#x27;#858585&#x27;</span></span><br><span class="line">  hr_color<span class="punctuation">:</span> <span class="string">&#x27;#A4D8FA&#x27;</span></span><br><span class="line">  code_foreground<span class="punctuation">:</span> <span class="string">&#x27;#F47466&#x27;</span></span><br><span class="line">  code_background<span class="punctuation">:</span> <span class="string">&#x27;rgba(27, 31, 35, .05)&#x27;</span></span><br><span class="line">  toc_color<span class="punctuation">:</span> <span class="string">&#x27;#00c4b6&#x27;</span></span><br><span class="line">  blockquote_padding_color<span class="punctuation">:</span> <span class="string">&#x27;#49b1f5&#x27;</span></span><br><span class="line">  blockquote_background_color<span class="punctuation">:</span> <span class="string">&#x27;#49b1f5&#x27;</span></span><br><span class="line">  scrollbar_color<span class="punctuation">:</span> <span class="string">&#x27;#49b1f5&#x27;</span></span><br><span class="line">  meta_theme_color_light<span class="punctuation">:</span> <span class="string">&#x27;ffffff&#x27;</span></span><br><span class="line">  meta_theme_color_dark<span class="punctuation">:</span> <span class="string">&#x27;#0d0d0d&#x27;</span></span><br><span class="line"></span><br><span class="line">category_ui<span class="punctuation">:</span> index</span><br><span class="line">tag_ui<span class="punctuation">:</span> index</span><br><span class="line"></span><br><span class="line">rounded_corners_ui<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">text_align_justify<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line"></span><br><span class="line">mask<span class="punctuation">:</span></span><br><span class="line">  header<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  footer<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line"></span><br><span class="line">preloader<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  source<span class="punctuation">:</span> <span class="number">1</span></span><br><span class="line">  pace_css_url<span class="punctuation">:</span></span><br><span class="line"></span><br><span class="line">enter_transitions<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">display_mode<span class="punctuation">:</span> light</span><br><span class="line"></span><br><span class="line">beautify<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  field<span class="punctuation">:</span> post</span><br><span class="line">  title_prefix_icon<span class="punctuation">:</span> <span class="string">&#x27;\f0c1&#x27;</span></span><br><span class="line">  title_prefix_icon_color<span class="punctuation">:</span> <span class="string">&#x27;#F47466&#x27;</span></span><br><span class="line"></span><br><span class="line">font<span class="punctuation">:</span></span><br><span class="line">  global_font_size<span class="punctuation">:</span></span><br><span class="line">  code_font_size<span class="punctuation">:</span></span><br><span class="line">  font_family<span class="punctuation">:</span></span><br><span class="line">  code_font_family<span class="punctuation">:</span></span><br><span class="line"></span><br><span class="line">blog_title_font<span class="punctuation">:</span></span><br><span class="line">  font_link<span class="punctuation">:</span></span><br><span class="line">  font_family<span class="punctuation">:</span></span><br><span class="line"></span><br><span class="line">hr_icon<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  icon<span class="punctuation">:</span></span><br><span class="line">  icon_top<span class="punctuation">:</span></span><br><span class="line"></span><br><span class="line">activate_power_mode<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  colorful<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  shake<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  mobile<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line"></span><br><span class="line">canvas_ribbon<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  size<span class="punctuation">:</span> <span class="number">150</span></span><br><span class="line">  alpha<span class="punctuation">:</span> <span class="number">0.6</span></span><br><span class="line">  zIndex<span class="punctuation">:</span> <span class="number">-1</span></span><br><span class="line">  click_to_change<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  mobile<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line"></span><br><span class="line">canvas_fluttering_ribbon<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  mobile<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line"></span><br><span class="line">canvas_nest<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  color<span class="punctuation">:</span> <span class="string">&#x27;0,0,255&#x27;</span></span><br><span class="line">  opacity<span class="punctuation">:</span> <span class="number">0.5</span></span><br><span class="line">  zIndex<span class="punctuation">:</span> <span class="number">-1</span></span><br><span class="line">  count<span class="punctuation">:</span> <span class="number">99</span></span><br><span class="line">  mobile<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line"></span><br><span class="line">fireworks<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  zIndex<span class="punctuation">:</span> <span class="number">9999</span></span><br><span class="line">  mobile<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line"></span><br><span class="line">click_heart<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  mobile<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line"></span><br><span class="line">clickShowText<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  text<span class="punctuation">:</span></span><br><span class="line">  fontSize<span class="punctuation">:</span> <span class="number">15</span>px</span><br><span class="line">  random<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  mobile<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line"></span><br><span class="line"># ============================================================</span><br><span class="line"># 灯箱 Lightbox</span><br><span class="line"># ============================================================</span><br><span class="line">lightbox<span class="punctuation">:</span> fancybox</span><br><span class="line"></span><br><span class="line"># ============================================================</span><br><span class="line"># 标签插件 Tag Plugins</span><br><span class="line"># ============================================================</span><br><span class="line">series<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  orderBy<span class="punctuation">:</span> <span class="string">&#x27;date&#x27;</span></span><br><span class="line">  order<span class="punctuation">:</span> <span class="number">-1</span></span><br><span class="line">  number<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"></span><br><span class="line">abcjs<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  per_page<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"></span><br><span class="line">mermaid<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  code_write<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  theme<span class="punctuation">:</span></span><br><span class="line">    light<span class="punctuation">:</span> default</span><br><span class="line">    dark<span class="punctuation">:</span> dark</span><br><span class="line">  open_in_new_tab<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  zoom_pan<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"></span><br><span class="line">chartjs<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  fontColor<span class="punctuation">:</span></span><br><span class="line">    light<span class="punctuation">:</span> <span class="string">&#x27;rgba(0, 0, 0, 0.8)&#x27;</span></span><br><span class="line">    dark<span class="punctuation">:</span> <span class="string">&#x27;rgba(255, 255, 255, 0.8)&#x27;</span></span><br><span class="line">  borderColor<span class="punctuation">:</span></span><br><span class="line">    light<span class="punctuation">:</span> <span class="string">&#x27;rgba(0, 0, 0, 0.1)&#x27;</span></span><br><span class="line">    dark<span class="punctuation">:</span> <span class="string">&#x27;rgba(255, 255, 255, 0.2)&#x27;</span></span><br><span class="line">  scale_ticks_backdropColor<span class="punctuation">:</span></span><br><span class="line">    light<span class="punctuation">:</span> <span class="string">&#x27;transparent&#x27;</span></span><br><span class="line">    dark<span class="punctuation">:</span> <span class="string">&#x27;transparent&#x27;</span></span><br><span class="line"></span><br><span class="line">note<span class="punctuation">:</span></span><br><span class="line">  style<span class="punctuation">:</span> flat</span><br><span class="line">  icons<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  border_radius<span class="punctuation">:</span> <span class="number">3</span></span><br><span class="line">  light_bg_offset<span class="punctuation">:</span> <span class="number">0</span></span><br><span class="line"></span><br><span class="line"># ============================================================</span><br><span class="line"># 其他设置 Other</span><br><span class="line"># ============================================================</span><br><span class="line">pjax<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  exclude<span class="punctuation">:</span></span><br><span class="line"></span><br><span class="line">aplayerInject<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  per_page<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"></span><br><span class="line">snackbar<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  position<span class="punctuation">:</span> bottom-left</span><br><span class="line">  bg_light<span class="punctuation">:</span> <span class="string">&#x27;#49b1f5&#x27;</span></span><br><span class="line">  bg_dark<span class="punctuation">:</span> <span class="string">&#x27;#1f1f1f&#x27;</span></span><br><span class="line"></span><br><span class="line">instantpage<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"></span><br><span class="line">lazyload<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  native<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  field<span class="punctuation">:</span> site</span><br><span class="line">  placeholder<span class="punctuation">:</span></span><br><span class="line">  blur<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line"></span><br><span class="line">pwa<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  manifest<span class="punctuation">:</span></span><br><span class="line">  apple_touch_icon<span class="punctuation">:</span></span><br><span class="line">  favicon_32_32<span class="punctuation">:</span></span><br><span class="line">  favicon_16_16<span class="punctuation">:</span></span><br><span class="line">  mask_icon<span class="punctuation">:</span></span><br><span class="line"></span><br><span class="line">Open_Graph_meta<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  option<span class="punctuation">:</span></span><br><span class="line"></span><br><span class="line">structured_data<span class="punctuation">:</span></span><br><span class="line">  enable<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  alternate_name<span class="punctuation">:</span></span><br><span class="line"></span><br><span class="line">css_prefix<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"></span><br><span class="line"># ============================================================</span><br><span class="line"># 注入代码 Inject</span><br><span class="line"># ============================================================</span><br><span class="line">inject<span class="punctuation">:</span></span><br><span class="line">  head<span class="punctuation">:</span></span><br><span class="line">    - &lt;style&gt;#footer<span class="punctuation">,</span>#footer a<span class="punctuation">,</span>#footer .copyright<span class="punctuation">,</span>#footer .framework-info<span class="punctuation">,</span>#footer .footer_custom_text<span class="punctuation">&#123;</span>color<span class="punctuation">:</span>#<span class="number">555</span><span class="punctuation">&#125;</span>#footer a<span class="punctuation">:</span>hover<span class="punctuation">&#123;</span>color<span class="punctuation">:</span>#<span class="number">49</span>B1F5<span class="punctuation">&#125;</span>&lt;/style&gt;</span><br><span class="line">  bottom<span class="punctuation">:</span></span><br><span class="line"></span><br><span class="line"># ============================================================</span><br><span class="line"># CDN 设置</span><br><span class="line"># ============================================================</span><br><span class="line">CDN<span class="punctuation">:</span></span><br><span class="line">  internal_provider<span class="punctuation">:</span> local</span><br><span class="line">  third_party_provider<span class="punctuation">:</span> jsdelivr</span><br><span class="line">  version<span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  custom_format<span class="punctuation">:</span></span><br><span class="line">  option<span class="punctuation">:</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/docs/commands">命令</a></p>
+<h3 id="1-6-基本使用"><a href="#1-6-基本使用" class="headerlink" title="1.6 基本使用"></a>1.6 基本使用</h3><p><strong>初始化项目</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo init 文件夹  </span><br></pre></td></tr></table></figure>
+
+<p><strong>清理 <code>public</code></strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo clean</span><br></pre></td></tr></table></figure>
+
+<p><strong>生成 <code>public</code></strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo g</span><br></pre></td></tr></table></figure>
+
+<p><strong>运行</strong> </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo s</span><br></pre></td></tr></table></figure>
+
+<p><strong>使用 <code>hexo-deployer-git</code> 提交到 <code>github</code></strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo d</span><br></pre></td></tr></table></figure>
+
+<p><strong>必须配置</strong></p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">deploy<span class="punctuation">:</span></span><br><span class="line">  type<span class="punctuation">:</span> git</span><br><span class="line">  repo<span class="punctuation">:</span> git@github.com<span class="punctuation">:</span>zzc-blog/zzc-blog.github.io.git</span><br><span class="line">  branch<span class="punctuation">:</span> gh-pages</span><br><span class="line">  message<span class="punctuation">:</span> <span class="string">&#x27;Site updated: &#123;&#123; now(&quot;yyyy-MM-dd HH:mm:ss&quot;) &#125;&#125;&#x27;</span> </span><br></pre></td></tr></table></figure>
+
+<p><code>注意: 在 github 新建一个仓库，名字必须为 用户名.github.io</code></p>
+<p><strong>新建文章</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo new 文件名</span><br></pre></td></tr></table></figure>
+
+<h2 id="3-配置-GitHub-Pages"><a href="#3-配置-GitHub-Pages" class="headerlink" title="3. 配置 GitHub Pages"></a>3. 配置 GitHub Pages</h2><p><strong>GitHub Pages 工作流</strong></p>
+<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">hexo g</span><br><span class="line">hexo d  → 推到 gh-pages 分支 → GitHub Pages 托管</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-1-新建仓库"><a href="#3-1-新建仓库" class="headerlink" title="3.1 新建仓库"></a>3.1 新建仓库</h3><p>用户名.github.io</p>
+<p>配置 自定义域名</p>
+<p><img src="https://img.zzc.dpdns.org/images/e7f948ec869a9e3d19d232f117e1053e.png" alt="image-20260706124136258" loading='lazy'></p>
+<p>以上部分都要设置，建议新建一个分支 gh-pages</p>
+<p>设置自定义域名之后，会自动新建一个 <strong>CNAME</strong> 文件</p>
+<p><img src="https://img.zzc.dpdns.org/images/8392ad3edeae12d62159855c9956db76.png" alt="image-20260706124331521" loading='lazy'></p>
+<p>问题点：hexo g &amp;&amp; hexo d 每次都会删除 public 文件夹，重新上传，并重新推送到 github，导致 CNAME 文件删除</p>
+<p>解决方法： 在 source 目录下新建一个 CNAME 文件，每次 hexo g 会自动添加到 public 文件夹里，hexo d 会上传这个文件，CNAME 就不会被删除，github 就不会每次提交都会重新设置自定义域名</p>
+<p><img src="https://img.zzc.dpdns.org/images/d3409ea739a2d9b6542a69f03c685e84.png" alt="image-20260706124857676" loading='lazy'></p>
+<p>上传之后 github 自动部署</p>
+<p><img src="https://img.zzc.dpdns.org/images/26341aa5d9f6be0ff9cb4534d9d70ae3.png" alt="image-20260706124946691" loading='lazy'></p>
+<p>然后就可以用自定义域名访问了</p>
+<p><a target="_blank" rel="noopener" href="https://zzcblog.ccwu.cc/">https://zzcblog.ccwu.cc/</a></p>
+<h3 id="3-2-图片的处理"><a href="#3-2-图片的处理" class="headerlink" title="3.2 图片的处理"></a>3.2 图片的处理</h3><p><strong>github 限制清单</strong></p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>限制</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>单文件硬上限（不走 LFS）</strong></td>
+<td><strong>100 MB</strong>，超了直接拒</td>
+<td>50 MB 以上给 warning 还能传</td>
+</tr>
+<tr>
+<td><strong>单文件硬上限（走 LFS）</strong></td>
+<td>Free&#x2F;Pro <strong>2 GB</strong>，Team 4 GB，Enterprise 5 GB</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>仓库推荐大小</strong></td>
+<td><strong>&lt; 1 GB</strong>，官方 “强烈建议 &lt; 5 GB”</td>
+<td>超了 clone 慢，support 可能来找你聊</td>
+</tr>
+<tr>
+<td><strong>浏览器上传</strong></td>
+<td>≤ 25 MB</td>
+<td>网页拖拽的上限比 git push 严</td>
+</tr>
+<tr>
+<td><strong>GitHub Free LFS 免费额度（2026 当前）</strong></td>
+<td><strong>10 GiB 存储 + 10 GiB&#x2F;月带宽</strong></td>
+<td>老文章写的 1GB 是旧口径，已涨</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>💡 10 GiB 存储 + 10 GiB 月带宽对个人博客图床其实够用了——博客插图单张通常 200KB~2MB，10 GiB 能塞几千张。但要注意：<strong>带宽按月重置，超了当月 LFS 就被禁用</strong>，读者刷你图刷超了会 403。</p>
+</blockquote>
+<p>虽然可以存储图片，但是在用 typora 写文章时，需要插入图片，需要在本地存储图片，很麻烦</p>
+<p>鉴于 这种情况，hexo 不会自动将 .&#x2F;${filename}.assets 文件夹下的图片自动复制到 public 下</p>
+<p><img src="https://img.zzc.dpdns.org/images/d3c126cb9ce195ad6ac70738ace78eaf.png" alt="image-20260706125801883" loading='lazy'></p>
+<p>解决方法：编写一个 hexo 的 脚本 <code>fix-asset-paths.js</code> ，转换图片地址，才能正常访问，改脚本在 hexo g 时会被执行</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Typora .assets 图片兼容脚本</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">&#x27;fs&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">&#x27;path&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 转义正则中的特殊字符 */</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">escapeRegex</span>(<span class="params">str</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> str.<span class="title function_">replace</span>(<span class="regexp">/[.*+?^$&#123;&#125;()|[\]\\]/g</span>, <span class="string">&#x27;\\$&amp;&#x27;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ==== ==== ==== ==== ==== ==== ====</span></span><br><span class="line"><span class="comment">// 1. 将 .assets 图片注册为 Hexo 生成文件</span></span><br><span class="line"><span class="comment">// ==== ==== ==== ==== ==== ==== ====</span></span><br><span class="line">hexo.<span class="property">extend</span>.<span class="property">generator</span>.<span class="title function_">register</span>(<span class="string">&#x27;typora_assets&#x27;</span>, <span class="keyword">function</span> (<span class="params">locals</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> sourcePostsDir = path.<span class="title function_">join</span>(hexo.<span class="property">source_dir</span>, <span class="string">&#x27;_posts&#x27;</span>);</span><br><span class="line">  <span class="keyword">const</span> result = [];</span><br><span class="line"></span><br><span class="line">  locals.<span class="property">posts</span>.<span class="title function_">each</span>(<span class="keyword">function</span> (<span class="params">post</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> slug = post.<span class="property">slug</span>;</span><br><span class="line">    <span class="keyword">const</span> assetsDir = path.<span class="title function_">join</span>(sourcePostsDir, slug + <span class="string">&#x27;.assets&#x27;</span>);</span><br><span class="line">    <span class="keyword">if</span> (!fs.<span class="title function_">existsSync</span>(assetsDir)) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> postDir = post.<span class="property">path</span>.<span class="title function_">replace</span>(<span class="regexp">/\/?(?:index\.html)?$/</span>, <span class="string">&#x27;&#x27;</span>).<span class="title function_">replace</span>(<span class="regexp">/\\/g</span>, <span class="string">&#x27;/&#x27;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> fileNames = fs.<span class="title function_">readdirSync</span>(assetsDir);</span><br><span class="line">    fileNames.<span class="title function_">forEach</span>(<span class="keyword">function</span> (<span class="params">name</span>) &#123;</span><br><span class="line">      <span class="keyword">const</span> fullPath = path.<span class="title function_">join</span>(assetsDir, name);</span><br><span class="line">      <span class="keyword">if</span> (!fs.<span class="title function_">statSync</span>(fullPath).<span class="title function_">isFile</span>()) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">      result.<span class="title function_">push</span>(&#123;</span><br><span class="line">        <span class="attr">path</span>: postDir + <span class="string">&#x27;/&#x27;</span> + name,</span><br><span class="line">        <span class="attr">data</span>: <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">          <span class="keyword">return</span> fs.<span class="title function_">createReadStream</span>(fullPath);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// ==== ==== ==== ==== ==== ==== ====</span></span><br><span class="line"><span class="comment">// 2. 修正 HTML 中图片路径</span></span><br><span class="line"><span class="comment">// ==== ==== ==== ==== ==== ==== ====</span></span><br><span class="line">hexo.<span class="property">extend</span>.<span class="property">filter</span>.<span class="title function_">register</span>(<span class="string">&#x27;after_post_render&#x27;</span>, <span class="keyword">function</span> (<span class="params">data</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> slug = data.<span class="property">slug</span>;</span><br><span class="line">  <span class="keyword">if</span> (!slug) <span class="keyword">return</span> data;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 计算文章目录的绝对路径，如 /2026/07/04/hello-world/</span></span><br><span class="line">  <span class="keyword">const</span> postDir = data.<span class="property">path</span></span><br><span class="line">    ? <span class="string">&#x27;/&#x27;</span> + data.<span class="property">path</span>.<span class="title function_">replace</span>(<span class="regexp">/\/?(?:index\.html)?$/</span>, <span class="string">&#x27;&#x27;</span>).<span class="title function_">replace</span>(<span class="regexp">/\\/g</span>, <span class="string">&#x27;/&#x27;</span>) + <span class="string">&#x27;/&#x27;</span></span><br><span class="line">    : <span class="string">&#x27;/&#x27;</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// slug 中的中文在 HTML 中会被 URL 编码（如 字符串 → %E5%AD%97%E7%AC%A6%E4%B8%B2）</span></span><br><span class="line">  <span class="comment">// 需要同时匹配原始中文和 URL 编码两种格式</span></span><br><span class="line">  <span class="keyword">const</span> encodedSlug = <span class="built_in">encodeURIComponent</span>(slug);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 匹配 src 后多种格式的路径：</span></span><br><span class="line">  <span class="comment">//   ./slug.assets/xxx   → 原始 Markdown 渲染结果</span></span><br><span class="line">  <span class="comment">//   /./slug.assets/xxx  → Hexo 额外添加了根目录斜杠</span></span><br><span class="line">  <span class="comment">//   slug.assets/xxx     → 无前缀</span></span><br><span class="line">  <span class="comment">//   ./slug/xxx          → 无 .assets</span></span><br><span class="line">  <span class="keyword">const</span> regex = <span class="keyword">new</span> <span class="title class_">RegExp</span>(</span><br><span class="line">    <span class="string">`(&lt;img[^&gt;]*src\\s*=\\s*[&quot;&#x27;])\\/?(?:\\.\\/)?(?:<span class="subst">$&#123;escapeRegex(slug)&#125;</span>|<span class="subst">$&#123;escapeRegex(encodedSlug)&#125;</span>)(?:\\.assets)?\\/`</span>,</span><br><span class="line">    <span class="string">&#x27;gi&#x27;</span></span><br><span class="line">  );</span><br><span class="line">  data.<span class="property">content</span> = data.<span class="property">content</span>.<span class="title function_">replace</span>(regex, <span class="string">&#x27;$1&#x27;</span> + postDir);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> data;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>缺点：使用 github 存储图片不实用</p>
+<p><strong>使用 OSS 对象存储服务</strong></p>
+<p>这里使用腾讯 COS</p>
+<p>使用 Typora + PicGo 实现图片上传</p>
+<p>配置 Typora</p>
+<p><img src="https://img.zzc.dpdns.org/images/f8fb2645078633ee6455b7502e598e0c.png" alt="image-20260706130351239" loading='lazy'></p>
+<p>配置 PicGo</p>
+<p><img src="https://img.zzc.dpdns.org/images/7366af40e0cbae6af474ed145ef4b35d.png" alt="image-20260706130634174" loading='lazy'></p>
+<p>配置好后就可以上传测试了</p>
+<h2 id="4-使用-OSS-注意事项"><a href="#4-使用-OSS-注意事项" class="headerlink" title="4. 使用 OSS 注意事项"></a>4. 使用 OSS 注意事项</h2><p><strong>设置防盗刷，防止图片内嵌</strong></p>
+<p><img src="https://img.zzc.dpdns.org/images/09aea6c5b67be68c03604f0cfa66ebc3.png" alt="image-20260706131114158" loading='lazy'></p>
+<p>COS 基础资源包</p>
+<p><img src="https://img.zzc.dpdns.org/images/e64257d89759258b184fd173b2a5ed16.png" alt="image-20260706131251430" loading='lazy'></p>
+<p><strong>外网下行和请求上传都要额外计费</strong></p>
+<p><img src="https://img.zzc.dpdns.org/images/9eb476a536b1670880850b26e2bdd87f.png" alt="image-20260706131328323" loading='lazy'></p>
+<p><img src="https://img.zzc.dpdns.org/images/e4a02fc4b26ffbadf4ee407a14b767bb.png" alt="image-20260706131400300" loading='lazy'></p>
+<p><strong>具体如下</strong></p>
+<table>
+<thead>
+<tr>
+<th align="left"><strong>方向</strong></th>
+<th align="left"><strong>收费？</strong></th>
+<th align="left"><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">外网 <strong>下行</strong>（COS → 公网）</td>
+<td align="left"><strong>收费</strong></td>
+<td align="left">就是读者看图、你下载文件这段</td>
+</tr>
+<tr>
+<td align="left">外网 <strong>上行</strong>（公网 → COS）</td>
+<td align="left"><strong>免费</strong></td>
+<td align="left">PicGo 传图上去那段不收流量钱</td>
+</tr>
+<tr>
+<td align="left">同地域内网（CVM&#x2F;云函数 → COS）</td>
+<td align="left">免费</td>
+<td align="left">你博客如果部署在腾讯云 CVM 同地域拉 COS，不走外网下行</td>
+</tr>
+<tr>
+<td align="left">CDN 回源（COS → 腾讯云 CDN 节点）</td>
+<td align="left">单独计费项，<strong>比外网下行便宜</strong></td>
+<td align="left">挂了 CDN 后，读者命中 CDN 就不走 COS 下行了，只 CDN 侧出流量</td>
+</tr>
+</tbody></table>
+<p><strong>算一笔账</strong></p>
+<p>假设你博客一篇文章平均 3 张图，每张 500KB，日 PV 100：</p>
+<ul>
+<li><strong>外网下行</strong>：3 × 500KB × 100 &#x3D; 150MB&#x2F;天 ≈ <strong>4.5GB&#x2F;月</strong> → 按境内 0.15 元&#x2F;GB（外网下行流量包抵扣后更低），月流量费 ≈ 0.7 元</li>
+<li><strong>请求</strong>：3 × 100 &#x3D; 300 次&#x2F;天 ≈ <strong>9000 次&#x2F;月</strong> → 远低于 100 万免费线，<strong>0 元</strong></li>
+</ul>
+<p>所以个人博客量级下，<strong>请求不用管，下行才是大头</strong>。</p>
+<p><strong>省流量的两个方向</strong></p>
+<ol>
+<li><strong>挂 CDN</strong>：COS 作为 CDN 源站，读者第一次访问 CDN 没命中才回源到 COS（走 “CDN 回源流量”，比外网下行便宜），后续直接 CDN 节点出。每月 PV 几千以下其实没必要，PV 上万再考虑。</li>
+<li><strong>外网下行流量包</strong>：腾讯云有卖（比如 100GB&#x2F;年 十几块钱），比按量 0.15 元&#x2F;GB 划算，你博客现在这个量级买个最小档够用一年。</li>
+</ol>
+<p><strong>价格对照（境内标准存储）</strong></p>
+<table>
+<thead>
+<tr>
+<th>计费方式</th>
+<th>单价</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>按量计费（裸用）</td>
+<td><strong>0.5 元&#x2F;GB</strong></td>
+<td>没买流量包，直接从余额扣</td>
+</tr>
+<tr>
+<td>流量包抵扣</td>
+<td>约 0.15 元&#x2F;GB 起</td>
+<td>100GB&#x2F;年 大概 20 多块，摊下来</td>
+</tr>
+</tbody></table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/zzc-blog">青川</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://zzc-blog.github.io/posts/fc67d995/">https://zzc-blog.github.io/posts/fc67d995/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://zzc-blog.github.io" target="_blank">拾遗录</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/GitHub/">GitHub</a><a class="post-meta__tags" href="/tags/Hexo/">Hexo</a></div><div class="post-share"><div class="social-share" data-image="https://img.zzc.dpdns.org/images/521559cf8f478195220a2daa3879f04b.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/posts/7d3dd794/" title="使用Cloudflare部署Hexo个人博客"><img class="cover" src="https://img.zzc.dpdns.org/images/99520f82499ff60dba1fd288308c7171.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post" loading='lazy'><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">使用Cloudflare部署Hexo个人博客</div></div><div class="info-2"><div class="info-item-1">记录用 Cloudflare 托管域名、再通过 Wrangler CLI 把本地 hexo g 生成的 public/ 静态文件直接部署到 Cloudflare Pages 的完整流程与要点。</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/7d3dd794/" title="使用Cloudflare部署Hexo个人博客"><img class="cover" src="https://img.zzc.dpdns.org/images/99520f82499ff60dba1fd288308c7171.png" alt="cover" loading='lazy'><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-06</div><div class="info-item-2">使用Cloudflare部署Hexo个人博客</div></div><div class="info-2"><div class="info-item-1">记录用 Cloudflare 托管域名、再通过 Wrangler CLI 把本地 hexo g 生成的 public/ 静态文件直接部署到 Cloudflare Pages 的完整流程与要点。</div></div></div></a><a class="pagination-related" href="/posts/13fe9115/" title="Hexo 博客部署运维"><img class="cover" src="https://img.zzc.dpdns.org/images/1790042781078-7a4f5f433f894cde0e9e0f19908c2306.jpg" alt="cover" loading='lazy'><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-30</div><div class="info-item-2">Hexo 博客部署运维</div></div><div class="info-2"><div class="info-item-1">整合 Termux Ubuntu 服务器端与 Windows 本地两套 Hexo 自动化部署方案：Gitee 私有仓库拉取源码、依赖 md5 按需安装、编译结果强制校验、Nginx 智能启停的一键部署脚本，以及部署故障处理清单。</div></div></div></a><a class="pagination-related" href="/posts/5d8a35d1/" title="GitHub 图床 + Cloudflare Worker 加速代理"><img class="cover" src="https://img.zzc.dpdns.org/images/1790042755579-f489e2b4f40983d7c5697c79ceeefd03.jpg" alt="cover" loading='lazy'><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-30</div><div class="info-item-2">GitHub 图床 + Cloudflare Worker 加速代理</div></div><div class="info-2"><div class="info-item-1">用 Cloudflare Worker 反向代理 raw.githubusercontent.com 搭建 GitHub 图床加速链路的完整记录：Worker 运行代码与部署流程、Error 1101 与 502 的踩坑处理、PicGo 配置、jsDelivr 备用方案以及图片链接转换规则。</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div><div class="comment-switch"><span class="first-comment">Twikoo</span><span id="switch-btn"></span><span class="second-comment">Giscus</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.webp" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar" loading='lazy'/></div><div class="author-info-name">青川</div><div class="author-info-description">Java 开发者，记录日常开发中的思考与实践。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">25</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/zzc-blog"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://space.bilibili.com/382724227" target="_blank" title="Bilibili"><i class="fab fa-bilibili" style="color: #fb7299;"></i></a><a class="social-icon" href="https://www.nowcoder.com/users/641391113" target="_blank" title="牛客网"><i class="fas fa-code" style="color: #1bbf6c;"></i></a><a class="social-icon" href="https://leetcode.cn/u/si-yu-13/" target="_blank" title="力扣"><i class="fas fa-laptop-code" style="color: #f89f1b;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #f26522;"></i></a><a class="social-icon" href="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&amp;email=2542434555%40qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">这里记一些代码、服务器和折腾过程的笔记，欢迎去<a href="/messageboard/">留言板</a>留个脚印。</div></div><div class="card-widget card-clock" id="card-clock"><div class="item-headline"><i class="fas fa-clock"></i><span>授时时钟</span></div><div class="item-content"><div class="clock-panel">
+  <div class="clock-row clock-bjt">
+    <div class="clock-meta">
+      <span class="clock-label">北京时间 (BJT)</span>
+      <span class="clock-badge">UTC+8</span>
+    </div>
+    <div class="clock-time" id="clock-bjt">--:--:--</div>
+  </div>
+  <div class="clock-foot" id="clock-src" data-state="pending">正在对时…</div>
+</div>
+<style>
+  .card-clock .item-headline { display: flex; align-items: center; cursor: pointer; user-select: none; transition: color .2s; }
+  .card-clock .item-headline:hover { color: #4a7dbe; }
+  .card-clock .item-headline::after { content: ""; margin-left: auto; width: 7px; height: 7px; margin-top: 4px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-135deg); transition: transform .3s ease; opacity: .55; }
+  .card-clock.is-collapsed .item-headline::after { transform: rotate(45deg); margin-top: -2px; }
+  .card-clock .item-content { overflow: hidden; opacity: 1; transition: max-height .32s ease, opacity .32s ease; }
+  .card-clock.is-collapsed .item-content { opacity: 0; }
+  .card-clock .clock-row { background: #f8f9fa; border-radius: 10px; padding: 12px; border-left: 4px solid #e67e22; }
+  .card-clock .clock-row + .clock-row { margin-top: 10px; }
+  .card-clock .clock-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .card-clock .clock-label { font-size: 13px; color: #666; letter-spacing: .5px; }
+  .card-clock .clock-badge { font-size: 11px; color: #999; background: #e9ecef; padding: 2px 8px; border-radius: 12px; }
+  .card-clock .clock-time { font-size: 30px; font-weight: 600; letter-spacing: 2px; color: #2c3e50; font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace; font-variant-numeric: tabular-nums; }
+  .card-clock .clock-foot { margin-top: 12px; padding-top: 8px; font-size: 12px; color: #999; border-top: 1px dashed #dee2e6; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .card-clock .clock-foot::before { content: ""; flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; background: #d0d5dd; transition: background .3s; }
+  .card-clock .clock-foot[data-state='ok']::before { background: #4CAF50; }
+  [data-theme='dark'] .card-clock .clock-row { background: #1e1e1e; }
+  [data-theme='dark'] .card-clock .clock-label { color: rgba(255, 255, 255, .55); }
+  [data-theme='dark'] .card-clock .clock-badge { color: rgba(255, 255, 255, .5); background: rgba(255, 255, 255, .1); }
+  [data-theme='dark'] .card-clock .clock-time { color: rgba(255, 255, 255, .88); }
+  [data-theme='dark'] .card-clock .clock-foot { color: rgba(255, 255, 255, .4); border-top-color: rgba(255, 255, 255, .12); }
+  [data-theme='dark'] .card-clock .clock-foot::before { background: rgba(255, 255, 255, .25); }
+  [data-theme='dark'] .card-clock .clock-foot[data-state='ok']::before { background: #4CAF50; }
+</style>
+<script>
+  (function () {
+    /* ---------------- 折叠交互 ---------------- */
+    var cards = document.querySelectorAll('.card-clock');
+    for (var i = 0; i < cards.length; i++) {
+      (function (card) {
+        var head = card.querySelector('.item-headline');
+        var body = card.querySelector('.item-content');
+        if (!head || !body || head.dataset.clockToggle === '1') return;
+        head.dataset.clockToggle = '1';
+        head.setAttribute('role', 'button');
+        head.setAttribute('tabindex', '0');
+        head.setAttribute('aria-label', '展开或收起授时时钟');
+        body.style.maxHeight = body.scrollHeight + 'px';
+
+        function toggle() {
+          var collapsed = card.classList.toggle('is-collapsed');
+          body.style.maxHeight = collapsed ? '0px' : (body.scrollHeight + 'px');
+          head.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        }
+        head.addEventListener('click', toggle);
+        head.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+        });
+        window.addEventListener('resize', function () {
+          if (!card.classList.contains('is-collapsed')) body.style.maxHeight = body.scrollHeight + 'px';
+        });
+      })(cards[i]);
+    }
+
+    /* ---------------- 时钟渲染 ---------------- */
+    var elBjt = document.getElementById('clock-bjt');
+    var elSrc = document.getElementById('clock-src');
+    var offset = 0;                    // 权威时间 − 本机时间（毫秒）
+    var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+
+    function fmtBjt(ms) {              // 平移 8 小时后按 UTC 读字段 = 北京时间
+      var d = new Date(ms + 8 * 3600000);
+      return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) + ':' + pad(d.getUTCSeconds());
+    }
+    function render() {
+      if (elBjt) elBjt.textContent = fmtBjt(Date.now() + offset);
+    }
+    function mark(state, text) {
+      if (!elSrc) return;
+      elSrc.setAttribute('data-state', state);
+      elSrc.textContent = text;
+    }
+    function apply(serverMs, label) {
+      if (!serverMs || isNaN(serverMs)) return false;
+      offset = serverMs - Date.now();  // 只同步这一次，之后靠本机推算
+      mark('ok', '已联网校准 · ' + label);
+      render();
+      return true;
+    }
+
+    /* ---------------- JSONP 取时（绕过 CORS） ---------------- */
+    var seq = 0;
+    function jsonp(urlTpl, timeout, onData, onFail) {
+      var name = '__clockCb' + (++seq);
+      var s = document.createElement('script');
+      var done = false;
+      var timer = setTimeout(function () { finish(false); }, timeout);
+
+      function finish(ok, data) {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        try { delete window[name]; } catch (e) { window[name] = undefined; }
+        if (s.parentNode) { s.parentNode.removeChild(s); }
+        if (ok && data != null) { onData(data); } else { onFail(); }
+      }
+      window[name] = function (data) { finish(true, data); };
+      s.onerror = function () { finish(false); };
+      s.async = true;
+      s.src = urlTpl.replace('{cb}', name);
+      document.head.appendChild(s);
+    }
+
+    function fallback() {
+      offset = 0;
+      mark('off', '未校准 · 本机时钟');
+      render();
+    }
+    function tryTencent() {
+      jsonp('https://vv.video.qq.com/checktime?otype=json&callback={cb}&_=' + Date.now(), 3500,
+        function (r) { if (!(r && r.t && apply(r.t * 1000, '腾讯'))) fallback(); },
+        fallback);
+    }
+
+    jsonp('https://f.m.suning.com/api/ct.do?callback={cb}&_=' + Date.now(), 3500,
+      function (r) { if (!(r && r.currentTime && apply(+r.currentTime, '苏宁易购'))) tryTencent(); },
+      tryTencent);
+
+    /* ---------------- 启动 ---------------- */
+    render();
+    if (window.__clockTimer) { clearInterval(window.__clockTimer); }
+    window.__clockTimer = setInterval(render, 1000);
+  })();
+</script>
+</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%AE%89%E8%A3%85-Hexo"><span class="toc-text">1. 安装 Hexo</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%80%E4%B9%88%E6%98%AF-Hexo%EF%BC%9F"><span class="toc-text">1.1 什么是 Hexo？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E8%A6%81%E6%B1%82"><span class="toc-text">1.2 要求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E5%AE%89%E8%A3%85-Hexo"><span class="toc-text">1.3 安装 Hexo</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-Node-js-%E7%89%88%E6%9C%AC%E9%99%90%E5%88%B6"><span class="toc-text">1.4 Node.js 版本限制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-5-%E9%85%8D%E7%BD%AE-config-yml"><span class="toc-text">1.5 配置 _config.yml</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-6-%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8"><span class="toc-text">1.6 基本使用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E9%85%8D%E7%BD%AE-GitHub-Pages"><span class="toc-text">3. 配置 GitHub Pages</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%96%B0%E5%BB%BA%E4%BB%93%E5%BA%93"><span class="toc-text">3.1 新建仓库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%9B%BE%E7%89%87%E7%9A%84%E5%A4%84%E7%90%86"><span class="toc-text">3.2 图片的处理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E4%BD%BF%E7%94%A8-OSS-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-text">4. 使用 OSS 注意事项</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/3610a686/" title="hello"><img src="https://img.zzc.dpdns.org/images/1789957733737-2a5cdfbc2eb21ead6978e8dd0056a712.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="hello" loading='lazy'/></a><div class="content"><a class="title" href="/posts/3610a686/" title="hello">hello</a><time datetime="2026-09-21T02:27:07.000Z" title="发表于 2026-09-21 10:27:07">2026-09-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/2633a26/" title="位运算"><img src="https://img.zzc.dpdns.org/images/1790042755579-f489e2b4f40983d7c5697c79ceeefd03.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="位运算" loading='lazy'/></a><div class="content"><a class="title" href="/posts/2633a26/" title="位运算">位运算</a><time datetime="2026-08-24T04:34:29.000Z" title="发表于 2026-08-24 12:34:29">2026-08-24</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/2779e0a0/" title="手机变服务器：Termux + proot Ubuntu 家庭服务器全栈部署完全指南"><img src="https://img.zzc.dpdns.org/images/1790042794428-fd69845ad70409f6ab2183756b0b2bfa.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="手机变服务器：Termux + proot Ubuntu 家庭服务器全栈部署完全指南" loading='lazy'/></a><div class="content"><a class="title" href="/posts/2779e0a0/" title="手机变服务器：Termux + proot Ubuntu 家庭服务器全栈部署完全指南">手机变服务器：Termux + proot Ubuntu 家庭服务器全栈部署完全指南</a><time datetime="2026-08-15T16:00:00.000Z" title="发表于 2026-08-16 00:00:00">2026-08-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/13fe9115/" title="Hexo 博客部署运维"><img src="https://img.zzc.dpdns.org/images/1790042781078-7a4f5f433f894cde0e9e0f19908c2306.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Hexo 博客部署运维" loading='lazy'/></a><div class="content"><a class="title" href="/posts/13fe9115/" title="Hexo 博客部署运维">Hexo 博客部署运维</a><time datetime="2026-07-30T09:24:57.000Z" title="发表于 2026-07-30 17:24:57">2026-07-30</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/5d8a35d1/" title="GitHub 图床 + Cloudflare Worker 加速代理"><img src="https://img.zzc.dpdns.org/images/1790042755579-f489e2b4f40983d7c5697c79ceeefd03.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="GitHub 图床 + Cloudflare Worker 加速代理" loading='lazy'/></a><div class="content"><a class="title" href="/posts/5d8a35d1/" title="GitHub 图床 + Cloudflare Worker 加速代理">GitHub 图床 + Cloudflare Worker 加速代理</a><time datetime="2026-07-30T07:43:57.000Z" title="发表于 2026-07-30 15:43:57">2026-07-30</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-flex"><div class="footer-flex-items"><div class="footer-flex-item"><div class="footer-flex-title">导航</div><div class="footer-flex-content"><a href="/" target="_blank" title="首页">首页</a><a href="/archives/" target="_blank" title="归档">归档</a><a href="/tags/" target="_blank" title="标签">标签</a><a href="/categories/" target="_blank" title="分类">分类</a><a href="/about/" target="_blank" title="关于">关于</a></div></div></div><div class="footer-flex-items"><div class="footer-flex-item"><div class="footer-flex-title">其他</div><div class="footer-flex-content"><a href="/Gallery/" target="_blank" title="图库">图库</a><a href="/music/" target="_blank" title="音乐">音乐</a><a href="/tools/" target="_blank" title="工具">工具</a><a href="/messageboard/" target="_blank" title="留言板">留言板</a><a href="/link/" target="_blank" title="友链">友链</a><a href="/timeline/" target="_blank" title="更新日志">更新日志</a></div></div></div><div class="footer-flex-items"><div class="footer-flex-item"><div class="footer-flex-title">框架</div><div class="footer-flex-content"><a href="https://hexo.io/zh-cn/" target="_blank" title="Hexo">Hexo</a><a href="https://butterfly.js.org/" target="_blank" title="Butterfly">Butterfly</a></div></div></div></div><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 青川</span><span class="framework-info"><span class="footer-separator">|</span><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.7.1.260810</a></span></div><div class="footer_custom_text">拾起遗落的，记下来。</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.1.260810"></script><script src="/js/main.js?v=5.7.1.260810"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1.14/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page@5.2.0/instantpage.min.js" type="module"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = {"lang":"zh-CN"}
+
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://zzc-twikoo.netlify.app/.netlify/functions/twikoo',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(res => {
+      countELement.textContent = res[0].count
+    }).catch(err => {
+      console.error(err)
+    })
+  }
+
+  const init = (el = document, path = location.pathname) => {
+    twikoo.init({
+      el: el.querySelector('#twikoo-wrap'),
+      envId: 'https://zzc-twikoo.netlify.app/.netlify/functions/twikoo',
+      region: '',
+      onCommentLoaded: () => {
+        btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      },
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || path
+    })
+
+    
+
+    isShuoshuo && (window.shuoshuoComment.destroyTwikoo = () => {
+      if (el.children.length) {
+        el.innerHTML = ''
+        el.classList.add('no-comment')
+      }
+    })
+  }
+
+  const loadTwikoo = (el, path) => {
+    if (typeof twikoo === 'object') setTimeout(() => init(el, path), 0)
+    else btf.getScript('https://registry.npmmirror.com/twikoo/2.0.5/files/dist/twikoo.all.min.js').then(() => init(el, path))
+  }
+
+  if (isShuoshuo) {
+    'Twikoo' === 'Twikoo'
+      ? window.shuoshuoComment = { loadComment: loadTwikoo }
+      : window.loadOtherComment = loadTwikoo
+    return
+  }
+
+  if ('Twikoo' === 'Twikoo' || !false) {
+    if (false) btf.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else loadTwikoo()
+  } else {
+    window.loadOtherComment = loadTwikoo
+  }
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = {"data-category":"Announcements","data-lang":"zh-CN","data-mapping":"pathname","data-strict":"1"}
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'zzc-blog/comments',
+      'data-repo-id': 'R_kgDOUj2zew',
+      'data-category-id': 'DIC_kwDOUj2ze84DGFpk',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Twikoo' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Twikoo' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script src="/js/click-effects-blank.js"></script><script src="/js/read-progress.js"></script><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="true"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/click-heart.min.js" async="async" mobile="false"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","meta[property=\"og:description\"]","link[rel=\"canonical\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"]):not([data-fancybox])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      if (!item.parentNode) return
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || ''
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    const responseURL = e.request && e.request.responseURL
+    if (e.request && e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : responseURL && (window.location.href = responseURL)
+    } else if (responseURL) {
+      window.location.href = responseURL
+    }
+  })
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.1.260810"></script></div></div><!-- lx-music-injected -->
+<style>#lx-music{--lx-accent:#49B1F5}</style>
+<link rel="stylesheet" href="/css/lx-music.css?v=6bcfa38cc8">
+<script>window.__LX_MUSIC__={"enable":true,"page_embed":true,"api":"https://lx-music-api.netlify.app","api_fallback":"","default_tab":"search","quality":"320k","volume":0.8,"collapsed":true,"remember":true,"bottom_gap":24,"drag":true,"lyric":true,"lyric_mode":"window","lyric_seek":true,"lyric_bg":"transparent","lyric_dir":"horizontal","lyric_size":16,"lyric_font":"","lyric_color":"","lyric_on":"","lyric_fill":"","lyric_karaoke":true,"mobile":true,"cache":true,"cache_ttl":21600,"favorite":true,"fav_max":200,"recent_max":100,"timeout":15000,"embed":""}</script>
+<script defer src="/js/lx-music.js?v=2769b30d1f"></script>
+<script>window.__PB_CFG__={"root":"/","text":"\u8fd4\u56de"};</script><script>;(function(){
+  "use strict";
+
+  /* ============================================================
+   * WHY THE BUTTON IS CREATED AT RUNTIME (not baked into the HTML)
+   * ------------------------------------------------------------
+   * This site uses pjax (no-reload page transitions). Baking
+   * <a id="pbBack"> into the post HTML causes two problems:
+   *   1) When leaving a post, the button node may survive the pjax
+   *      swap, so it also shows up on the home page;
+   *   2) When entering a post, whether that HTML gets swapped in
+   *      depends on the pjax container scope -> sometimes present,
+   *      sometimes missing.
+   * So instead: this script is always present and decides on every
+   * route change whether the current page is a post. If yes it
+   * creates and positions the button; if no it removes it.
+   * That decouples the button entirely from the pjax swap scope.
+   * ============================================================ */
+
+  var ID="pbBack";
+  var raf=0;
+  var bound=false;
+
+  /* Config injected at build time (see the filter below) */
+  var CFG=window.__PB_CFG__||{};
+  var ROOT=CFG.root||"/";
+  var TEXT=CFG.text||"\u8fd4\u56de";   /* fallback, escaped to survive encoding */
+
+  var GUTTER_MIN=64;   /* min free space left of the card to hug its edge */
+  var ICON_MIN=104;    /* below this width show the icon only */
+  var GAP=10;          /* gap between button and card left edge */
+
+  /* ---------- create / remove ---------- */
+  function create(){
+    var a=document.createElement("a");
+    a.id=ID;
+    a.href=ROOT;
+    a.setAttribute("role","button");
+    a.setAttribute("aria-label","\u8fd4\u56de\u4e0a\u4e00\u9875");
+    a.innerHTML='<i class="fas fa-arrow-left"></i><span></span>';
+    a.querySelector("span").textContent=TEXT;
+    a.addEventListener("click",onClick);
+    document.body.appendChild(a);
+    return a;
+  }
+
+  function onClick(e){
+    /* keep default behaviour for modifier / middle click (open home in new tab) */
+    if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||e.button!==0){return;}
+    e.preventDefault();
+    var ref="";
+    try{ref=document.referrer||"";}catch(err){ref="";}
+    /* only trust same-site referrers, so external visitors are not sent back out */
+    var fromSite=!!ref&&ref.indexOf(location.origin)===0;
+    if(fromSite&&window.history&&window.history.length>1){window.history.back();return;}
+    location.href=ROOT;
+  }
+
+  function navH(){
+    var n=document.getElementById("nav");
+    var h=n?n.getBoundingClientRect().height:0;
+    return h>0?h:60;   /* fall back to the theme nav height when unmeasurable */
+  }
+
+  /* ---------- positioning ---------- */
+  function place(){
+    raf=0;
+
+    var post=document.getElementById("post");
+    var btn=document.getElementById(ID);
+
+    /* Non-post pages (home / archive / tags ...): never create, and remove
+       an existing one. This is what fixes both the leftover button on the
+       home page and the stale position after a pjax swap. */
+    if(!post){
+      if(btn&&btn.parentNode){btn.parentNode.removeChild(btn);}
+      return;
+    }
+
+    if(!btn){btn=create();}
+
+    var r=post.getBoundingClientRect();
+    var vw=window.innerWidth||document.documentElement.clientWidth||0;
+    var vh=window.innerHeight||document.documentElement.clientHeight||0;
+
+    if(r.left>=GUTTER_MIN){
+      /* hug the card left edge; anchored by right, so no need to measure width */
+      btn.classList.remove("pb-dock");
+      if(r.left<ICON_MIN){btn.classList.add("pb-icon");}else{btn.classList.remove("pb-icon");}
+      btn.style.left="auto";
+      btn.style.right=Math.max(0,Math.round(vw-(r.left-GAP)))+"px";
+      var top=Math.round(r.top)+12;
+      var min=Math.round(navH())+12;
+      var max=vh-52;
+      if(max<min){max=min;}
+      if(top<min){top=min;}
+      if(top>max){top=max;}
+      btn.style.top=top+"px";
+      btn.style.bottom="auto";
+    }else{
+      /* narrow screen / stacked sidebar: dock to the bottom-left corner */
+      btn.classList.add("pb-dock");
+      btn.classList.remove("pb-icon");
+      btn.style.left="";
+      btn.style.right="";
+      btn.style.top="";
+      btn.style.bottom="";
+    }
+    btn.classList.add("pb-show");
+  }
+
+  function schedule(){
+    if(raf){return;}
+    raf=window.requestAnimationFrame?window.requestAnimationFrame(place):window.setTimeout(place,16);
+  }
+
+  function init(){
+    /* after a pjax swap the old node may be gone; place() recreates it if needed */
+    place();
+
+    if(!bound){
+      bound=true;
+      window.addEventListener("scroll",schedule,{passive:true});
+      window.addEventListener("resize",schedule);
+    }
+  }
+
+  /* first load */
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",init,{once:true});
+  }else{
+    init();
+  }
+
+  /* pjax navigation: re-evaluate whether this is a post page. The freshly
+     rendered layout may not be measurable yet, so re-measure a couple more
+     times to settle on the final position. */
+  document.addEventListener("pjax:complete",function(){
+    init();
+    schedule();
+    window.setTimeout(place,60);
+    window.setTimeout(place,250);
+  });
+
+  /* back/forward navigation, including bfcache restores */
+  window.addEventListener("pageshow",function(e){
+    if(e.persisted){init();}
+  });
+})();</script><script>window.__TOOLS__=[{"name":"100tools","url":"https://100tools.cn/","icon":"100"}];</script><script>;(function(){
+  "use strict";
+
+  /* ============================================================
+   * 导航栏「工具▾」：一级菜单项 + 外链下拉
+   * ------------------------------------------------------------
+   * 数据由构建期注入（window.__TOOLS__），加工具只改 source/_data/tools.yml。
+   *
+   * 本站开了 pjax，注入脚本只在首次加载执行一次。因此这里：
+   *   · 脚本注入到所有页面；
+   *   · 每次 pjax:complete 后重建下拉，避免切页后消失或残留。
+   * ============================================================ */
+
+  var TOOLS = window.__TOOLS__ || [];
+  if (!TOOLS.length) { return; }
+
+  var ITEM_ID = "zzcToolsNav";
+
+  /* 找导航栏的菜单容器。优先取顶部导航里的那个，
+     注意页面里还有侧边栏菜单（#sidebar-menus）也带 .menus_items，别选错。 */
+  function navItems(){
+    var nav = document.getElementById("nav");
+    if (!nav) { return null; }
+    return nav.querySelector(".menus_items");
+  }
+
+  function build(){
+    var wrap = document.createElement("div");
+    wrap.className = "menus_item";
+    wrap.id = ITEM_ID;
+
+    /* 一级标题：与其它菜单项结构保持一致（span.site-page.group），
+       这样主题自带的悬停展示 / 箭头旋转样式都能直接复用。 */
+    var head = document.createElement("span");
+    head.className = "site-page group";
+    head.innerHTML = '<i class="fa-fw fas fa-toolbox"></i><span> </span><i class="fas fa-chevron-down"></i>';
+    head.querySelector("span").textContent = "\u5de5\u5177";   /* 工具 */
+    wrap.appendChild(head);
+
+    var ul = document.createElement("ul");
+    ul.className = "menus_item_child";
+
+    TOOLS.forEach(function(t){
+      var li = document.createElement("li");
+      var a = document.createElement("a");
+      a.className = "site-page child";
+      a.href = t.url;
+      /* 外链一律新标签页打开，并切断 opener 引用（安全 + 不丢本站） */
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.title = t.name;
+
+      var i = document.createElement("i");
+      i.className = "fa-fw fas fa-arrow-up-right-from-square";
+      a.appendChild(i);
+
+      var sp = document.createElement("span");
+      sp.textContent = " " + t.name;
+      a.appendChild(sp);
+
+      li.appendChild(a);
+      ul.appendChild(li);
+    });
+
+    wrap.appendChild(ul);
+    return wrap;
+  }
+
+  /* 取菜单项的显示文字，去掉首尾空白。
+     ⚠️ 主题渲染出的文字带前导空格（模板里写的是 `span= ' ' + label`，
+        实际 textContent 形如 " 友链"）。所以判断"是否以某词开头"时
+        必须先 trim，否则 indexOf(...) === 0 永远不成立 —— 曾因此
+        导致定位失败、工具项被 appendChild 甩到菜单最末尾。 */
+  function labelOf(el){
+    var sp = el.querySelector(".site-page > span");
+    return sp ? String(sp.textContent || "").replace(/^\s+|\s+$/g, "") : "";
+  }
+
+  function mount(){
+    var items = navItems();
+    if (!items) { return; }
+
+    /* 幂等：已存在就先移除再重建，避免 pjax 反复切页后堆出多份 */
+    var old = document.getElementById(ITEM_ID);
+    if (old && old.parentNode) { old.parentNode.removeChild(old); }
+
+    /* 插到「友链」之前，即「资源」之后。
+       按文字定位而非写死索引，菜单顺序调整后依然正确。 */
+    var target = null;
+    var anchors = items.querySelectorAll(":scope > .menus_item");
+    for (var k = 0; k < anchors.length; k++) {
+      if (labelOf(anchors[k]).indexOf("\u53cb\u94fe") === 0) {   /* 友链 */
+        target = anchors[k];
+        break;
+      }
+    }
+
+    var node = build();
+    if (target) {
+      items.insertBefore(node, target);
+    } else {
+      items.appendChild(node);
+    }
+  }
+
+  function boot(){ mount(); }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  } else {
+    boot();
+  }
+
+  /* pjax 切页后导航会被换成新的 DOM，需要重新插入 */
+  document.addEventListener("pjax:complete", mount);
+  window.addEventListener("pageshow", function(e){ if (e.persisted) { mount(); } });
+})();</script></body></html>

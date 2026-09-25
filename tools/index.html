@@ -1,0 +1,919 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>工具 | 拾遗录</title><meta name="author" content="青川"><meta name="copyright" content="青川"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="ONLINE TOOLS   顺手好用的在线工具   这里收集一些自己常用、也确实好用的在线工具。点卡片直接在新标签页打开。   实用工具UTILITIES         100            100tools       聚合型在线工具箱，涵盖文本、图片、编码转换等常用小工具                 是占位标记，由 scripts&#x2F;tools-page.js  在渲染阶段">
+<meta property="og:type" content="website">
+<meta property="og:title" content="工具">
+<meta property="og:url" content="https://zzc-blog.github.io/tools/index.html">
+<meta property="og:site_name" content="拾遗录">
+<meta property="og:description" content="ONLINE TOOLS   顺手好用的在线工具   这里收集一些自己常用、也确实好用的在线工具。点卡片直接在新标签页打开。   实用工具UTILITIES         100            100tools       聚合型在线工具箱，涵盖文本、图片、编码转换等常用小工具                 是占位标记，由 scripts&#x2F;tools-page.js  在渲染阶段">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zzc-blog.github.io/img/avatar.webp">
+<meta property="article:published_time" content="2026-09-25T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-25T05:37:09.004Z">
+<meta property="article:author" content="青川">
+<meta property="article:tag" content="Java,Java开发,后端开发,服务端开发,技术博客">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://zzc-blog.github.io/img/avatar.webp"><script type="application/ld+json"></script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://zzc-blog.github.io/tools/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.1.260810"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1.14/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        try {
+          const data = { value }
+
+          if (ttl != null) {
+            data.expiry = Date.now() + ttl * 86400000
+          }
+
+          localStorage.setItem(key, JSON.stringify(data))
+        } catch (e) {
+          console.error(e)
+        }
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":320,"highlightFullpage":true,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '工具',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'page'
+}</script><link rel="preconnect" href="https://img.zzc.dpdns.org" crossorigin><link rel="dns-prefetch" href="https://img.zzc.dpdns.org"><link rel="stylesheet" href="https://npm.elemecdn.com/lxgw-wenkai-screen-webfont@1.7.0/style.css"><link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/@fontsource/noto-sans-sc@5.3.0/400.css"><link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/@fontsource/noto-sans-sc@5.3.0/500.css"><link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/@fontsource/noto-sans-sc@5.3.0/600.css"><link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/jetbrains-mono@1.0.6/css/jetbrains-mono-nl.min.css"><link rel="stylesheet" href="/css/custom.css?v=1e3615ef8a"><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="拾遗录" type="application/atom+xml">
+<style>#pbBack{position:fixed;z-index:89;display:none;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;height:38px;padding:0 14px;border-radius:999px;font-size:13.5px;line-height:1;white-space:nowrap;text-decoration:none !important;color:var(--btn-color,#fff);background:var(--btn-bg,#49b1f5);box-shadow:0 3px 12px rgba(0,0,0,.2);opacity:.9;transition:opacity .25s,background-color .3s}#pbBack.pb-show{display:inline-flex}#pbBack:hover{opacity:1;background:var(--btn-hover-color,#49b1f5)}#pbBack i{font-size:13px}#pbBack.pb-icon{width:38px;padding:0}#pbBack.pb-icon>span{display:none}#pbBack.pb-dock{left:14px;bottom:14px}@media print{#pbBack{display:none !important}}</style><style>/* 工具下拉里的外链项：右侧补一个外链箭头，提示"点了会跳出本站" */#zzcToolsNav .menus_item_child a.site-page::after{content:"\2197";margin-left:6px;font-size:.8em;opacity:.45}/* 名称过长时省略，避免下拉被撑得过宽 */#zzcToolsNav .menus_item_child a.site-page span{white-space:nowrap}</style></head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="/css/pace.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.webp" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar" loading='lazy'/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">25</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/random/"><i class="fa-fw fas fa-shuffle"></i><span> 随机文章</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 资源</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 图库</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-info-circle"></i><span> 关于</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></li><li><a class="site-page child" href="/messageboard/"><i class="fa-fw fas fa-comment-dots"></i><span> 留言板</span></a></li><li><a class="site-page child" href="/timeline/"><i class="fa-fw fas fa-clock-rotate-left"></i><span> 更新日志</span></a></li></ul></div></div></div></div><div class="page" id="body-wrap"><header class="not-home-page fixed" id="page-header" style="background-image: url(https://img.zzc.dpdns.org/images/1789957733737-2a5cdfbc2eb21ead6978e8dd0056a712.webp);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">拾遗录</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/random/"><i class="fa-fw fas fa-shuffle"></i><span> 随机文章</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 资源</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 图库</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-info-circle"></i><span> 关于</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></li><li><a class="site-page child" href="/messageboard/"><i class="fa-fw fas fa-comment-dots"></i><span> 留言板</span></a></li><li><a class="site-page child" href="/timeline/"><i class="fa-fw fas fa-clock-rotate-left"></i><span> 更新日志</span></a></li></ul></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="page-site-info"><h1 id="site-title">工具</h1></div></header><main class="layout" id="content-inner"><div id="page"><div class="container" id="article-container"><div class="tools-intro">
+  <span class="tools-kicker">ONLINE TOOLS</span>
+  <h2>顺手好用的在线工具</h2>
+  <p>这里收集一些自己常用、也确实好用的在线工具。点卡片直接在新标签页打开。</p>
+</div>
+
+<div class="tools-section-head"><span>实用工具</span><small>UTILITIES</small></div>
+<div class="tools-grid">
+  <a class="tools-card" href="https://100tools.cn/" target="_blank" rel="noopener noreferrer">
+    <span class="tools-card-icon">100</span>
+    <span class="tools-card-body">
+      <strong>100tools</strong>
+      <small>聚合型在线工具箱，涵盖文本、图片、编码转换等常用小工具</small>
+    </span>
+    <i class="fas fa-arrow-up-right-from-square tools-card-go"></i>
+  </a>
+</div>
+
+<!-- ============================================================
+     ⚠️ 工具清单不在这里维护！
+
+     全部工具写在：source/_data/tools.yml
+     导航栏「工具▾」下拉 与 本页面 共用同一份数据，加工具只改那一个文件，
+     两处会自动同步，不需要动这里的 HTML。
+
+     上面那行 <!--TOOLS_GRID--> 是占位标记，由 scripts/tools-page.js
+<pre><code> 在渲染阶段替换成按 group 分组的卡片区块 —— 请勿删除。
+
+ tools.yml 每条支持：
+   name  工具名称（必填）
+   url   完整外链（必填，http/https）
+   desc  一句话说明（页面上显示；导航栏下拉不显示）
+   icon  图标方块里的 1~3 个字符，留空取名称首字
+   group 分组名（页面上分组；导航栏下拉不分组、按顺序列出）
+ ============================================================ --&gt;
+</code></pre>
+<style>
+/* 工具页样式。刻意与友链 / 图库页保持同一套视觉语言
+   （同样的圆角、边框、hover 抬升），避免站内出现第二种卡片风格。 */
+.tools-intro { max-width: 700px; margin: 0 auto 30px; text-align: center; }
+.tools-kicker { display: block; margin-bottom: 10px; color: var(--theme-color); font-size: .82em; font-weight: 700; letter-spacing: .2em; }
+.tools-intro h2 { margin: 10px 0 8px; padding: 0; border: 0; font-size: clamp(1.45em, 3vw, 2em); }
+.tools-intro p { margin: 0; color: var(--font-color); font-size: 15px; line-height: 1.8; opacity: .72; }
+
+.tools-section-head { display: flex; align-items: baseline; justify-content: space-between; margin: 30px auto 16px; padding-bottom: 9px; border-bottom: 1px solid var(--hr-border); }
+.tools-section-head span { color: var(--font-color); font-size: 1.15em; font-weight: 700; }
+.tools-section-head small { color: var(--theme-color); font-size: .88em; letter-spacing: .15em; }
+
+.tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+
+.tools-card {
+  display: flex; align-items: center; gap: 13px;
+  padding: 15px 17px;
+  border: 1px solid var(--hr-border); border-radius: 12px;
+  background: var(--card-bg); color: var(--font-color);
+  text-decoration: none !important;
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.tools-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--theme-color);
+  box-shadow: 0 10px 26px -12px rgba(0, 0, 0, .28);
+}
+
+.tools-card-icon {
+  display: grid; flex: 0 0 auto; place-items: center;
+  width: 42px; height: 42px;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--theme-color) 14%, transparent);
+  color: var(--theme-color);
+  font-size: 13px; font-weight: 800; letter-spacing: .02em;
+  line-height: 1.1; text-align: center;
+}
+
+.tools-card-body { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.tools-card-body strong { color: var(--font-color); font-size: .98em; font-weight: 600; }
+.tools-card-body small { margin-top: 3px; color: var(--font-color); font-size: .88em; line-height: 1.55; opacity: .62; }
+
+.tools-card-go { flex: 0 0 auto; color: var(--theme-color); font-size: .88em; opacity: .5; transition: opacity .25s ease, transform .25s ease; }
+.tools-card:hover .tools-card-go { opacity: 1; transform: translate(2px, -2px); }
+
+@media (max-width: 768px) {
+  .tools-grid { grid-template-columns: 1fr; }
+  .tools-section-head { margin-top: 26px; }
+}
+</style>
+</div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div><div class="comment-switch"><span class="first-comment">Twikoo</span><span id="switch-btn"></span><span class="second-comment">Giscus</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.webp" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar" loading='lazy'/></div><div class="author-info-name">青川</div><div class="author-info-description">Java 开发者，记录日常开发中的思考与实践。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">25</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/zzc-blog"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://space.bilibili.com/382724227" target="_blank" title="Bilibili"><i class="fab fa-bilibili" style="color: #fb7299;"></i></a><a class="social-icon" href="https://www.nowcoder.com/users/641391113" target="_blank" title="牛客网"><i class="fas fa-code" style="color: #1bbf6c;"></i></a><a class="social-icon" href="https://leetcode.cn/u/si-yu-13/" target="_blank" title="力扣"><i class="fas fa-laptop-code" style="color: #f89f1b;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #f26522;"></i></a><a class="social-icon" href="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&amp;email=2542434555%40qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">这里记一些代码、服务器和折腾过程的笔记，欢迎去<a href="/messageboard/">留言板</a>留个脚印。</div></div><div class="card-widget card-clock" id="card-clock"><div class="item-headline"><i class="fas fa-clock"></i><span>授时时钟</span></div><div class="item-content"><div class="clock-panel">
+  <div class="clock-row clock-bjt">
+    <div class="clock-meta">
+      <span class="clock-label">北京时间 (BJT)</span>
+      <span class="clock-badge">UTC+8</span>
+    </div>
+    <div class="clock-time" id="clock-bjt">--:--:--</div>
+  </div>
+  <div class="clock-foot" id="clock-src" data-state="pending">正在对时…</div>
+</div>
+<style>
+  .card-clock .item-headline { display: flex; align-items: center; cursor: pointer; user-select: none; transition: color .2s; }
+  .card-clock .item-headline:hover { color: #4a7dbe; }
+  .card-clock .item-headline::after { content: ""; margin-left: auto; width: 7px; height: 7px; margin-top: 4px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-135deg); transition: transform .3s ease; opacity: .55; }
+  .card-clock.is-collapsed .item-headline::after { transform: rotate(45deg); margin-top: -2px; }
+  .card-clock .item-content { overflow: hidden; opacity: 1; transition: max-height .32s ease, opacity .32s ease; }
+  .card-clock.is-collapsed .item-content { opacity: 0; }
+  .card-clock .clock-row { background: #f8f9fa; border-radius: 10px; padding: 12px; border-left: 4px solid #e67e22; }
+  .card-clock .clock-row + .clock-row { margin-top: 10px; }
+  .card-clock .clock-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .card-clock .clock-label { font-size: 13px; color: #666; letter-spacing: .5px; }
+  .card-clock .clock-badge { font-size: 11px; color: #999; background: #e9ecef; padding: 2px 8px; border-radius: 12px; }
+  .card-clock .clock-time { font-size: 30px; font-weight: 600; letter-spacing: 2px; color: #2c3e50; font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace; font-variant-numeric: tabular-nums; }
+  .card-clock .clock-foot { margin-top: 12px; padding-top: 8px; font-size: 12px; color: #999; border-top: 1px dashed #dee2e6; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .card-clock .clock-foot::before { content: ""; flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; background: #d0d5dd; transition: background .3s; }
+  .card-clock .clock-foot[data-state='ok']::before { background: #4CAF50; }
+  [data-theme='dark'] .card-clock .clock-row { background: #1e1e1e; }
+  [data-theme='dark'] .card-clock .clock-label { color: rgba(255, 255, 255, .55); }
+  [data-theme='dark'] .card-clock .clock-badge { color: rgba(255, 255, 255, .5); background: rgba(255, 255, 255, .1); }
+  [data-theme='dark'] .card-clock .clock-time { color: rgba(255, 255, 255, .88); }
+  [data-theme='dark'] .card-clock .clock-foot { color: rgba(255, 255, 255, .4); border-top-color: rgba(255, 255, 255, .12); }
+  [data-theme='dark'] .card-clock .clock-foot::before { background: rgba(255, 255, 255, .25); }
+  [data-theme='dark'] .card-clock .clock-foot[data-state='ok']::before { background: #4CAF50; }
+</style>
+<script>
+  (function () {
+    /* ---------------- 折叠交互 ---------------- */
+    var cards = document.querySelectorAll('.card-clock');
+    for (var i = 0; i < cards.length; i++) {
+      (function (card) {
+        var head = card.querySelector('.item-headline');
+        var body = card.querySelector('.item-content');
+        if (!head || !body || head.dataset.clockToggle === '1') return;
+        head.dataset.clockToggle = '1';
+        head.setAttribute('role', 'button');
+        head.setAttribute('tabindex', '0');
+        head.setAttribute('aria-label', '展开或收起授时时钟');
+        body.style.maxHeight = body.scrollHeight + 'px';
+
+        function toggle() {
+          var collapsed = card.classList.toggle('is-collapsed');
+          body.style.maxHeight = collapsed ? '0px' : (body.scrollHeight + 'px');
+          head.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        }
+        head.addEventListener('click', toggle);
+        head.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+        });
+        window.addEventListener('resize', function () {
+          if (!card.classList.contains('is-collapsed')) body.style.maxHeight = body.scrollHeight + 'px';
+        });
+      })(cards[i]);
+    }
+
+    /* ---------------- 时钟渲染 ---------------- */
+    var elBjt = document.getElementById('clock-bjt');
+    var elSrc = document.getElementById('clock-src');
+    var offset = 0;                    // 权威时间 − 本机时间（毫秒）
+    var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+
+    function fmtBjt(ms) {              // 平移 8 小时后按 UTC 读字段 = 北京时间
+      var d = new Date(ms + 8 * 3600000);
+      return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) + ':' + pad(d.getUTCSeconds());
+    }
+    function render() {
+      if (elBjt) elBjt.textContent = fmtBjt(Date.now() + offset);
+    }
+    function mark(state, text) {
+      if (!elSrc) return;
+      elSrc.setAttribute('data-state', state);
+      elSrc.textContent = text;
+    }
+    function apply(serverMs, label) {
+      if (!serverMs || isNaN(serverMs)) return false;
+      offset = serverMs - Date.now();  // 只同步这一次，之后靠本机推算
+      mark('ok', '已联网校准 · ' + label);
+      render();
+      return true;
+    }
+
+    /* ---------------- JSONP 取时（绕过 CORS） ---------------- */
+    var seq = 0;
+    function jsonp(urlTpl, timeout, onData, onFail) {
+      var name = '__clockCb' + (++seq);
+      var s = document.createElement('script');
+      var done = false;
+      var timer = setTimeout(function () { finish(false); }, timeout);
+
+      function finish(ok, data) {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        try { delete window[name]; } catch (e) { window[name] = undefined; }
+        if (s.parentNode) { s.parentNode.removeChild(s); }
+        if (ok && data != null) { onData(data); } else { onFail(); }
+      }
+      window[name] = function (data) { finish(true, data); };
+      s.onerror = function () { finish(false); };
+      s.async = true;
+      s.src = urlTpl.replace('{cb}', name);
+      document.head.appendChild(s);
+    }
+
+    function fallback() {
+      offset = 0;
+      mark('off', '未校准 · 本机时钟');
+      render();
+    }
+    function tryTencent() {
+      jsonp('https://vv.video.qq.com/checktime?otype=json&callback={cb}&_=' + Date.now(), 3500,
+        function (r) { if (!(r && r.t && apply(r.t * 1000, '腾讯'))) fallback(); },
+        fallback);
+    }
+
+    jsonp('https://f.m.suning.com/api/ct.do?callback={cb}&_=' + Date.now(), 3500,
+      function (r) { if (!(r && r.currentTime && apply(+r.currentTime, '苏宁易购'))) tryTencent(); },
+      tryTencent);
+
+    /* ---------------- 启动 ---------------- */
+    render();
+    if (window.__clockTimer) { clearInterval(window.__clockTimer); }
+    window.__clockTimer = setInterval(render, 1000);
+  })();
+</script>
+</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/3610a686/" title="hello"><img src="https://img.zzc.dpdns.org/images/1789957733737-2a5cdfbc2eb21ead6978e8dd0056a712.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="hello" loading='lazy'/></a><div class="content"><a class="title" href="/posts/3610a686/" title="hello">hello</a><time datetime="2026-09-21T02:27:07.000Z" title="发表于 2026-09-21 10:27:07">2026-09-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/2633a26/" title="位运算"><img src="https://img.zzc.dpdns.org/images/1790042755579-f489e2b4f40983d7c5697c79ceeefd03.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="位运算" loading='lazy'/></a><div class="content"><a class="title" href="/posts/2633a26/" title="位运算">位运算</a><time datetime="2026-08-24T04:34:29.000Z" title="发表于 2026-08-24 12:34:29">2026-08-24</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/2779e0a0/" title="手机变服务器：Termux + proot Ubuntu 家庭服务器全栈部署完全指南"><img src="https://img.zzc.dpdns.org/images/1790042794428-fd69845ad70409f6ab2183756b0b2bfa.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="手机变服务器：Termux + proot Ubuntu 家庭服务器全栈部署完全指南" loading='lazy'/></a><div class="content"><a class="title" href="/posts/2779e0a0/" title="手机变服务器：Termux + proot Ubuntu 家庭服务器全栈部署完全指南">手机变服务器：Termux + proot Ubuntu 家庭服务器全栈部署完全指南</a><time datetime="2026-08-15T16:00:00.000Z" title="发表于 2026-08-16 00:00:00">2026-08-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/13fe9115/" title="Hexo 博客部署运维"><img src="https://img.zzc.dpdns.org/images/1790042781078-7a4f5f433f894cde0e9e0f19908c2306.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Hexo 博客部署运维" loading='lazy'/></a><div class="content"><a class="title" href="/posts/13fe9115/" title="Hexo 博客部署运维">Hexo 博客部署运维</a><time datetime="2026-07-30T09:24:57.000Z" title="发表于 2026-07-30 17:24:57">2026-07-30</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/5d8a35d1/" title="GitHub 图床 + Cloudflare Worker 加速代理"><img src="https://img.zzc.dpdns.org/images/1790042755579-f489e2b4f40983d7c5697c79ceeefd03.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="GitHub 图床 + Cloudflare Worker 加速代理" loading='lazy'/></a><div class="content"><a class="title" href="/posts/5d8a35d1/" title="GitHub 图床 + Cloudflare Worker 加速代理">GitHub 图床 + Cloudflare Worker 加速代理</a><time datetime="2026-07-30T07:43:57.000Z" title="发表于 2026-07-30 15:43:57">2026-07-30</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline"><i class="fas fa-folder-open"></i><span>分类</span></div>
+          <ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Cloudflare/"><span class="card-category-list-name">Cloudflare</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Git/"><span class="card-category-list-name">Git</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/GitHub/"><span class="card-category-list-name">GitHub</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Java%E6%A0%B8%E5%BF%83/"><span class="card-category-list-name">Java核心</span><span class="card-category-list-count">8</span></a><ul class="card-category-list child"><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Java%E6%A0%B8%E5%BF%83/JVM/"><span class="card-category-list-name">JVM</span><span class="card-category-list-count">4</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Java%E6%A0%B8%E5%BF%83/Java%E5%9F%BA%E7%A1%80/"><span class="card-category-list-name">Java基础</span><span class="card-category-list-count">4</span></a></li></ul></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%85%B6%E4%BB%96/"><span class="card-category-list-name">其他</span><span class="card-category-list-count">3</span></a></li>
+          </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/Git/" style="font-size: 1.15em; color: rgb(50, 89, 50);">Git</a><a href="/tags/%E4%BD%8D%E8%BF%90%E7%AE%97/" style="font-size: 1.15em; color: rgb(192, 115, 50);">位运算</a><a href="/tags/Termux/" style="font-size: 1.3em; color: rgb(178, 58, 97);">Termux</a><a href="/tags/MinIO/" style="font-size: 1.15em; color: rgb(113, 152, 114);">MinIO</a><a href="/tags/SSL/" style="font-size: 1.15em; color: rgb(108, 151, 50);">SSL</a><a href="/tags/%E4%B8%AA%E4%BA%BA%E6%9C%8D%E5%8A%A1%E5%99%A8/" style="font-size: 1.15em; color: rgb(197, 128, 155);">个人服务器</a><a href="/tags/Class/" style="font-size: 1.15em; color: rgb(170, 152, 50);">Class</a><a href="/tags/Ubuntu/" style="font-size: 1.15em; color: rgb(67, 65, 138);">Ubuntu</a><a href="/tags/javap/" style="font-size: 1.15em; color: rgb(105, 143, 161);">javap</a><a href="/tags/Cloudflare/" style="font-size: 1.15em; color: rgb(187, 110, 197);">Cloudflare</a><a href="/tags/Java/" style="font-size: 1.15em; color: rgb(50, 50, 196);">Java</a><a href="/tags/GC/" style="font-size: 1.3em; color: rgb(50, 142, 95);">GC</a><a href="/tags/GitHub/" style="font-size: 1.3em; color: rgb(50, 81, 50);">GitHub</a><a href="/tags/%E8%87%AA%E5%BB%BA%E6%9C%8D%E5%8A%A1/" style="font-size: 1.15em; color: rgb(60, 50, 160);">自建服务</a><a href="/tags/Cloudflare-Worker/" style="font-size: 1.15em; color: rgb(142, 85, 181);">Cloudflare Worker</a><a href="/tags/String/" style="font-size: 1.15em; color: rgb(172, 50, 127);">String</a><a href="/tags/javac/" style="font-size: 1.15em; color: rgb(198, 200, 105);">javac</a><a href="/tags/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/" style="font-size: 1.15em; color: rgb(123, 80, 141);">垃圾回收</a><a href="/tags/%E7%BD%91%E7%BB%9C%E4%BC%A0%E8%BE%93/" style="font-size: 1.15em; color: rgb(50, 50, 181);">网络传输</a><a href="/tags/JVM%E8%B0%83%E4%BC%98/" style="font-size: 1.15em; color: rgb(147, 56, 106);">JVM调优</a><a href="/tags/%E5%AD%97%E8%8A%82%E7%A0%81/" style="font-size: 1.15em; color: rgb(178, 197, 50);">字节码</a><a href="/tags/Hexo/" style="font-size: 1.45em; color: rgb(50, 50, 67);">Hexo</a><a href="/tags/JVM/" style="font-size: 1.3em; color: rgb(50, 50, 50);">JVM</a><a href="/tags/JDK/" style="font-size: 1.15em; color: rgb(100, 84, 50);">JDK</a><a href="/tags/%E5%8D%9A%E5%AE%A2/" style="font-size: 1.15em; color: rgb(144, 105, 50);">博客</a></div></div><div class="card-widget card-archives">
+    <div class="item-headline"><i class="fas fa-archive"></i><span>归档</span></div>
+  
+    <ul class="card-archive-list">
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/09/">
+            <span class="card-archive-list-date">
+              九月 2026
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/08/">
+            <span class="card-archive-list-date">
+              八月 2026
+            </span>
+            <span class="card-archive-list-count">2</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/07/">
+            <span class="card-archive-list-date">
+              七月 2026
+            </span>
+            <span class="card-archive-list-count">12</span>
+          </a>
+        </li>
+      
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">15</div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">57727</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2026-09-25T07:59:47.652Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-flex"><div class="footer-flex-items"><div class="footer-flex-item"><div class="footer-flex-title">导航</div><div class="footer-flex-content"><a href="/" target="_blank" title="首页">首页</a><a href="/archives/" target="_blank" title="归档">归档</a><a href="/tags/" target="_blank" title="标签">标签</a><a href="/categories/" target="_blank" title="分类">分类</a><a href="/about/" target="_blank" title="关于">关于</a></div></div></div><div class="footer-flex-items"><div class="footer-flex-item"><div class="footer-flex-title">其他</div><div class="footer-flex-content"><a href="/Gallery/" target="_blank" title="图库">图库</a><a href="/music/" target="_blank" title="音乐">音乐</a><a href="/tools/" target="_blank" title="工具">工具</a><a href="/messageboard/" target="_blank" title="留言板">留言板</a><a href="/link/" target="_blank" title="友链">友链</a><a href="/timeline/" target="_blank" title="更新日志">更新日志</a></div></div></div><div class="footer-flex-items"><div class="footer-flex-item"><div class="footer-flex-title">框架</div><div class="footer-flex-content"><a href="https://hexo.io/zh-cn/" target="_blank" title="Hexo">Hexo</a><a href="https://butterfly.js.org/" target="_blank" title="Butterfly">Butterfly</a></div></div></div></div><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 青川</span><span class="framework-info"><span class="footer-separator">|</span><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.7.1.260810</a></span></div><div class="footer_custom_text">拾起遗落的，记下来。</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.1.260810"></script><script src="/js/main.js?v=5.7.1.260810"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1.14/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page@5.2.0/instantpage.min.js" type="module"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = {"lang":"zh-CN"}
+
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://zzc-twikoo.netlify.app/.netlify/functions/twikoo',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(res => {
+      countELement.textContent = res[0].count
+    }).catch(err => {
+      console.error(err)
+    })
+  }
+
+  const init = (el = document, path = location.pathname) => {
+    twikoo.init({
+      el: el.querySelector('#twikoo-wrap'),
+      envId: 'https://zzc-twikoo.netlify.app/.netlify/functions/twikoo',
+      region: '',
+      onCommentLoaded: () => {
+        btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      },
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || path
+    })
+
+    
+
+    isShuoshuo && (window.shuoshuoComment.destroyTwikoo = () => {
+      if (el.children.length) {
+        el.innerHTML = ''
+        el.classList.add('no-comment')
+      }
+    })
+  }
+
+  const loadTwikoo = (el, path) => {
+    if (typeof twikoo === 'object') setTimeout(() => init(el, path), 0)
+    else btf.getScript('https://registry.npmmirror.com/twikoo/2.0.5/files/dist/twikoo.all.min.js').then(() => init(el, path))
+  }
+
+  if (isShuoshuo) {
+    'Twikoo' === 'Twikoo'
+      ? window.shuoshuoComment = { loadComment: loadTwikoo }
+      : window.loadOtherComment = loadTwikoo
+    return
+  }
+
+  if ('Twikoo' === 'Twikoo' || !false) {
+    if (false) btf.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else loadTwikoo()
+  } else {
+    window.loadOtherComment = loadTwikoo
+  }
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = {"data-category":"Announcements","data-lang":"zh-CN","data-mapping":"pathname","data-strict":"1"}
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'zzc-blog/comments',
+      'data-repo-id': 'R_kgDOUj2zew',
+      'data-category-id': 'DIC_kwDOUj2ze84DGFpk',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Twikoo' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Twikoo' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script src="/js/click-effects-blank.js"></script><script src="/js/read-progress.js"></script><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="true"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/click-heart.min.js" async="async" mobile="false"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","meta[property=\"og:description\"]","link[rel=\"canonical\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"]):not([data-fancybox])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      if (!item.parentNode) return
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || ''
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    const responseURL = e.request && e.request.responseURL
+    if (e.request && e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : responseURL && (window.location.href = responseURL)
+    } else if (responseURL) {
+      window.location.href = responseURL
+    }
+  })
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.1.260810"></script></div></div><!-- lx-music-injected -->
+<style>#lx-music{--lx-accent:#49B1F5}</style>
+<link rel="stylesheet" href="/css/lx-music.css?v=6bcfa38cc8">
+<script>window.__LX_MUSIC__={"enable":true,"page_embed":true,"api":"https://lx-music-api.netlify.app","api_fallback":"","default_tab":"search","quality":"320k","volume":0.8,"collapsed":true,"remember":true,"bottom_gap":24,"drag":true,"lyric":true,"lyric_mode":"window","lyric_seek":true,"lyric_bg":"transparent","lyric_dir":"horizontal","lyric_size":16,"lyric_font":"","lyric_color":"","lyric_on":"","lyric_fill":"","lyric_karaoke":true,"mobile":true,"cache":true,"cache_ttl":21600,"favorite":true,"fav_max":200,"recent_max":100,"timeout":15000,"embed":""}</script>
+<script defer src="/js/lx-music.js?v=2769b30d1f"></script>
+<script>window.__PB_CFG__={"root":"/","text":"\u8fd4\u56de"};</script><script>;(function(){
+  "use strict";
+
+  /* ============================================================
+   * WHY THE BUTTON IS CREATED AT RUNTIME (not baked into the HTML)
+   * ------------------------------------------------------------
+   * This site uses pjax (no-reload page transitions). Baking
+   * <a id="pbBack"> into the post HTML causes two problems:
+   *   1) When leaving a post, the button node may survive the pjax
+   *      swap, so it also shows up on the home page;
+   *   2) When entering a post, whether that HTML gets swapped in
+   *      depends on the pjax container scope -> sometimes present,
+   *      sometimes missing.
+   * So instead: this script is always present and decides on every
+   * route change whether the current page is a post. If yes it
+   * creates and positions the button; if no it removes it.
+   * That decouples the button entirely from the pjax swap scope.
+   * ============================================================ */
+
+  var ID="pbBack";
+  var raf=0;
+  var bound=false;
+
+  /* Config injected at build time (see the filter below) */
+  var CFG=window.__PB_CFG__||{};
+  var ROOT=CFG.root||"/";
+  var TEXT=CFG.text||"\u8fd4\u56de";   /* fallback, escaped to survive encoding */
+
+  var GUTTER_MIN=64;   /* min free space left of the card to hug its edge */
+  var ICON_MIN=104;    /* below this width show the icon only */
+  var GAP=10;          /* gap between button and card left edge */
+
+  /* ---------- create / remove ---------- */
+  function create(){
+    var a=document.createElement("a");
+    a.id=ID;
+    a.href=ROOT;
+    a.setAttribute("role","button");
+    a.setAttribute("aria-label","\u8fd4\u56de\u4e0a\u4e00\u9875");
+    a.innerHTML='<i class="fas fa-arrow-left"></i><span></span>';
+    a.querySelector("span").textContent=TEXT;
+    a.addEventListener("click",onClick);
+    document.body.appendChild(a);
+    return a;
+  }
+
+  function onClick(e){
+    /* keep default behaviour for modifier / middle click (open home in new tab) */
+    if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||e.button!==0){return;}
+    e.preventDefault();
+    var ref="";
+    try{ref=document.referrer||"";}catch(err){ref="";}
+    /* only trust same-site referrers, so external visitors are not sent back out */
+    var fromSite=!!ref&&ref.indexOf(location.origin)===0;
+    if(fromSite&&window.history&&window.history.length>1){window.history.back();return;}
+    location.href=ROOT;
+  }
+
+  function navH(){
+    var n=document.getElementById("nav");
+    var h=n?n.getBoundingClientRect().height:0;
+    return h>0?h:60;   /* fall back to the theme nav height when unmeasurable */
+  }
+
+  /* ---------- positioning ---------- */
+  function place(){
+    raf=0;
+
+    var post=document.getElementById("post");
+    var btn=document.getElementById(ID);
+
+    /* Non-post pages (home / archive / tags ...): never create, and remove
+       an existing one. This is what fixes both the leftover button on the
+       home page and the stale position after a pjax swap. */
+    if(!post){
+      if(btn&&btn.parentNode){btn.parentNode.removeChild(btn);}
+      return;
+    }
+
+    if(!btn){btn=create();}
+
+    var r=post.getBoundingClientRect();
+    var vw=window.innerWidth||document.documentElement.clientWidth||0;
+    var vh=window.innerHeight||document.documentElement.clientHeight||0;
+
+    if(r.left>=GUTTER_MIN){
+      /* hug the card left edge; anchored by right, so no need to measure width */
+      btn.classList.remove("pb-dock");
+      if(r.left<ICON_MIN){btn.classList.add("pb-icon");}else{btn.classList.remove("pb-icon");}
+      btn.style.left="auto";
+      btn.style.right=Math.max(0,Math.round(vw-(r.left-GAP)))+"px";
+      var top=Math.round(r.top)+12;
+      var min=Math.round(navH())+12;
+      var max=vh-52;
+      if(max<min){max=min;}
+      if(top<min){top=min;}
+      if(top>max){top=max;}
+      btn.style.top=top+"px";
+      btn.style.bottom="auto";
+    }else{
+      /* narrow screen / stacked sidebar: dock to the bottom-left corner */
+      btn.classList.add("pb-dock");
+      btn.classList.remove("pb-icon");
+      btn.style.left="";
+      btn.style.right="";
+      btn.style.top="";
+      btn.style.bottom="";
+    }
+    btn.classList.add("pb-show");
+  }
+
+  function schedule(){
+    if(raf){return;}
+    raf=window.requestAnimationFrame?window.requestAnimationFrame(place):window.setTimeout(place,16);
+  }
+
+  function init(){
+    /* after a pjax swap the old node may be gone; place() recreates it if needed */
+    place();
+
+    if(!bound){
+      bound=true;
+      window.addEventListener("scroll",schedule,{passive:true});
+      window.addEventListener("resize",schedule);
+    }
+  }
+
+  /* first load */
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",init,{once:true});
+  }else{
+    init();
+  }
+
+  /* pjax navigation: re-evaluate whether this is a post page. The freshly
+     rendered layout may not be measurable yet, so re-measure a couple more
+     times to settle on the final position. */
+  document.addEventListener("pjax:complete",function(){
+    init();
+    schedule();
+    window.setTimeout(place,60);
+    window.setTimeout(place,250);
+  });
+
+  /* back/forward navigation, including bfcache restores */
+  window.addEventListener("pageshow",function(e){
+    if(e.persisted){init();}
+  });
+})();</script><script>window.__TOOLS__=[{"name":"100tools","url":"https://100tools.cn/","icon":"100"}];</script><script>;(function(){
+  "use strict";
+
+  /* ============================================================
+   * 导航栏「工具▾」：一级菜单项 + 外链下拉
+   * ------------------------------------------------------------
+   * 数据由构建期注入（window.__TOOLS__），加工具只改 source/_data/tools.yml。
+   *
+   * 本站开了 pjax，注入脚本只在首次加载执行一次。因此这里：
+   *   · 脚本注入到所有页面；
+   *   · 每次 pjax:complete 后重建下拉，避免切页后消失或残留。
+   * ============================================================ */
+
+  var TOOLS = window.__TOOLS__ || [];
+  if (!TOOLS.length) { return; }
+
+  var ITEM_ID = "zzcToolsNav";
+
+  /* 找导航栏的菜单容器。优先取顶部导航里的那个，
+     注意页面里还有侧边栏菜单（#sidebar-menus）也带 .menus_items，别选错。 */
+  function navItems(){
+    var nav = document.getElementById("nav");
+    if (!nav) { return null; }
+    return nav.querySelector(".menus_items");
+  }
+
+  function build(){
+    var wrap = document.createElement("div");
+    wrap.className = "menus_item";
+    wrap.id = ITEM_ID;
+
+    /* 一级标题：与其它菜单项结构保持一致（span.site-page.group），
+       这样主题自带的悬停展示 / 箭头旋转样式都能直接复用。 */
+    var head = document.createElement("span");
+    head.className = "site-page group";
+    head.innerHTML = '<i class="fa-fw fas fa-toolbox"></i><span> </span><i class="fas fa-chevron-down"></i>';
+    head.querySelector("span").textContent = "\u5de5\u5177";   /* 工具 */
+    wrap.appendChild(head);
+
+    var ul = document.createElement("ul");
+    ul.className = "menus_item_child";
+
+    TOOLS.forEach(function(t){
+      var li = document.createElement("li");
+      var a = document.createElement("a");
+      a.className = "site-page child";
+      a.href = t.url;
+      /* 外链一律新标签页打开，并切断 opener 引用（安全 + 不丢本站） */
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.title = t.name;
+
+      var i = document.createElement("i");
+      i.className = "fa-fw fas fa-arrow-up-right-from-square";
+      a.appendChild(i);
+
+      var sp = document.createElement("span");
+      sp.textContent = " " + t.name;
+      a.appendChild(sp);
+
+      li.appendChild(a);
+      ul.appendChild(li);
+    });
+
+    wrap.appendChild(ul);
+    return wrap;
+  }
+
+  /* 取菜单项的显示文字，去掉首尾空白。
+     ⚠️ 主题渲染出的文字带前导空格（模板里写的是 `span= ' ' + label`，
+        实际 textContent 形如 " 友链"）。所以判断"是否以某词开头"时
+        必须先 trim，否则 indexOf(...) === 0 永远不成立 —— 曾因此
+        导致定位失败、工具项被 appendChild 甩到菜单最末尾。 */
+  function labelOf(el){
+    var sp = el.querySelector(".site-page > span");
+    return sp ? String(sp.textContent || "").replace(/^\s+|\s+$/g, "") : "";
+  }
+
+  function mount(){
+    var items = navItems();
+    if (!items) { return; }
+
+    /* 幂等：已存在就先移除再重建，避免 pjax 反复切页后堆出多份 */
+    var old = document.getElementById(ITEM_ID);
+    if (old && old.parentNode) { old.parentNode.removeChild(old); }
+
+    /* 插到「友链」之前，即「资源」之后。
+       按文字定位而非写死索引，菜单顺序调整后依然正确。 */
+    var target = null;
+    var anchors = items.querySelectorAll(":scope > .menus_item");
+    for (var k = 0; k < anchors.length; k++) {
+      if (labelOf(anchors[k]).indexOf("\u53cb\u94fe") === 0) {   /* 友链 */
+        target = anchors[k];
+        break;
+      }
+    }
+
+    var node = build();
+    if (target) {
+      items.insertBefore(node, target);
+    } else {
+      items.appendChild(node);
+    }
+  }
+
+  function boot(){ mount(); }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  } else {
+    boot();
+  }
+
+  /* pjax 切页后导航会被换成新的 DOM，需要重新插入 */
+  document.addEventListener("pjax:complete", mount);
+  window.addEventListener("pageshow", function(e){ if (e.persisted) { mount(); } });
+})();</script></body></html>

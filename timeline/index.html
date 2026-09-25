@@ -1,0 +1,677 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>更新日志 | 拾遗录</title><meta name="author" content="青川"><meta name="copyright" content="青川"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="CHANGELOG   拾遗录的建站记录   从 Hexo 初始化开始，沿着时间线记录这个小站一点点长出来的过程。      2026年9月24日a1f10a2 — 9eaf3fd · refine歌词与页面体验打磨歌词改为独立悬浮条，支持拖动、锁定、主题设置和移动端操作；同时修复歌曲切换、搜索残留和歌词加载状态。歌词移动端体验   2026年9月22—23日a8eacfc — 76c3c1">
+<meta property="og:type" content="website">
+<meta property="og:title" content="更新日志">
+<meta property="og:url" content="https://zzc-blog.github.io/timeline/index.html">
+<meta property="og:site_name" content="拾遗录">
+<meta property="og:description" content="CHANGELOG   拾遗录的建站记录   从 Hexo 初始化开始，沿着时间线记录这个小站一点点长出来的过程。      2026年9月24日a1f10a2 — 9eaf3fd · refine歌词与页面体验打磨歌词改为独立悬浮条，支持拖动、锁定、主题设置和移动端操作；同时修复歌曲切换、搜索残留和歌词加载状态。歌词移动端体验   2026年9月22—23日a8eacfc — 76c3c1">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zzc-blog.github.io/img/avatar.webp">
+<meta property="article:published_time" content="2026-09-24T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-24T04:54:55.696Z">
+<meta property="article:author" content="青川">
+<meta property="article:tag" content="Java,Java开发,后端开发,服务端开发,技术博客">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://zzc-blog.github.io/img/avatar.webp"><script type="application/ld+json"></script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://zzc-blog.github.io/timeline/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.1.260810"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1.14/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        try {
+          const data = { value }
+
+          if (ttl != null) {
+            data.expiry = Date.now() + ttl * 86400000
+          }
+
+          localStorage.setItem(key, JSON.stringify(data))
+        } catch (e) {
+          console.error(e)
+        }
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":320,"highlightFullpage":true,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '更新日志',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'page'
+}</script><link rel="preconnect" href="https://img.zzc.dpdns.org" crossorigin><link rel="dns-prefetch" href="https://img.zzc.dpdns.org"><link rel="stylesheet" href="https://npm.elemecdn.com/lxgw-wenkai-screen-webfont@1.7.0/style.css"><link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/@fontsource/noto-sans-sc@5.3.0/400.css"><link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/@fontsource/noto-sans-sc@5.3.0/500.css"><link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/@fontsource/noto-sans-sc@5.3.0/600.css"><link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/jetbrains-mono@1.0.6/css/jetbrains-mono-nl.min.css"><link rel="stylesheet" href="/css/custom.css?v=1e3615ef8a"><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="拾遗录" type="application/atom+xml">
+<style>#pbBack{position:fixed;z-index:89;display:none;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;height:38px;padding:0 14px;border-radius:999px;font-size:13.5px;line-height:1;white-space:nowrap;text-decoration:none !important;color:var(--btn-color,#fff);background:var(--btn-bg,#49b1f5);box-shadow:0 3px 12px rgba(0,0,0,.2);opacity:.9;transition:opacity .25s,background-color .3s}#pbBack.pb-show{display:inline-flex}#pbBack:hover{opacity:1;background:var(--btn-hover-color,#49b1f5)}#pbBack i{font-size:13px}#pbBack.pb-icon{width:38px;padding:0}#pbBack.pb-icon>span{display:none}#pbBack.pb-dock{left:14px;bottom:14px}@media print{#pbBack{display:none !important}}</style><style>/* 工具下拉里的外链项：右侧补一个外链箭头，提示"点了会跳出本站" */#zzcToolsNav .menus_item_child a.site-page::after{content:"\2197";margin-left:6px;font-size:.8em;opacity:.45}/* 名称过长时省略，避免下拉被撑得过宽 */#zzcToolsNav .menus_item_child a.site-page span{white-space:nowrap}</style></head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="/css/pace.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.webp" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar" loading='lazy'/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">25</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/random/"><i class="fa-fw fas fa-shuffle"></i><span> 随机文章</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 资源</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 图库</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-info-circle"></i><span> 关于</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></li><li><a class="site-page child" href="/messageboard/"><i class="fa-fw fas fa-comment-dots"></i><span> 留言板</span></a></li><li><a class="site-page child" href="/timeline/"><i class="fa-fw fas fa-clock-rotate-left"></i><span> 更新日志</span></a></li></ul></div></div></div></div><div class="page" id="body-wrap"><header class="not-home-page fixed" id="page-header" style="background-image: url(https://img.zzc.dpdns.org/images/1789957733737-2a5cdfbc2eb21ead6978e8dd0056a712.webp);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">拾遗录</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/random/"><i class="fa-fw fas fa-shuffle"></i><span> 随机文章</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 资源</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 图库</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-info-circle"></i><span> 关于</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></li><li><a class="site-page child" href="/messageboard/"><i class="fa-fw fas fa-comment-dots"></i><span> 留言板</span></a></li><li><a class="site-page child" href="/timeline/"><i class="fa-fw fas fa-clock-rotate-left"></i><span> 更新日志</span></a></li></ul></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="page-site-info"><h1 id="site-title">更新日志</h1></div></header><main class="layout hide-aside" id="content-inner"><div id="page"><div class="container" id="article-container"><div class="timeline-intro">
+  <span class="timeline-kicker">CHANGELOG</span>
+  <h2>拾遗录的建站记录</h2>
+  <p>从 Hexo 初始化开始，沿着时间线记录这个小站一点点长出来的过程。</p>
+</div>
+
+<div class="site-timeline">
+  <article class="timeline-entry timeline-entry-right timeline-entry-featured"><div class="timeline-dot"></div><div class="timeline-card"><time>2026年9月24日</time><span class="timeline-version">a1f10a2 — 9eaf3fd · refine</span><h3>歌词与页面体验打磨</h3><p>歌词改为独立悬浮条，支持拖动、锁定、主题设置和移动端操作；同时修复歌曲切换、搜索残留和歌词加载状态。</p><div class="timeline-tags"><span>歌词</span><span>移动端</span><span>体验</span></div></div></article>
+  <article class="timeline-entry timeline-entry-left"><div class="timeline-dot"></div><div class="timeline-card"><time>2026年9月22—23日</time><span class="timeline-version">a8eacfc — 76c3c1f · music</span><h3>音乐播放器上线</h3><p>接入 LX 音乐接口，音乐页改为常驻内嵌播放器，支持跨页面播放；随后加入我的音乐、播放列表、加载反馈和榜单/歌单/热搜缓存。</p><div class="timeline-tags"><span>音乐</span><span>缓存</span><span>播放器</span></div></div></article>
+  <article class="timeline-entry timeline-entry-right"><div class="timeline-dot"></div><div class="timeline-card"><time>2026年9月22日</time><span class="timeline-version">1352487 / 0208617 / 44b6cdf · polish</span><h3>确定“拾遗录”的样子</h3><p>完成站点更名、作者信息、社交链接、RSS、页脚和基础性能优化，并启用图片懒加载与 Instant.page。</p><div class="timeline-tags"><span>品牌</span><span>性能</span><span>细节</span></div></div></article>
+  <article class="timeline-entry timeline-entry-left"><div class="timeline-dot"></div><div class="timeline-card"><time>2026年9月21日</time><span class="timeline-version">d4b6fba / de2b532 / 2165737 · site</span><h3>站点功能逐步成形</h3><p>加入首页轮播、随机文章、本地搜索、评论系统和留言板，博客从模板变成真正可用的小站。</p><div class="timeline-tags"><span>搜索</span><span>评论</span><span>页面</span></div></div></article>
+  <article class="timeline-entry timeline-entry-right"><div class="timeline-dot"></div><div class="timeline-card"><time>2026年9月20—21日</time><span class="timeline-version">d0d6d3b / 0890b01 · theme</span><h3>接入 Butterfly 主题</h3><p>引入并配置 Butterfly，完成导航、横幅、主题色和基础页面的第一版外观。</p><div class="timeline-tags"><span>Butterfly</span><span>主题</span></div></div></article>
+  <article class="timeline-entry timeline-entry-left timeline-entry-start"><div class="timeline-dot"></div><div class="timeline-card"><time>2026年9月20日</time><span class="timeline-version">fa8997a · hexo init</span><h3>从 Hexo 开始</h3><p>初始化 Hexo 项目，确定用静态站点的方式记录文章和折腾过程。</p><div class="timeline-tags"><span>Hexo</span><span>开始</span></div></div></article>
+</div>
+</div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div><div class="comment-switch"><span class="first-comment">Twikoo</span><span id="switch-btn"></span><span class="second-comment">Giscus</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div><div><div id="giscus-wrap"></div></div></div></div></div></main><footer id="footer"><div class="footer-flex"><div class="footer-flex-items"><div class="footer-flex-item"><div class="footer-flex-title">导航</div><div class="footer-flex-content"><a href="/" target="_blank" title="首页">首页</a><a href="/archives/" target="_blank" title="归档">归档</a><a href="/tags/" target="_blank" title="标签">标签</a><a href="/categories/" target="_blank" title="分类">分类</a><a href="/about/" target="_blank" title="关于">关于</a></div></div></div><div class="footer-flex-items"><div class="footer-flex-item"><div class="footer-flex-title">其他</div><div class="footer-flex-content"><a href="/Gallery/" target="_blank" title="图库">图库</a><a href="/music/" target="_blank" title="音乐">音乐</a><a href="/tools/" target="_blank" title="工具">工具</a><a href="/messageboard/" target="_blank" title="留言板">留言板</a><a href="/link/" target="_blank" title="友链">友链</a><a href="/timeline/" target="_blank" title="更新日志">更新日志</a></div></div></div><div class="footer-flex-items"><div class="footer-flex-item"><div class="footer-flex-title">框架</div><div class="footer-flex-content"><a href="https://hexo.io/zh-cn/" target="_blank" title="Hexo">Hexo</a><a href="https://butterfly.js.org/" target="_blank" title="Butterfly">Butterfly</a></div></div></div></div><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 青川</span><span class="framework-info"><span class="footer-separator">|</span><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.7.1.260810</a></span></div><div class="footer_custom_text">拾起遗落的，记下来。</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.1.260810"></script><script src="/js/main.js?v=5.7.1.260810"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1.14/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page@5.2.0/instantpage.min.js" type="module"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = {"lang":"zh-CN"}
+
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://zzc-twikoo.netlify.app/.netlify/functions/twikoo',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(res => {
+      countELement.textContent = res[0].count
+    }).catch(err => {
+      console.error(err)
+    })
+  }
+
+  const init = (el = document, path = location.pathname) => {
+    twikoo.init({
+      el: el.querySelector('#twikoo-wrap'),
+      envId: 'https://zzc-twikoo.netlify.app/.netlify/functions/twikoo',
+      region: '',
+      onCommentLoaded: () => {
+        btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      },
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || path
+    })
+
+    
+
+    isShuoshuo && (window.shuoshuoComment.destroyTwikoo = () => {
+      if (el.children.length) {
+        el.innerHTML = ''
+        el.classList.add('no-comment')
+      }
+    })
+  }
+
+  const loadTwikoo = (el, path) => {
+    if (typeof twikoo === 'object') setTimeout(() => init(el, path), 0)
+    else btf.getScript('https://registry.npmmirror.com/twikoo/2.0.5/files/dist/twikoo.all.min.js').then(() => init(el, path))
+  }
+
+  if (isShuoshuo) {
+    'Twikoo' === 'Twikoo'
+      ? window.shuoshuoComment = { loadComment: loadTwikoo }
+      : window.loadOtherComment = loadTwikoo
+    return
+  }
+
+  if ('Twikoo' === 'Twikoo' || !false) {
+    if (false) btf.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else loadTwikoo()
+  } else {
+    window.loadOtherComment = loadTwikoo
+  }
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = {"data-category":"Announcements","data-lang":"zh-CN","data-mapping":"pathname","data-strict":"1"}
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'zzc-blog/comments',
+      'data-repo-id': 'R_kgDOUj2zew',
+      'data-category-id': 'DIC_kwDOUj2ze84DGFpk',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Twikoo' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Twikoo' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script src="/js/click-effects-blank.js"></script><script src="/js/read-progress.js"></script><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="true"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/click-heart.min.js" async="async" mobile="false"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","meta[property=\"og:description\"]","link[rel=\"canonical\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"]):not([data-fancybox])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      if (!item.parentNode) return
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || ''
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    const responseURL = e.request && e.request.responseURL
+    if (e.request && e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : responseURL && (window.location.href = responseURL)
+    } else if (responseURL) {
+      window.location.href = responseURL
+    }
+  })
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.1.260810"></script></div></div><!-- lx-music-injected -->
+<style>#lx-music{--lx-accent:#49B1F5}</style>
+<link rel="stylesheet" href="/css/lx-music.css?v=6bcfa38cc8">
+<script>window.__LX_MUSIC__={"enable":true,"page_embed":true,"api":"https://lx-music-api.netlify.app","api_fallback":"","default_tab":"search","quality":"320k","volume":0.8,"collapsed":true,"remember":true,"bottom_gap":24,"drag":true,"lyric":true,"lyric_mode":"window","lyric_seek":true,"lyric_bg":"transparent","lyric_dir":"horizontal","lyric_size":16,"lyric_font":"","lyric_color":"","lyric_on":"","lyric_fill":"","lyric_karaoke":true,"mobile":true,"cache":true,"cache_ttl":21600,"favorite":true,"fav_max":200,"recent_max":100,"timeout":15000,"embed":""}</script>
+<script defer src="/js/lx-music.js?v=2769b30d1f"></script>
+<script>window.__PB_CFG__={"root":"/","text":"\u8fd4\u56de"};</script><script>;(function(){
+  "use strict";
+
+  /* ============================================================
+   * WHY THE BUTTON IS CREATED AT RUNTIME (not baked into the HTML)
+   * ------------------------------------------------------------
+   * This site uses pjax (no-reload page transitions). Baking
+   * <a id="pbBack"> into the post HTML causes two problems:
+   *   1) When leaving a post, the button node may survive the pjax
+   *      swap, so it also shows up on the home page;
+   *   2) When entering a post, whether that HTML gets swapped in
+   *      depends on the pjax container scope -> sometimes present,
+   *      sometimes missing.
+   * So instead: this script is always present and decides on every
+   * route change whether the current page is a post. If yes it
+   * creates and positions the button; if no it removes it.
+   * That decouples the button entirely from the pjax swap scope.
+   * ============================================================ */
+
+  var ID="pbBack";
+  var raf=0;
+  var bound=false;
+
+  /* Config injected at build time (see the filter below) */
+  var CFG=window.__PB_CFG__||{};
+  var ROOT=CFG.root||"/";
+  var TEXT=CFG.text||"\u8fd4\u56de";   /* fallback, escaped to survive encoding */
+
+  var GUTTER_MIN=64;   /* min free space left of the card to hug its edge */
+  var ICON_MIN=104;    /* below this width show the icon only */
+  var GAP=10;          /* gap between button and card left edge */
+
+  /* ---------- create / remove ---------- */
+  function create(){
+    var a=document.createElement("a");
+    a.id=ID;
+    a.href=ROOT;
+    a.setAttribute("role","button");
+    a.setAttribute("aria-label","\u8fd4\u56de\u4e0a\u4e00\u9875");
+    a.innerHTML='<i class="fas fa-arrow-left"></i><span></span>';
+    a.querySelector("span").textContent=TEXT;
+    a.addEventListener("click",onClick);
+    document.body.appendChild(a);
+    return a;
+  }
+
+  function onClick(e){
+    /* keep default behaviour for modifier / middle click (open home in new tab) */
+    if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||e.button!==0){return;}
+    e.preventDefault();
+    var ref="";
+    try{ref=document.referrer||"";}catch(err){ref="";}
+    /* only trust same-site referrers, so external visitors are not sent back out */
+    var fromSite=!!ref&&ref.indexOf(location.origin)===0;
+    if(fromSite&&window.history&&window.history.length>1){window.history.back();return;}
+    location.href=ROOT;
+  }
+
+  function navH(){
+    var n=document.getElementById("nav");
+    var h=n?n.getBoundingClientRect().height:0;
+    return h>0?h:60;   /* fall back to the theme nav height when unmeasurable */
+  }
+
+  /* ---------- positioning ---------- */
+  function place(){
+    raf=0;
+
+    var post=document.getElementById("post");
+    var btn=document.getElementById(ID);
+
+    /* Non-post pages (home / archive / tags ...): never create, and remove
+       an existing one. This is what fixes both the leftover button on the
+       home page and the stale position after a pjax swap. */
+    if(!post){
+      if(btn&&btn.parentNode){btn.parentNode.removeChild(btn);}
+      return;
+    }
+
+    if(!btn){btn=create();}
+
+    var r=post.getBoundingClientRect();
+    var vw=window.innerWidth||document.documentElement.clientWidth||0;
+    var vh=window.innerHeight||document.documentElement.clientHeight||0;
+
+    if(r.left>=GUTTER_MIN){
+      /* hug the card left edge; anchored by right, so no need to measure width */
+      btn.classList.remove("pb-dock");
+      if(r.left<ICON_MIN){btn.classList.add("pb-icon");}else{btn.classList.remove("pb-icon");}
+      btn.style.left="auto";
+      btn.style.right=Math.max(0,Math.round(vw-(r.left-GAP)))+"px";
+      var top=Math.round(r.top)+12;
+      var min=Math.round(navH())+12;
+      var max=vh-52;
+      if(max<min){max=min;}
+      if(top<min){top=min;}
+      if(top>max){top=max;}
+      btn.style.top=top+"px";
+      btn.style.bottom="auto";
+    }else{
+      /* narrow screen / stacked sidebar: dock to the bottom-left corner */
+      btn.classList.add("pb-dock");
+      btn.classList.remove("pb-icon");
+      btn.style.left="";
+      btn.style.right="";
+      btn.style.top="";
+      btn.style.bottom="";
+    }
+    btn.classList.add("pb-show");
+  }
+
+  function schedule(){
+    if(raf){return;}
+    raf=window.requestAnimationFrame?window.requestAnimationFrame(place):window.setTimeout(place,16);
+  }
+
+  function init(){
+    /* after a pjax swap the old node may be gone; place() recreates it if needed */
+    place();
+
+    if(!bound){
+      bound=true;
+      window.addEventListener("scroll",schedule,{passive:true});
+      window.addEventListener("resize",schedule);
+    }
+  }
+
+  /* first load */
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",init,{once:true});
+  }else{
+    init();
+  }
+
+  /* pjax navigation: re-evaluate whether this is a post page. The freshly
+     rendered layout may not be measurable yet, so re-measure a couple more
+     times to settle on the final position. */
+  document.addEventListener("pjax:complete",function(){
+    init();
+    schedule();
+    window.setTimeout(place,60);
+    window.setTimeout(place,250);
+  });
+
+  /* back/forward navigation, including bfcache restores */
+  window.addEventListener("pageshow",function(e){
+    if(e.persisted){init();}
+  });
+})();</script><script>window.__TOOLS__=[{"name":"100tools","url":"https://100tools.cn/","icon":"100"}];</script><script>;(function(){
+  "use strict";
+
+  /* ============================================================
+   * 导航栏「工具▾」：一级菜单项 + 外链下拉
+   * ------------------------------------------------------------
+   * 数据由构建期注入（window.__TOOLS__），加工具只改 source/_data/tools.yml。
+   *
+   * 本站开了 pjax，注入脚本只在首次加载执行一次。因此这里：
+   *   · 脚本注入到所有页面；
+   *   · 每次 pjax:complete 后重建下拉，避免切页后消失或残留。
+   * ============================================================ */
+
+  var TOOLS = window.__TOOLS__ || [];
+  if (!TOOLS.length) { return; }
+
+  var ITEM_ID = "zzcToolsNav";
+
+  /* 找导航栏的菜单容器。优先取顶部导航里的那个，
+     注意页面里还有侧边栏菜单（#sidebar-menus）也带 .menus_items，别选错。 */
+  function navItems(){
+    var nav = document.getElementById("nav");
+    if (!nav) { return null; }
+    return nav.querySelector(".menus_items");
+  }
+
+  function build(){
+    var wrap = document.createElement("div");
+    wrap.className = "menus_item";
+    wrap.id = ITEM_ID;
+
+    /* 一级标题：与其它菜单项结构保持一致（span.site-page.group），
+       这样主题自带的悬停展示 / 箭头旋转样式都能直接复用。 */
+    var head = document.createElement("span");
+    head.className = "site-page group";
+    head.innerHTML = '<i class="fa-fw fas fa-toolbox"></i><span> </span><i class="fas fa-chevron-down"></i>';
+    head.querySelector("span").textContent = "\u5de5\u5177";   /* 工具 */
+    wrap.appendChild(head);
+
+    var ul = document.createElement("ul");
+    ul.className = "menus_item_child";
+
+    TOOLS.forEach(function(t){
+      var li = document.createElement("li");
+      var a = document.createElement("a");
+      a.className = "site-page child";
+      a.href = t.url;
+      /* 外链一律新标签页打开，并切断 opener 引用（安全 + 不丢本站） */
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.title = t.name;
+
+      var i = document.createElement("i");
+      i.className = "fa-fw fas fa-arrow-up-right-from-square";
+      a.appendChild(i);
+
+      var sp = document.createElement("span");
+      sp.textContent = " " + t.name;
+      a.appendChild(sp);
+
+      li.appendChild(a);
+      ul.appendChild(li);
+    });
+
+    wrap.appendChild(ul);
+    return wrap;
+  }
+
+  /* 取菜单项的显示文字，去掉首尾空白。
+     ⚠️ 主题渲染出的文字带前导空格（模板里写的是 `span= ' ' + label`，
+        实际 textContent 形如 " 友链"）。所以判断"是否以某词开头"时
+        必须先 trim，否则 indexOf(...) === 0 永远不成立 —— 曾因此
+        导致定位失败、工具项被 appendChild 甩到菜单最末尾。 */
+  function labelOf(el){
+    var sp = el.querySelector(".site-page > span");
+    return sp ? String(sp.textContent || "").replace(/^\s+|\s+$/g, "") : "";
+  }
+
+  function mount(){
+    var items = navItems();
+    if (!items) { return; }
+
+    /* 幂等：已存在就先移除再重建，避免 pjax 反复切页后堆出多份 */
+    var old = document.getElementById(ITEM_ID);
+    if (old && old.parentNode) { old.parentNode.removeChild(old); }
+
+    /* 插到「友链」之前，即「资源」之后。
+       按文字定位而非写死索引，菜单顺序调整后依然正确。 */
+    var target = null;
+    var anchors = items.querySelectorAll(":scope > .menus_item");
+    for (var k = 0; k < anchors.length; k++) {
+      if (labelOf(anchors[k]).indexOf("\u53cb\u94fe") === 0) {   /* 友链 */
+        target = anchors[k];
+        break;
+      }
+    }
+
+    var node = build();
+    if (target) {
+      items.insertBefore(node, target);
+    } else {
+      items.appendChild(node);
+    }
+  }
+
+  function boot(){ mount(); }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  } else {
+    boot();
+  }
+
+  /* pjax 切页后导航会被换成新的 DOM，需要重新插入 */
+  document.addEventListener("pjax:complete", mount);
+  window.addEventListener("pageshow", function(e){ if (e.persisted) { mount(); } });
+})();</script></body></html>

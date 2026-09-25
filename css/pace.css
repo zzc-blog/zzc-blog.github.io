@@ -1,0 +1,135 @@
+/* ============================================================
+ * 拾遗录 · pace 进度条皮肤
+ * ------------------------------------------------------------
+ * 由 _config.butterfly.yml 的 preloader.pace_css_url 指向本文件：
+ *   preloader:
+ *     enable: true
+ *     source: 2                       # 2 = pace 进度条
+ *     pace_css_url: /css/pace.css
+ *
+ * 为什么要自己写这一份：
+ *   官方 pace-theme-default.min.css 顶部那条是 2px 纯红 #d72630
+ *   （`.pace .pace-progress{background:#d72630}`），和本站的蓝色主题 /
+ *   圆角卡片完全是两个调性；而且主题默认引用的是 jsdelivr 上的
+ *   `pace-js@latest`，多一次外部请求、版本还会漂。
+ *   本地一份皮肤 = 零新增请求 + 颜色跟着 theme_color 走 + 想改就改。
+ *
+ * pace 1.2.4 运行时生成的 DOM（从 pace.min.js 反查确认，别照抄其它版本的
+ * 主题，结构对不上就白写）：
+ *   <div class="pace pace-active">          ← 插到 body 的首个子节点
+ *     <div class="pace-progress"            ← JS 只改它的 transform
+ *          style="transform: translate3d(N%, 0, 0)">
+ *       <div class="pace-progress-inner"></div>   ← 自带但没样式，留作「前沿亮点」
+ *     </div>
+ *     <div class="pace-activity"></div>     ← 顶栏形态用不到，隐藏
+ *   </div>
+ *   加载完成时 body 加 pace-done、.pace 加 pace-inactive。
+ *
+ * ⚠️ 几何必须保留官方的 right:100% + width:100% + translate3d 组合：
+ *    进度 0 时整条位于视口左侧之外，translate 的正值把它往右推，
+ *    视觉上就是「从左往右长」。
+ *    改成 left:0 会让 0% 时整条可见、100% 时反而跑出屏幕。
+ *
+ * ⚠️ 本文件是 pace 单独加载的，不经过 main.css，所以官方那两条
+ *    .pace{pointer-events:none} / .pace-inactive{display:none} 要自己带上，
+ *    少了第二条会出现「加载完了顶栏还挂着」。
+ * ============================================================ */
+
+/* ---- 1. 基础行为（官方默认主题里也有，本地版本必须自带） ---- */
+
+.pace {
+  pointer-events: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+/* 加载完成 → 整块收掉 */
+.pace-inactive {
+  display: none;
+}
+
+/* ---- 2. 进度条本体：3px 蓝→青渐变顶栏 + 流光动画 ---- */
+
+.pace .pace-progress {
+  position: fixed;
+  z-index: 3000;               /* 压过吸顶导航（#nav 的 z-index 是 90 一档） */
+  top: 0;
+  right: 100%;                 /* 见文件头的「几何」说明，别动 */
+  width: 100%;
+  height: 3px;
+  overflow: hidden;            /* 让下面的流光扫光被裁在条内 */
+  /* --default-bg-color = theme_color.main，改主题色这里自动跟；#00c4b6 与
+     theme_color.paginator 同色（该键不进 CSS 变量，只能写死，换色时同步改）。
+     ⚠️ var() 必须带兜底值：这个变量定义在主题的 index.css 里，一旦那份样式没
+     加载成功（或被裁掉），整个 linear-gradient() 会因为含无效值而**整条不画**，
+     表现为「进度条只剩前沿的白色亮点」——实测就踩到了，别省这两个参数。 */
+  background-image: linear-gradient(90deg, var(--default-bg-color, #49b1f5), #00c4b6);
+  border-radius: 0 2px 2px 0;
+  /* 发光：先给不支持 color-mix 的旧浏览器一个兜底色值 */
+  box-shadow: 0 0 8px rgba(73, 177, 245, .5);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--default-bg-color) 50%, transparent);
+}
+
+/* ---- 2b. 流光扫光：把「正在加载」和「阅读进度」区分开 ----
+ *
+ * 为什么需要它：站点顶部还有一条「阅读进度条」（#zzcReadProgress，
+ * 见 source/css/custom.css）。两条都是 3px、都贴顶，若样式雷同，
+ * 用户根本分不清「页面还在加载」还是「已经可以读了」。
+ *
+ * 区分策略（两边配合）：
+ *   · 加载条 —— 蓝色渐变 + 不停流动的高光 → 一眼看出「还在忙」
+ *   · 阅读条 —— 青绿单色 + 完全静态     → 一眼看出「已经就绪」
+ * 这样动静与颜色两个维度都不同，不必靠记忆分辨。
+ *
+ * 实现：用 ::after 铺一条比本体更宽的斜向高光，靠 background-position
+ * 的位移做循环。只动 background-position（合成层属性），不触发重排。
+ * 注意 .pace-progress 的 transform 由 pace 自己控制，这里绝不能碰。 */
+@keyframes zzc-pace-shine {
+  from { background-position: -140% 0; }
+  to   { background-position: 240% 0; }
+}
+
+.pace .pace-progress::after {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(
+    100deg,
+    transparent 20%,
+    rgba(255, 255, 255, .75) 50%,
+    transparent 80%
+  );
+  background-repeat: no-repeat;
+  background-size: 40% 100%;
+  content: '';
+  animation: zzc-pace-shine 1.15s linear infinite;
+}
+
+/* 尊重「减少动态效果」：去掉流动，但保留高光静态可见，仍与阅读条不同 */
+@media (prefers-reduced-motion: reduce) {
+  .pace .pace-progress::after {
+    animation: none;
+    background-position: 40% 0;
+  }
+}
+
+/* ---- 3. 前沿亮点：跟着进度头部滑动的白色收尾 ---- */
+
+.pace .pace-progress-inner {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 14px;
+  height: 3px;
+  border-radius: 0 2px 2px 0;
+  background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, .95));
+}
+
+/* ---- 4. 自带转圈图标：顶栏形态不需要 ---- */
+
+.pace .pace-activity {
+  display: none;
+}

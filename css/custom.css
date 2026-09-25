@@ -1,0 +1,2617 @@
+/* ============================================================
+ * 拾遗录 · 站点级自定义样式
+ * ------------------------------------------------------------
+ * 由 _config.butterfly.yml 的 inject.head 引入，不改主题任何文件。
+ * inject.head 渲染在主题 main.css 之后，所以同等选择器下这里的规则生效。
+ *
+ * 颜色统一走主题的 CSS 变量，不写死具体色值：
+ *   --default-bg-color            = theme_color.main（当前 #49B1F5）
+ *   --card-bg / --font-color      = 卡片底色 / 正文字色（自动跟随亮暗模式）
+ *   --card-meta / --light-grey    = 次要文字
+ *   --card-box-shadow / --card-hover-box-shadow
+ *   --hr-border / --scrollbar-color / --toc-link-color
+ * 改 _config.butterfly.yml 里的主题色时，这里会跟着变，不用回来动。
+ * ============================================================ */
+
+:root {
+  /* 卡片圆角（主题内置是 8px，统一放大一档） */
+  --zzc-radius: 12px;
+  /* 强调色：直接指向主题主色 */
+  --zzc-accent: var(--default-bg-color);
+  /* 悬浮时的额外投影 */
+  --zzc-hover-shadow: 0 12px 30px -12px rgba(0, 0, 0, .28);
+}
+
+/* ============================================================
+ * 1. 首页文章卡片：圆角 / 悬浮抬升 / 进场上浮
+ * ============================================================ */
+
+#recent-posts .recent-post-item {
+  border-radius: var(--zzc-radius);
+  transition: transform .35s cubic-bezier(.22, .61, .36, 1),
+              box-shadow .35s cubic-bezier(.22, .61, .36, 1);
+}
+
+/* 首页横向文章卡片比主题默认高度缩短 50px */
+@media (min-width: 769px) {
+  #recent-posts .recent-post-item {
+    height: calc(16.8em - 50px);
+  }
+}
+
+@media (min-width: 2000px) {
+  #recent-posts .recent-post-item {
+    height: calc(18.8em - 50px);
+  }
+}
+
+#recent-posts .recent-post-item:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--card-hover-box-shadow), var(--zzc-hover-shadow);
+}
+
+/* 封面图：主题原本 hover 缩放 1.1，这里收一点并补个轻微提亮 */
+#recent-posts .recent-post-item .post_cover img.post-bg {
+  transition: transform .7s cubic-bezier(.22, .61, .36, 1), filter .5s ease;
+}
+
+#recent-posts .recent-post-item:hover .post_cover img.post-bg {
+  transform: scale(1.06);
+  filter: brightness(1.06);
+}
+
+/* 进场上浮：用 backwards 填充，动画结束后回到正常样式，
+   这样不会盖掉上面 hover 的 transform */
+@keyframes zzc-fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+#recent-posts .recent-post-item {
+  animation: zzc-fade-up .6s cubic-bezier(.22, .61, .36, 1) backwards;
+}
+
+#recent-posts .recent-post-item:nth-child(1) { animation-delay: .02s; }
+#recent-posts .recent-post-item:nth-child(2) { animation-delay: .08s; }
+#recent-posts .recent-post-item:nth-child(3) { animation-delay: .14s; }
+#recent-posts .recent-post-item:nth-child(4) { animation-delay: .20s; }
+#recent-posts .recent-post-item:nth-child(5) { animation-delay: .26s; }
+#recent-posts .recent-post-item:nth-child(6) { animation-delay: .32s; }
+
+/* ============================================================
+ * 2. 侧边栏卡片
+ * ============================================================ */
+
+#aside-content .card-widget {
+  border-radius: var(--zzc-radius);
+  transition: transform .35s cubic-bezier(.22, .61, .36, 1),
+              box-shadow .35s cubic-bezier(.22, .61, .36, 1);
+}
+
+/* #card-toc 是 sticky 的，位移会让它在滚动时抖，只给投影 */
+#aside-content .card-widget:not(#card-toc):hover {
+  transform: translateY(-3px);
+  box-shadow: var(--card-hover-box-shadow);
+}
+
+/* ============================================================
+ * 3. 首页大标题 / 副标题
+ * ============================================================ */
+
+/* 覆盖在横幅图上，所以固定用白→浅蓝的渐变 + 轻微投影保证可读性，
+   不跟主题色走（照片亮度不可控） */
+#site-title {
+  letter-spacing: .12em;
+  font-weight: 700;
+  background-image: linear-gradient(120deg, #ffffff 0%, #eaf6ff 45%, #a9d7ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #fff; /* 老浏览器兜底 */
+  filter: drop-shadow(0 3px 12px rgba(0, 0, 0, .35));
+}
+
+/* 导航栏站点标题降低字重，避免标题视觉过重 */
+#nav .site-name {
+  font-weight: 600;
+}
+
+#site-subtitle {
+  letter-spacing: .04em;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, .45);
+}
+
+/* 打字机光标 */
+.typed-cursor {
+  color: rgba(255, 255, 255, .85);
+}
+
+/* ============================================================
+ * 4. 导航栏毛玻璃（滚动吸顶后）
+ * ============================================================ */
+
+#page-header.nav-fixed #nav {
+  
+  
+}
+
+/* ============================================================
+ * 5. 文章正文排版
+ * ============================================================ */
+
+#article-container {
+  /* 中文长文的舒适行高 */
+  font-family: "LXGW WenKai Screen", "LXGW WenKai", "Microsoft YaHei", sans-serif;
+  line-height: 1.9;
+  letter-spacing: .015em;
+}
+
+#article-container h1,
+#article-container h2,
+#article-container h3,
+#article-container h4,
+#article-container h5,
+#article-container h6,
+#article-container p,
+#article-container li,
+#article-container blockquote,
+#article-container a {
+  
+}
+
+/* ============================================================
+ * ⚠️ 已移除：导航栏字体强制覆盖（原 162-168 行）
+ * ------------------------------------------------------------
+ * 这里本来有一条：
+ *     #nav, #nav .site-name, #nav .menus_items,
+ *     #nav .menus_item, #nav .site-page {
+ *       font-family: "Source Han Sans SC", ...;
+ *     }
+ * 本意是「导航统一思源黑体」。但 <i class="fas fa-home"> 是 .site-page 的
+ * 后代，font-family 会继承下去，而 #nav .site-page（id+class）的特异性
+ * 高于 Font Awesome 自己的 .fas（单个 class），于是图标字体被中文字体顶掉。
+ * FA 的图标字形只存在于它自带的 webfont 里，字体一族对不上就只剩「口」，
+ * 这就是导航/下拉菜单里图标变豆腐块的原因。
+ *
+ * 处理：整条删掉。导航字体跟随主题默认（主题 font.font_family 已配置为
+ * 「Source Han Sans SC ...」同一套），观感不变，但不再伤图标。
+ * 如果将来确实要单独调导航字体，请只写 font-size / font-weight / letter-spacing，
+ * 不要碰 font-family，或务必把 i 元素排除在外。
+ * ============================================================ */
+
+/* 界面组件统一使用思源黑体；文章内容和页脚单独使用霞鹜文楷 */
+#aside-content,
+#rightside,
+#pagination,
+#post-meta,
+#post-meta a,
+.recent-post-item,
+.card-widget,
+.article-meta-wrap,
+.article-meta-wrap a,
+.post-tags,
+.post-categories,
+.tag-cloud,
+.category-list,
+.archive-list,
+.pagination,
+.page-number,
+button,
+input,
+select,
+textarea {
+  font-family: "Source Han Sans SC", "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+#aside-content,
+#aside-content .card-widget,
+#aside-content .card-widget a,
+#aside-content .card-widget span,
+#aside-content .card-widget p,
+#aside-content .card-widget li,
+#aside-content .card-widget time,
+#aside-content .card-widget h1,
+#aside-content .card-widget h2,
+#aside-content .card-widget h3,
+#aside-content .card-widget h4,
+#aside-content .card-widget small {
+  font-family: "Source Han Sans SC", "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+#aside-content .card-widget .item-headline,
+#aside-content .card-widget .card-widget-title,
+#aside-content .card-widget .author-info-name,
+#aside-content .card-widget h3,
+#aside-content .card-widget h4 {
+  font-weight: 600;
+}
+
+#aside-content .card-widget .card-content,
+#aside-content .card-widget .item-content,
+#aside-content .card-widget .author-info-description,
+#aside-content .card-widget time,
+#aside-content .card-widget .toc-link,
+#aside-content .card-widget .site-data a {
+  font-weight: 400;
+}
+
+/* 代码不要继承上面的字距和行高，否则行会变高、等宽字会散 */
+#article-container pre,
+#article-container code,
+#article-container kbd {
+  letter-spacing: 0;
+}
+
+#article-container pre,
+#article-container figure.highlight {
+  line-height: 1.7;
+}
+
+/* 二级标题补一条底部细线，章节感更强（主题只在标题左侧加了图标） */
+#article-container h2 {
+  padding-bottom: .3em;
+  border-bottom: 1px solid var(--hr-border);
+}
+
+/* 引用块：左侧色条加粗 + 右侧圆角 */
+#article-container blockquote {
+  border-left-width: 4px;
+  border-radius: 0 8px 8px 0;
+  padding: .9em 1.1em;
+}
+
+/* 代码块圆角，和卡片风格统一 */
+#article-container figure.highlight,
+#article-container .highlight {
+  
+}
+
+/* 正文图片：圆角 + 悬停轻微上浮 */
+#article-container img {
+  border-radius: 8px;
+  transition: transform .4s cubic-bezier(.22, .61, .36, 1),
+              box-shadow .4s cubic-bezier(.22, .61, .36, 1);
+}
+
+#article-container img:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px -10px rgba(0, 0, 0, .35);
+}
+
+/* ============================================================
+ * 6. 页脚：深蓝渐变底色，文字对比度拉到 WCAG AA
+ * ------------------------------------------------------------
+ * 主题原样：#footer 的底色取自 $light-blue（= theme_color.main，#49B1F5），
+ * 文字是 var(--light-grey)（#EEEEEE）—— 对比度只有约 2.4:1，远低于 AA 的
+ * 4.5:1，所以整块看着「发灰发脏」。更糟的是 #footer a:hover 的颜色同样
+ * 取自 $light-blue，与背景**完全同色**：鼠标移上去链接直接消失。
+ *
+ * 这里保留蓝调的品牌感，但把底色压暗成深蓝渐变（白字对比度约 11:1），
+ * 悬停改成高亮蓝 + 轻微右移，栏目标题下加一条主题色短线。
+ *
+ * ⚠️ 选择器长度必须和主题写的一致（主题用的是
+ *    #footer .footer-flex .footer-flex-title 这种「id + 两段 class」），
+ *    少写一段会因特异度不足被主题压掉。
+ * ============================================================ */
+
+#footer {
+  /* 兜底色：万一浏览器不认多层背景，也不会退回亮蓝 */
+  background-color: #16293e;
+  background-image:
+    /* 左上角一团柔光，避免大面积纯色发闷 */
+    radial-gradient(900px 260px at 12% -35%, rgba(73, 177, 245, .40), transparent 65%),
+    linear-gradient(180deg, #295c8f 0%, #1c3d5f 42%, #16293e 100%);
+  background-repeat: no-repeat;
+  background-position: 0 0, 0 0;
+  background-size: auto, auto;
+}
+
+#footer > *,
+#footer a {
+  color: rgba(255, 255, 255, .82);
+}
+
+#footer a:hover {
+  color: #fff;
+}
+
+/* 栏目链接：悬停高亮 + 轻微右移（主题里它们是 display:block，可以 transform） */
+#footer .footer-flex a {
+  transition: color .25s ease, transform .25s ease;
+}
+
+#footer .footer-flex a:hover {
+  color: #9ad8ff;
+  transform: translateX(4px);
+}
+
+/* 栏目标题：纯白 + 字距，下方一条主题色短线 */
+#footer .footer-flex .footer-flex-title {
+  position: relative;
+  color: #fff;
+  padding-bottom: 9px;
+  margin-bottom: 13px;
+  letter-spacing: .06em;
+}
+
+#footer .footer-flex .footer-flex-title::after {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 26px;
+  height: 2px;
+  border-radius: 2px;
+  background-color: var(--default-bg-color);
+  content: '';
+}
+
+/* 底部版权条：比主体再暗一层，用内侧 1px 高光当分隔线 */
+#footer .footer-other {
+  padding: 12px 8px 16px;
+  background-color: rgba(0, 0, 0, .22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .09);
+}
+
+#footer .footer-other a {
+  
+}
+
+#footer .footer-other .footer_custom_text {
+  
+  
+}
+
+/* 暗色模式下再压暗一档，免得页脚比整页还亮 */
+[data-theme='dark'] #footer {
+  
+  
+}
+
+/* ============================================================
+ * 7. 小屏 / 无障碍
+ * ============================================================ */
+
+@media (max-width: 768px) {
+  :root {
+    --zzc-radius: 10px;
+  }
+
+  /* 触屏没有 hover，位移只会在点击时闪一下 */
+  #recent-posts .recent-post-item:hover,
+  #aside-content .card-widget:not(#card-toc):hover {
+    transform: none;
+  }
+}
+
+/* ============================================================
+ * 10. 参考组合最终主题：思源黑体导航 + 霞鹜文楷文章与页脚
+ * ============================================================ */
+
+:root {
+  --zzc-day-bg: #fdfdfd;
+  --zzc-day-text: #282728;
+  --zzc-day-muted: #748094;
+  --zzc-day-link: #006cac;
+  --zzc-day-border: #ece9e9;
+  --zzc-night-bg: #212737;
+  --zzc-night-text: #eaedf3;
+  --zzc-night-muted: #aeb7c8;
+  --zzc-night-accent: #ff6b00;
+  --zzc-night-code: #282c34;
+}
+
+body,
+#page-header,
+#page-header #nav {
+  background: var(--zzc-day-bg);
+  color: var(--zzc-day-text);
+}
+
+#page-header #nav {
+  box-shadow: 0 12px 16px -16px rgba(0, 0, 0, .35);
+}
+
+#post .post-title,
+#post-info .post-title {
+  font-family: "LXGW WenKai Screen", "LXGW WenKai", "Microsoft YaHei", sans-serif;
+  color: var(--zzc-day-link);
+  font-weight: 700;
+}
+
+#post-meta,
+#post-meta a,
+#post-info .post-meta,
+#post-info .post-meta a {
+  font-family: "Source Han Sans SC", "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+#article-container {
+  
+  
+}
+
+#article-container a {
+  
+  
+  
+}
+
+#article-container a:hover {
+  
+}
+
+#article-container h1,
+#article-container h2,
+#article-container h3,
+#article-container h4,
+#article-container h5,
+#article-container h6 {
+  color: var(--zzc-day-text);
+  font-weight: 700;
+}
+
+#article-container h2 {
+  border-bottom-color: var(--zzc-day-border);
+}
+
+#article-container blockquote {
+  
+  
+  
+}
+
+#article-container figure.highlight,
+#article-container .highlight {
+  
+  
+  
+}
+
+#article-container pre,
+#article-container code,
+#article-container kbd {
+  
+}
+
+#article-container code:not([class*='language-']) {
+  border-radius: 4px;
+  background: #fafafa;
+  color: var(--zzc-day-text);
+}
+
+#footer {
+  
+  
+  
+  
+  
+}
+
+#footer .footer-flex .footer-flex-title,
+#footer .footer-flex-content a,
+#footer .footer-flex-content > div,
+#footer .footer-other .footer-copyright,
+#footer .footer-other .copyright,
+#footer .footer-other .framework-info,
+#footer .footer_custom_text {
+  
+}
+
+#footer .footer-flex .footer-flex-title {  }
+#footer .footer-flex-content a { color: var(--zzc-day-muted); }
+#footer .footer-flex-content a:hover {  }
+#footer .footer-other {   }
+
+[data-theme='dark'] body,
+[data-theme='dark'] #page-header,
+[data-theme='dark'] #page-header #nav {
+  background: var(--zzc-night-bg);
+  color: var(--zzc-night-text);
+}
+
+[data-theme='dark'] #page-header #nav {
+  box-shadow: 0 12px 16px -10px rgba(0, 0, 0, .85);
+}
+
+[data-theme='dark'] #post .post-title,
+[data-theme='dark'] #post-info .post-title {
+  
+}
+
+[data-theme='dark'] #article-container,
+[data-theme='dark'] #article-container h1,
+[data-theme='dark'] #article-container h2,
+[data-theme='dark'] #article-container h3,
+[data-theme='dark'] #article-container h4,
+[data-theme='dark'] #article-container h5,
+[data-theme='dark'] #article-container h6 {
+  
+}
+
+[data-theme='dark'] #article-container a,
+[data-theme='dark'] #article-container a:hover {
+  
+}
+
+[data-theme='dark'] #article-container h2 { border-bottom-color: #3b4354; }
+[data-theme='dark'] #article-container blockquote {    }
+[data-theme='dark'] #article-container figure.highlight,
+[data-theme='dark'] #article-container .highlight,
+[data-theme='dark'] #article-container code:not([class*='language-']) {    }
+
+[data-theme='dark'] #footer {
+  
+  
+  
+  
+}
+
+[data-theme='dark'] #footer .footer-flex .footer-flex-title {  }
+[data-theme='dark'] #footer .footer-flex-content a,
+[data-theme='dark'] #footer .footer-flex-content > div,
+[data-theme='dark'] #footer .footer-other .footer-copyright,
+[data-theme='dark'] #footer .footer-other .copyright,
+[data-theme='dark'] #footer .footer-other .framework-info,
+[data-theme='dark'] #footer .footer_custom_text {  }
+[data-theme='dark'] #footer .footer-flex-content a:hover,
+[data-theme='dark'] #footer .footer-other a {  }
+[data-theme='dark'] #footer .footer-other {   }
+
+/* 导航状态最终覆盖：顶部透明叠图，滚动后使用半透明背景 */
+#page-header:not(.nav-fixed) #nav {
+  
+  
+  
+  
+}
+
+#page-header:not(.nav-fixed) #nav,
+#page-header:not(.nav-fixed) #nav .site-name,
+#page-header:not(.nav-fixed) #nav .site-page,
+#page-header:not(.nav-fixed) #nav .menus_item,
+#page-header:not(.nav-fixed) #nav i {
+  
+  
+}
+
+#page-header.nav-fixed #nav {
+  
+  
+  
+  
+}
+
+#page-header.nav-fixed #nav,
+#page-header.nav-fixed #nav .site-name,
+#page-header.nav-fixed #nav .site-page,
+#page-header.nav-fixed #nav .menus_item,
+#page-header.nav-fixed #nav i {
+  
+  
+}
+
+[data-theme='dark'] #page-header.nav-fixed #nav {
+  
+  
+}
+
+[data-theme='dark'] #page-header.nav-fixed #nav,
+[data-theme='dark'] #page-header.nav-fixed #nav .site-name,
+[data-theme='dark'] #page-header.nav-fixed #nav .site-page,
+[data-theme='dark'] #page-header.nav-fixed #nav .menus_item,
+[data-theme='dark'] #page-header.nav-fixed #nav i {
+  
+}
+
+/* 下拉菜单是独立浅色面板，不能继承横幅导航的白色文字。
+ *
+ * ⚠️ 这里曾把 `i` 也一起列进选择器并设了 font-family，导致下拉菜单里的
+ *    图标变成豆腐块（导航栏的图标却是好的）——因为其它规则只是让 .site-page
+ *    父元素带上中文字体、靠继承传下去，此时 FA 自己的 .fas{} 还能把字体夺回；
+ *    而这条**直接命中 <i> 元素自身**，特异性又远高于 .fas，图标字体被彻底顶掉。
+ *    所以：图标元素只允许改 color，绝不能设 font-family / font-* / display / width。 */
+#page-header #nav .menus_item_child,
+#page-header #nav .menus_item_child a,
+#page-header #nav .menus_item_child .site-page {
+  color: #282728 !important;
+  text-shadow: none !important;
+  font-family: "Source Han Sans SC", "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+/* 图标单独出来，只给颜色 */
+#page-header #nav .menus_item_child i {
+  color: #282728 !important;
+  text-shadow: none !important;
+}
+
+#page-header #nav .menus_item_child {
+  background: #fff;
+  border: 1px solid #ece9e9;
+}
+
+#page-header #nav .menus_item_child li:hover {
+  background: #f0f4f7;
+}
+
+[data-theme='dark'] #page-header #nav .menus_item_child,
+[data-theme='dark'] #page-header #nav .menus_item_child a,
+[data-theme='dark'] #page-header #nav .menus_item_child .site-page,
+[data-theme='dark'] #page-header #nav .menus_item_child i {
+  color: #eaedf3 !important;
+}
+
+[data-theme='dark'] #page-header #nav .menus_item_child {
+  background: #282c34;
+  border-color: #3b4354;
+}
+
+[data-theme='dark'] #page-header #nav .menus_item_child li:hover {
+  background: #3b4354;
+}
+
+/* 首页文章卡片与文章版权信息属于界面组件，统一使用思源黑体。
+   注意：卡片标题 .article-title 不列在这里 —— 它在下方单独声明，
+   以免和「摘要用霞鹜文楷」那条互相覆盖；字体归属保持单一来源。 */
+#recent-posts .recent-post-item,
+#recent-posts .recent-post-item .recent-post-info,
+#recent-posts .recent-post-item .article-meta-wrap,
+#recent-posts .recent-post-item .article-meta,
+#recent-posts .recent-post-item .article-meta a,
+#recent-posts .recent-post-item .content,
+#recent-posts .recent-post-item .post-content,
+.post-copyright,
+.post-copyright a,
+.post-copyright span {
+  font-family: "Source Han Sans SC", "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+#recent-posts .recent-post-item .article-meta-wrap,
+#recent-posts .recent-post-item .article-meta,
+#recent-posts .recent-post-item .post-content { font-weight: 400; }
+
+.post-copyright {
+  font-family: "Source Han Sans SC", "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.post-copyright .post-copyright-meta { font-weight: 600; }
+.post-copyright .post-copyright-info { font-weight: 400; }
+
+/* 文章卡片是内容展示区域，摘要使用霞鹜文楷屏幕版。
+   注意：标题（.article-title）不在这里 —— 它作为界面元素保持思源黑体，
+   见下方单独指定。 */
+#recent-posts .recent-post-item,
+#recent-posts .recent-post-item .recent-post-info,
+#recent-posts .recent-post-item .content,
+#recent-posts .recent-post-item .post-content {
+  font-family: "LXGW WenKai Screen", "LXGW WenKai", "Microsoft YaHei", sans-serif;
+}
+
+/* 文章卡片标题：思源黑体（界面字体），并保持 600 字重。
+   字号从主题默认的 1.55em（≈24.8px）收到 1.35em（≈21.6px）：
+   本站卡片圆角放大到 12px、高度又缩短了 50px，原尺寸显得头重、
+   与卡片不成比例。收到 1.35em 后仍明显大于正文（16px），层级保留。 */
+#recent-posts .recent-post-item .article-title,
+#recent-posts .recent-post-item .recent-post-info .article-title {
+  font-family: "Source Han Sans SC", "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 1.35em;
+  font-weight: 600;
+}
+
+/* 宽屏下主题会把标题再降到 1.43em，这里同步降一档保持等比 */
+@media (min-width: 2000px) {
+  #recent-posts .recent-post-item .article-title,
+  #recent-posts .recent-post-item .recent-post-info .article-title {
+    font-size: 1.28em;
+  }
+}
+
+#recent-posts .recent-post-item .article-meta-wrap,
+#recent-posts .recent-post-item .article-meta,
+#recent-posts .recent-post-item .article-meta a {
+  font-family: "Source Han Sans SC", "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+/* 顶部横幅状态下导航仍使用高对比文字，避免白色背景上变成浅灰 */
+#page-header:not(.nav-fixed) #nav,
+#page-header:not(.nav-fixed) #nav .site-name,
+#page-header:not(.nav-fixed) #nav .site-page,
+#page-header:not(.nav-fixed) #nav .menus_item,
+#page-header:not(.nav-fixed) #nav i {
+  
+}
+
+#page-header:not(.nav-fixed) #nav {  }
+
+[data-theme='dark'] #page-header:not(.nav-fixed) #nav,
+[data-theme='dark'] #page-header:not(.nav-fixed) #nav .site-name,
+[data-theme='dark'] #page-header:not(.nav-fixed) #nav .site-page,
+[data-theme='dark'] #page-header:not(.nav-fixed) #nav .menus_item,
+[data-theme='dark'] #page-header:not(.nav-fixed) #nav i {
+  color: #eaedf3 !important;
+}
+
+[data-theme='dark'] #page-header:not(.nav-fixed) #nav { background: rgba(33, 39, 55, .96); }
+
+/* 主题生成的代码表格必须铺满容器，避免右侧露出一块空白背景 */
+#article-container figure.highlight,
+#article-container figure.highlight > table,
+#article-container figure.highlight > table > tbody,
+#article-container figure.highlight .code,
+#article-container figure.highlight .code pre {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#article-container figure.highlight > table {
+  display: table;
+  table-layout: fixed;
+  overflow: hidden;
+}
+
+#article-container figure.highlight .gutter { width: 3.2em; }
+#article-container figure.highlight .code { width: auto; }
+#article-container figure.highlight .code pre { min-width: 0; overflow-x: auto; }
+
+#article-container figure.highlight,
+#article-container figure.highlight .code,
+#article-container figure.highlight .code pre { background: #212121; }
+
+[data-theme='dark'] #article-container figure.highlight,
+[data-theme='dark'] #article-container figure.highlight .code,
+[data-theme='dark'] #article-container figure.highlight .code pre { background: #282c34; }
+
+/* 横幅顶部导航叠在图片上，滚动吸顶后才切换为独立背景 */
+#page-header:not(.nav-fixed) #nav {
+  
+  
+  
+  
+}
+
+#page-header:not(.nav-fixed) #nav,
+#page-header:not(.nav-fixed) #nav .site-name,
+#page-header:not(.nav-fixed) #nav .site-page,
+#page-header:not(.nav-fixed) #nav .menus_item,
+#page-header:not(.nav-fixed) #nav i {
+  color: #fff !important;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, .6);
+}
+
+#page-header.nav-fixed #nav {
+  
+  
+  
+  
+}
+
+#page-header.nav-fixed #nav,
+#page-header.nav-fixed #nav .site-name,
+#page-header.nav-fixed #nav .site-page,
+#page-header.nav-fixed #nav .menus_item,
+#page-header.nav-fixed #nav i {
+  color: #282728 !important;
+  text-shadow: none;
+}
+
+[data-theme='dark'] #page-header.nav-fixed #nav {
+  
+  
+}
+
+[data-theme='dark'] #page-header.nav-fixed #nav,
+[data-theme='dark'] #page-header.nav-fixed #nav .site-name,
+[data-theme='dark'] #page-header.nav-fixed #nav .site-page,
+[data-theme='dark'] #page-header.nav-fixed #nav .menus_item,
+[data-theme='dark'] #page-header.nav-fixed #nav i {
+  color: #eaedf3 !important;
+}
+
+/* 行内代码：对应文章中由反引号包裹的短代码 */
+#article-container p code,
+#article-container li code,
+#article-container td code,
+#article-container blockquote code {
+  display: inline-block;
+  padding: 1px 6px;
+  border: 0;
+  border-radius: 4px;
+  background: #f0f0f0;
+  color: #282728;
+  font: 400 .9em/1.5 "JetBrains Mono NL", "JetBrains Mono", Consolas, "Noto Sans SC", monospace;
+  vertical-align: baseline;
+}
+
+[data-theme='dark'] #article-container p code,
+[data-theme='dark'] #article-container li code,
+[data-theme='dark'] #article-container td code,
+[data-theme='dark'] #article-container blockquote code {
+  background: #282c34;
+  color: #eaedf3;
+}
+
+:root {
+  --global-bg: #fdfdfd;
+  --card-bg: #ffffff;
+  --font-color: #282728;
+  --card-meta: #748094;
+  --toc-link-color: #748094;
+  --hr-border: #ece9e9;
+}
+
+[data-theme='dark'] {
+  /* 页面背景（与 custom.css 里 body / #page-header 的 #212737 保持一致） */
+  --global-bg: #212737;
+  /* ★ 卡片底色必须比背景亮，否则卡片与背景完全同色、边界消失。
+     曾把这里也写成 #212737（与 --global-bg 同值），结果夜间模式下
+     文章卡片 / 侧边栏 / 音乐胶囊全部糊在背景里分不出来。
+     现用 #333c52：与背景的明度对比约 1.35:1，在彩色几何背景上也能拉出清晰边界，
+     正文 #eaedf3 在其上的对比度为 10.89:1（远超 AA 的 4.5:1）。
+     改这里时注意同步下面第 862 行附近那组 body 级背景覆盖。 */
+  --card-bg: #333c52;
+  --font-color: #eaedf3;
+  --card-meta: #aeb7c8;
+  --toc-link-color: #aeb7c8;
+  --hr-border: #4a5470;   /* 分隔线同步提亮，否则在亮卡片上偏暗、显得脏 */
+}
+
+#recent-posts .recent-post-item,
+#aside-content .card-widget,
+#card-toc,
+#rightside-config-hide,
+#rightside-config-show { background: #ffffff; }
+
+[data-theme='dark'] #recent-posts .recent-post-item,
+[data-theme='dark'] #aside-content .card-widget,
+[data-theme='dark'] #card-toc,
+[data-theme='dark'] #rightside-config-hide,
+[data-theme='dark'] #rightside-config-show {
+  /* ★ 与上面的 --card-bg 用同一个值，别写成 #212737（那是背景色） */
+  background: #333c52;
+  border-color: #4a5470;
+}
+
+@media (max-width: 768px) {
+  #article-container { line-height: 1.85; }
+}
+
+/* 时间线卡片宽度修正：左右留给中轴的空间必须包含在自身宽度内。 */
+.site-timeline .timeline-entry {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.site-timeline .timeline-entry-left,
+.site-timeline .timeline-entry-right {
+  
+}
+
+.site-timeline .timeline-card {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 520px;
+}
+
+.site-timeline .timeline-entry-left .timeline-card {
+  margin-left: auto;
+}
+
+.site-timeline .timeline-entry-right .timeline-card {
+  margin-right: auto;
+}
+
+@media (max-width: 768px) {
+  .site-timeline .timeline-entry-left,
+  .site-timeline .timeline-entry-right {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .site-timeline .timeline-card {
+    max-width: none;
+  }
+}
+
+/* ============================================================
+ * 9. 页脚视觉重做：夜空玻璃风
+ *    比默认页脚更舒展，和站点的蓝色横幅、音乐页面保持统一。
+ * ============================================================ */
+
+#footer {
+  position: relative;
+  isolation: isolate;
+  background-color: #f3f7fa;
+  background-image:
+    radial-gradient(760px 330px at 8% 0%, rgba(73, 177, 245, .12), transparent 68%),
+    linear-gradient(180deg, #f7fbfd 0%, #edf5fa 52%, #e8f0f6 100%);
+}
+
+#footer::before {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(73, 177, 245, .32) 30%, rgba(73, 177, 245, .16) 70%, transparent);
+  content: '';
+}
+
+#footer::after {
+  
+  
+  
+  
+  
+  
+  
+}
+
+#footer .footer-flex {
+  
+  
+  
+  
+  
+  
+}
+
+#footer .footer-flex-items {
+  flex: 1 1 0;
+  min-width: 190px;
+  padding: 24px 26px 22px;
+  border: 1px solid rgba(72, 125, 164, .14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .46);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .72), 0 10px 28px rgba(54, 92, 120, .06);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: border-color .3s ease, transform .3s ease, background .3s ease;
+}
+
+#footer .footer-flex-items:hover {
+  border-color: rgba(73, 145, 190, .28);
+  background: rgba(255, 255, 255, .68);
+  transform: translateY(-2px);
+}
+
+#footer .footer-flex .footer-flex-title {
+  display: block;
+  width: fit-content;
+  padding: 0 0 13px;
+  margin: 0 0 19px;
+  color: #294a68;
+  font-size: 1.16em;
+  letter-spacing: .12em;
+  text-shadow: 0 1px 4px rgba(48, 86, 112, .08);
+}
+
+#footer .footer-flex .footer-flex-title::before {
+  width: 6px;
+  height: 6px;
+  margin-right: 9px;
+  margin-bottom: 2px;
+  background: rgba(73, 177, 245, .72);
+  box-shadow: 0 0 6px rgba(73, 177, 245, .32);
+}
+
+#footer .footer-flex .footer-flex-title::after {
+  
+  
+  
+}
+
+#footer .footer-flex-item {
+  
+}
+
+#footer .footer-flex-content a,
+#footer .footer-flex-content > div {
+  
+  
+  
+}
+
+#footer .footer-flex-content a:hover {
+  
+  
+}
+
+#footer .footer-other {
+  
+  
+  
+  
+}
+
+#footer .footer-copyright {
+  color: #60788b;
+  font-size: .9em;
+  letter-spacing: .03em;
+}
+
+#footer .footer-other a {
+  
+}
+
+#footer .footer_custom_text {
+  padding-top: 13px;
+  margin-top: 12px;
+  color: #7990a1;
+  font-size: .86em;
+  letter-spacing: .16em;
+}
+
+#footer .footer_custom_text::before {
+  
+  
+}
+
+@media (max-width: 768px) {
+  #footer .footer-flex {
+    gap: 16px;
+    padding: 46px 18px 42px;
+  }
+
+  #footer .footer-flex-items {
+    flex-basis: calc(50% - 8px);
+    min-width: 0;
+    padding: 20px 18px 18px;
+    border-radius: 15px;
+  }
+
+  #footer .footer-flex-items:last-child {
+    flex-basis: 100%;
+  }
+
+  #footer .footer-flex .footer-flex-title {
+    margin-bottom: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #footer .footer-flex-items,
+  #footer .footer-flex-content a {
+    transition: none;
+  }
+
+  #footer .footer-flex-items:hover,
+  #footer .footer-flex-content a:hover {
+    transform: none;
+  }
+}
+
+/* 时间线最终布局覆盖：三列网格（左卡片 / 中轴 / 右卡片）。
+ * 必须放在所有旧时间线规则之后，避免被前面的 padding 方案覆盖。 */
+.site-timeline .timeline-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 76px minmax(0, 1fr);
+  align-items: start;
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.site-timeline .timeline-entry-left,
+.site-timeline .timeline-entry-right {
+  display: grid;
+  width: 100%;
+  padding: 0;
+}
+
+.site-timeline .timeline-entry-left .timeline-dot,
+.site-timeline .timeline-entry-right .timeline-dot {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: center;
+  margin: 27px 0 0;
+}
+
+.site-timeline .timeline-entry-left .timeline-card,
+.site-timeline .timeline-entry-right .timeline-card {
+  
+  
+  
+  
+  
+  
+  
+}
+
+.site-timeline .timeline-entry-right .timeline-card {
+  
+}
+
+@media (max-width: 768px) {
+  .site-timeline .timeline-entry,
+  .site-timeline .timeline-entry-left,
+  .site-timeline .timeline-entry-right {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr);
+    width: 100%;
+    padding: 0;
+  }
+
+  .site-timeline .timeline-entry-left .timeline-dot,
+  .site-timeline .timeline-entry-right .timeline-dot {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    margin: 27px 0 0 1px;
+  }
+
+  .site-timeline .timeline-entry-left .timeline-card,
+  .site-timeline .timeline-entry-right .timeline-card {
+    grid-column: 2;
+    grid-row: 1;
+    width: auto;
+    margin: 8px 0 24px;
+  }
+}
+
+/* 图库页：图片墙 + 素材来源 */
+.gallery-intro { max-width: 700px; margin: 0 auto 32px; text-align: center; }
+.gallery-intro .gallery-kicker { color: var(--theme-color); font-size: .82em; font-weight: 700; letter-spacing: .2em; }
+.gallery-intro h2 { margin: 10px 0 8px; padding: 0; border: 0; font-size: clamp(1.45em, 3vw, 2em); }
+.gallery-intro p { margin: 0; color: var(--font-color); opacity: .72; }
+.gallery-section-head { display: flex; align-items: baseline; justify-content: space-between; max-width: 1120px; margin: 34px auto 16px; padding-bottom: 9px; border-bottom: 1px solid var(--hr-border); }
+.gallery-section-head span { color: var(--font-color); font-size: 1.15em; font-weight: 700; }
+.gallery-section-head small { color: var(--theme-color); font-size: .88em; letter-spacing: .15em; }
+.gallery-source-heading { margin-top: 46px; }
+.gallery-source-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; max-width: 1120px; margin: 0 auto 12px; }
+.gallery-source-card { display: flex; align-items: center; gap: 12px; min-height: 70px; padding: 14px 16px; border: 1px solid var(--hr-border); border-radius: 12px; background: var(--card-bg); box-shadow: 0 5px 18px rgba(31, 78, 110, .05); transition: border-color .25s ease, transform .25s ease, box-shadow .25s ease; }
+.gallery-source-card:hover { border-color: var(--theme-color); box-shadow: 0 9px 24px rgba(31, 78, 110, .1); transform: translateY(-3px); }
+.gallery-source-icon { display: grid; flex: 0 0 34px; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: color-mix(in srgb, var(--theme-color) 14%, transparent); color: var(--theme-color); font-weight: 800; }
+.gallery-source-card > span:nth-child(2) { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.gallery-source-card strong { color: var(--font-color); font-size: .98em; }
+.gallery-source-card small { margin-top: 3px; color: var(--font-color); font-size: .88em; opacity: .62; }
+.gallery-source-card > i { color: var(--theme-color); font-size: .92em; opacity: .72; }
+[data-theme='dark'] .gallery-source-card { background: rgba(255, 255, 255, .035); box-shadow: 0 7px 20px rgba(0, 0, 0, .12); }
+@media (max-width: 768px) { .gallery-source-grid { grid-template-columns: 1fr; } .gallery-section-head { margin-top: 28px; } }
+
+/* 图库页的 <small>：浏览器默认 0.8em（≈12.8px）偏小，统一提到 .88em（≈14px）。
+   与上面 .gallery-section-head small / .gallery-source-card small 的取值一致，
+   避免同类元素出现两种字号。 */
+.gallery-section-head small,
+.gallery-source-card small { font-size: .88em; }
+
+/* 更新日志：中轴交替时间线，最新在上、最早从底部开始。 */
+.site-timeline {     }
+.site-timeline::before {         }
+.timeline-entry { position: relative; display: flex; width: 100%; min-height: 190px; }
+.timeline-entry-left { justify-content: flex-start; padding-right: calc(50% + 38px); }
+.timeline-entry-right { justify-content: flex-end; padding-left: calc(50% + 38px); }
+.timeline-dot { position: absolute; z-index: 1; top: 27px; left: 50%; width: 13px; height: 13px; border: 3px solid var(--card-bg); border-radius: 50%; background: var(--theme-color); box-shadow: 0 0 0 1px rgba(73,177,245,.38), 0 0 12px rgba(73,177,245,.24); transform: translateX(-50%); }
+.timeline-card { width: 100%; margin: 8px 0 32px; padding: 22px 25px 20px; border: 1px solid var(--hr-border); border-radius: 13px; background: var(--card-bg); box-shadow: 0 7px 22px rgba(37,78,111,.05); transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+.timeline-card:hover {    }
+.timeline-card time { display: block; padding-bottom: 10px; margin-bottom: 12px; border-bottom: 1px dashed var(--hr-border); color: var(--theme-color); font-size: 1.12em; font-weight: 700; }
+.timeline-version { color: var(--font-color); font-size: .7em; letter-spacing: .08em; opacity: .48; }
+.timeline-card h3 {   }
+.timeline-card p {      }
+.timeline-tags {     }
+.timeline-tags span {      }
+.timeline-entry-start .timeline-card { border-color: color-mix(in srgb, var(--theme-color) 28%, var(--hr-border)); }
+[data-theme='dark'] .timeline-card {   }
+@media (max-width: 768px) {
+  .site-timeline { padding-left: 20px; }
+  .site-timeline::before { left: 7px; transform: none; }
+  .timeline-entry-left, .timeline-entry-right { display: block; padding: 0 0 0 30px; }
+  .timeline-dot { top: 28px; left: 7px; transform: translateX(-50%); }
+  .timeline-card { margin-bottom: 24px; padding: 18px 18px 16px; }
+  .timeline-card time { font-size: 1em; }
+}
+
+/* 更新日志时间线 */
+.timeline-intro { max-width: 680px; margin: 0 auto 52px; text-align: center; }
+.timeline-kicker { color: var(--theme-color); font-size: .72em; font-weight: 700; letter-spacing: .22em; }
+.timeline-intro h2 { margin: 10px 0 8px; padding: 0; border: 0; font-size: clamp(1.5em, 3vw, 2.1em); }
+.timeline-intro p { margin: 0; color: var(--font-color); opacity: .68; }
+.site-timeline { position: relative; max-width: 900px; margin: 0 auto; padding: 12px 0 20px; }
+.site-timeline::before { position: absolute; top: 0; bottom: 0; left: 142px; width: 1px; background: linear-gradient(180deg, transparent, var(--hr-border) 8%, var(--hr-border) 92%, transparent); content: ''; }
+.timeline-entry { position: relative; display: grid; grid-template-columns: 118px 48px minmax(0, 1fr); align-items: start; min-height: 150px; }
+.timeline-entry time { padding-top: 23px; color: var(--font-color); font-size: .82em; font-weight: 700; letter-spacing: .06em; text-align: right; opacity: .58; }
+.timeline-dot { z-index: 1; width: 11px; height: 11px; margin: 27px auto 0; border: 3px solid var(--card-bg); border-radius: 50%; background: var(--theme-color); box-shadow: 0 0 0 1px rgba(73,177,245,.28), 0 0 12px rgba(73,177,245,.28); }
+.timeline-card { margin: 8px 0 28px; padding: 20px 23px 18px; border: 1px solid var(--hr-border); border-radius: 13px; background: var(--card-bg); box-shadow: 0 7px 22px rgba(37,78,111,.05); transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+.timeline-card:hover { border-color: var(--theme-color); box-shadow: 0 12px 28px rgba(37,78,111,.1); transform: translateY(-2px); }
+.timeline-entry-featured .timeline-card { border-color: color-mix(in srgb, var(--theme-color) 34%, var(--hr-border)); }
+.timeline-version { color: var(--theme-color); font-size: .72em; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; }
+.timeline-card h3 { margin: 8px 0 7px; font-size: 1.12em; }
+.timeline-card p { margin: 0; color: var(--font-color); font-size: .94em; line-height: 1.8; opacity: .76; }
+.timeline-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; }
+.timeline-tags span { padding: 3px 9px; border-radius: 999px; background: color-mix(in srgb, var(--theme-color) 10%, transparent); color: var(--theme-color); font-size: .72em; }
+[data-theme='dark'] .timeline-card { background: rgba(255,255,255,.035); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+@media (max-width: 768px) { .site-timeline::before { left: 12px; } .timeline-entry { grid-template-columns: 31px minmax(0, 1fr); } .timeline-entry time { grid-column: 2; grid-row: 1; padding: 0 0 7px; text-align: left; } .timeline-dot { grid-column: 1; grid-row: 1 / span 2; margin: 22px 0 0 7px; } .timeline-card { grid-column: 2; grid-row: 2; margin: 0 0 24px; padding: 17px 17px 15px; } }
+
+/* 夜间主题沿用深色页脚，只覆盖颜色，不改变布局。 */
+[data-theme='dark'] #footer {
+  
+  
+}
+
+[data-theme='dark'] #footer::before {
+  background: linear-gradient(90deg, transparent, rgba(147, 222, 255, .42) 28%, rgba(188, 169, 255, .32) 72%, transparent);
+}
+
+[data-theme='dark'] #footer .footer-flex-items {
+  border-color: rgba(190, 226, 255, .07);
+  background: linear-gradient(145deg, rgba(255, 255, 255, .038), rgba(255, 255, 255, .012));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035), 0 12px 34px rgba(0, 7, 22, .08);
+}
+
+[data-theme='dark'] #footer .footer-flex-items:hover {
+  border-color: rgba(154, 216, 255, .18);
+  background: linear-gradient(145deg, rgba(255, 255, 255, .055), rgba(255, 255, 255, .018));
+}
+
+[data-theme='dark'] #footer .footer-flex .footer-flex-title {
+  
+  
+}
+
+[data-theme='dark'] #footer .footer-flex .footer-flex-title::before {
+  background: rgba(154, 216, 255, .72);
+  box-shadow: 0 0 7px rgba(112, 207, 255, .42);
+}
+
+[data-theme='dark'] #footer .footer-flex .footer-flex-title::after {
+  
+}
+
+[data-theme='dark'] #footer .footer-flex-content a,
+[data-theme='dark'] #footer .footer-flex-content > div {
+  
+}
+
+[data-theme='dark'] #footer .footer-flex-content a:hover {
+  
+}
+
+[data-theme='dark'] #footer .footer-other {
+  
+  
+}
+
+[data-theme='dark'] #footer .footer-copyright {
+  color: rgba(239, 248, 255, .72);
+}
+
+[data-theme='dark'] #footer .footer-other a {
+  
+}
+
+[data-theme='dark'] #footer .footer_custom_text {
+  color: rgba(221, 239, 255, .52);
+}
+
+[data-theme='dark'] #footer .footer_custom_text::before {
+  background: linear-gradient(90deg, transparent, rgba(154, 216, 255, .55), transparent);
+}
+
+/* 尊重系统的「减少动态效果」设置（站点的轮播脚本也做了同样处理） */
+@media (prefers-reduced-motion: reduce) {
+  #recent-posts .recent-post-item {
+    animation: none;
+  }
+
+  #recent-posts .recent-post-item,
+  #aside-content .card-widget,
+  #article-container img {
+    transition: none;
+  }
+
+  #recent-posts .recent-post-item:hover,
+  #aside-content .card-widget:not(#card-toc):hover,
+  #article-container img:hover {
+    transform: none;
+  }
+}
+
+/* ============================================================
+ * 8. 页脚精修：收窄内容、增强层次，避免大屏出现大片空蓝
+ * ============================================================ */
+
+#footer {
+  overflow: hidden;
+  border-top: 1px solid rgba(154, 216, 255, .22);
+}
+
+#footer::after {
+  position: absolute;
+  right: -8%;
+  bottom: -110px;
+  width: 420px;
+  height: 220px;
+  border: 1px solid rgba(154, 216, 255, .1);
+  border-radius: 50%;
+  box-shadow: 0 0 0 18px rgba(154, 216, 255, .035),
+              0 0 0 38px rgba(154, 216, 255, .025);
+  content: '';
+  pointer-events: none;
+}
+
+#footer .footer-flex {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  justify-content: center;
+  gap: clamp(36px, 9vw, 150px);
+  max-width: 1060px;
+  padding: 42px 36px 36px;
+}
+
+#footer .footer-flex-items {
+  min-width: 150px;
+}
+
+#footer .footer-flex-item {
+  
+}
+
+#footer .footer-flex .footer-flex-title {
+  display: inline-block;
+  padding: 0 0 10px;
+  margin-bottom: 10px;
+  font-size: 1.15em;
+  letter-spacing: .1em;
+}
+
+#footer .footer-flex .footer-flex-title::before {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin: 0 8px 3px 0;
+  border-radius: 50%;
+  background: #9ad8ff;
+  box-shadow: 0 0 9px rgba(154, 216, 255, .8);
+  content: '';
+}
+
+#footer .footer-flex-content a,
+#footer .footer-flex-content > div {
+  
+  
+}
+
+#footer .footer-other {
+  position: relative;
+  z-index: 1;
+  padding: 17px 20px 20px;
+}
+
+#footer .footer-copyright {
+  font-size: .9em;
+  letter-spacing: .02em;
+}
+
+#footer .footer_custom_text {
+  position: relative;
+  display: inline-block;
+  padding-top: 10px;
+  font-size: .86em;
+  letter-spacing: .12em;
+}
+
+#footer .footer_custom_text::before {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 34px;
+  height: 1px;
+  background: rgba(154, 216, 255, .45);
+  content: '';
+  transform: translateX(-50%);
+}
+
+@media (max-width: 768px) {
+  #footer .footer-flex {
+    justify-content: flex-start;
+    gap: 24px 12px;
+    padding: 30px 24px 26px;
+  }
+
+  #footer .footer-flex-items {
+    flex: 1 1 calc(50% - 12px);
+    min-width: 0;
+  }
+
+  #footer .footer-flex-items:last-child {
+    flex-basis: 100%;
+  }
+}
+
+/* 页脚最终样式：以留白和排版分组，不再使用等高卡片。 */
+#footer,
+[data-theme='dark'] #footer {
+  font-family: "LXGW WenKai Screen", "LXGW WenKai", "Microsoft YaHei", sans-serif;
+  border-top: 1px solid rgba(75, 126, 163, .12);
+  background-color: #f2f7fb;
+  background-image: linear-gradient(180deg, #f8fbfd 0%, #edf4f9 100%);
+}
+
+#footer::before,
+#footer::after {
+  content: none;
+}
+
+#footer .footer-flex {
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 48px;
+  max-width: 1060px;
+  padding: 50px 42px 48px;
+}
+
+#footer .footer-flex-items,
+#footer .footer-flex-items:hover,
+[data-theme='dark'] #footer .footer-flex-items,
+[data-theme='dark'] #footer .footer-flex-items:hover {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  transform: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+#footer .footer-flex .footer-flex-title {
+  display: block;
+  margin: 0 0 15px;
+  padding: 0 0 10px;
+  color: #274763;
+  font-size: 1.02em;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-shadow: none;
+}
+
+#footer .footer-flex .footer-flex-title::before {
+  content: none;
+}
+
+#footer .footer-flex .footer-flex-title::after {
+  width: 22px;
+  height: 2px;
+  background: #91bfda;
+}
+
+#footer .footer-flex-item {
+  margin: 0;
+}
+
+#footer .footer-flex-content a,
+#footer .footer-flex-content > div {
+  width: fit-content;
+  padding: 3px 0;
+  color: #61788a;
+  font-size: .94em;
+  line-height: 1.8;
+}
+
+#footer .footer-flex-content a:hover {
+  color: #287da9;
+  transform: translateX(3px);
+}
+
+#footer .footer-other {
+  padding: 18px 20px 22px;
+  border-top: 1px solid rgba(75, 126, 163, .12);
+  background: rgba(224, 235, 243, .34);
+  box-shadow: none;
+}
+
+#footer .footer-other .footer-copyright,
+#footer .footer-other .copyright,
+#footer .footer-other .framework-info {
+  color: #647b8c;
+}
+
+#footer .footer-other a {
+  color: #367fa9;
+}
+
+#footer .footer-other .footer_custom_text {
+  display: block;
+  margin-top: 6px;
+  padding: 0;
+  color: #75899a;
+  font-size: .86em;
+  letter-spacing: .08em;
+}
+
+#footer .footer-other .footer_custom_text::before {
+  content: none;
+}
+
+[data-theme='dark'] #footer {
+  border-top-color: rgba(181, 211, 235, .1);
+  background-color: #101f32;
+  background-image: linear-gradient(180deg, #162c45 0%, #102238 100%);
+}
+
+[data-theme='dark'] #footer .footer-flex .footer-flex-title {
+  color: #e8f1f9;
+  text-shadow: none;
+}
+
+[data-theme='dark'] #footer .footer-flex .footer-flex-title::after {
+  background: #6a9fc1;
+}
+
+[data-theme='dark'] #footer .footer-flex-content a,
+[data-theme='dark'] #footer .footer-flex-content > div {
+  color: #a7b8c8;
+}
+
+[data-theme='dark'] #footer .footer-flex-content a:hover {
+  color: #d1eaff;
+}
+
+[data-theme='dark'] #footer .footer-other {
+  
+  
+}
+
+[data-theme='dark'] #footer .footer-other .footer-copyright,
+[data-theme='dark'] #footer .footer-other .copyright,
+[data-theme='dark'] #footer .footer-other .framework-info,
+[data-theme='dark'] #footer .footer-other .footer_custom_text {
+  color: #9cabb9;
+}
+
+[data-theme='dark'] #footer .footer-other a {
+  color: #b4d9f2;
+}
+
+@media (max-width: 768px) {
+  #footer .footer-flex {
+    gap: 28px 22px;
+    padding: 38px 28px 34px;
+  }
+
+  #footer .footer-flex-items,
+  [data-theme='dark'] #footer .footer-flex-items {
+    flex: 1 1 calc(50% - 22px);
+  }
+
+  #footer .footer-flex-items:last-child,
+  [data-theme='dark'] #footer .footer-flex-items:last-child {
+    flex-basis: 100%;
+  }
+}
+
+/* 更新日志最终布局：明确分配左右卡片与中央节点的三列空间。 */
+.site-timeline {
+  max-width: 1080px;
+  padding: 18px 0 30px;
+}
+
+.site-timeline::before {
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+}
+
+.site-timeline .timeline-entry,
+.site-timeline .timeline-entry-left,
+.site-timeline .timeline-entry-right {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 76px minmax(0, 1fr);
+  align-items: start;
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.site-timeline .timeline-dot {
+  position: relative;
+  top: auto;
+  left: auto;
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: center;
+  width: 13px;
+  height: 13px;
+  margin: 27px 0 0;
+  box-sizing: border-box;
+  transform: none;
+}
+
+.site-timeline .timeline-entry-left .timeline-card,
+.site-timeline .timeline-entry-right .timeline-card {
+  grid-column: 1;
+  grid-row: 1;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  margin: 8px 0 32px;
+  box-sizing: border-box;
+}
+
+.site-timeline .timeline-entry-right .timeline-card {
+  grid-column: 3;
+}
+
+@media (max-width: 768px) {
+  .site-timeline {
+    padding: 12px 0 20px 0;
+  }
+
+  .site-timeline::before {
+    left: 15px;
+    transform: none;
+  }
+
+  .site-timeline .timeline-entry,
+  .site-timeline .timeline-entry-left,
+  .site-timeline .timeline-entry-right {
+    grid-template-columns: 30px minmax(0, 1fr);
+  }
+
+  .site-timeline .timeline-dot {
+    grid-column: 1;
+    justify-self: center;
+  }
+
+  .site-timeline .timeline-entry-left .timeline-card,
+.site-timeline .timeline-entry-right .timeline-card {
+    grid-column: 2;
+    margin-bottom: 24px;
+  }
+}
+
+/* 最终主题覆盖：确保本文件后续旧规则不会改回旧配色 */
+body,
+#page-header { background: #fdfdfd; color: #282728; }
+#page-header.nav-fixed #nav {   }
+/* ⚠️ 这里原本还有一条同款导航字体覆盖
+   （#nav, #nav .site-name, #nav .menus_items, #nav .menus_item, #nav .site-page
+    { font-family: "Source Han Sans SC", ... }），已删除，原因见本文件第 162 行附近
+   的详细说明：它会把 Font Awesome 图标的字体族顶掉，导致图标显示成豆腐块。
+   导航的字体由 _config.butterfly.yml 的 font.font_family 统一提供，无需在此重复。
+   注意 .site-page 也不能出现在任何 font-family 列表里（下拉菜单的 <i> 在其中）。 */
+#post .post-title,
+#post-info .post-title {
+  font-family: "LXGW WenKai Screen", "LXGW WenKai", "Microsoft YaHei", sans-serif;
+  color: #fff !important;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, .45);
+}
+#article-container { font-family: "LXGW WenKai Screen", "LXGW WenKai", "Microsoft YaHei", sans-serif; color: #282728; font-weight: 500; }
+#article-container h1,
+#article-container h2,
+#article-container h3,
+#article-container h4,
+#article-container h5,
+#article-container h6,
+#article-container p,
+#article-container li,
+#article-container blockquote,
+#article-container a { font-family: "LXGW WenKai Screen", "LXGW WenKai", "Microsoft YaHei", sans-serif; }
+#article-container a { color: #006cac; text-decoration: underline dashed; text-underline-offset: 3px; }
+#article-container a:hover { color: #004d7a; }
+#article-container blockquote { background: #e4eff5; border-left-color: #006cac; color: #282728; }
+#article-container figure.highlight,
+#article-container .highlight { background: #fafafa; border: 1px solid #ece9e9; border-radius: 6px; }
+#article-container pre,
+#article-container code,
+#article-container kbd { font-family: "JetBrains Mono NL", "JetBrains Mono", Consolas, "Noto Sans SC", monospace; }
+#article-container code:not([class*='language-']) { background: #fafafa; color: #282728; }
+#footer { font-family: "LXGW WenKai Screen", "LXGW WenKai", "Microsoft YaHei", sans-serif; border-top-color: #ece9e9; background: #fdfdfd; background-image: none; color: #282728; }
+#footer .footer-flex .footer-flex-title,
+#footer .footer-flex-content a,
+#footer .footer-flex-content > div,
+#footer .footer-other .footer-copyright,
+#footer .footer-other .copyright,
+#footer .footer-other .framework-info,
+#footer .footer_custom_text { font-family: "LXGW WenKai Screen", "LXGW WenKai", "Microsoft YaHei", sans-serif; }
+#footer .footer-flex .footer-flex-title { color: #282728; }
+#footer .footer-flex-content a,
+#footer .footer-flex-content > div { color: #748094; }
+#footer .footer-flex-content a:hover,
+#footer .footer-other a { color: #006cac; }
+#footer .footer-other { border-top-color: #ece9e9; background: #fafafa; }
+
+[data-theme='dark'] body,
+[data-theme='dark'] #page-header { background: #212737; color: #eaedf3; }
+[data-theme='dark'] #page-header.nav-fixed #nav {   }
+[data-theme='dark'] #post .post-title,
+[data-theme='dark'] #post-info .post-title { color: #fff !important; }
+[data-theme='dark'] #article-container,
+[data-theme='dark'] #article-container h1,
+[data-theme='dark'] #article-container h2,
+[data-theme='dark'] #article-container h3,
+[data-theme='dark'] #article-container h4,
+[data-theme='dark'] #article-container h5,
+[data-theme='dark'] #article-container h6 { color: #eaedf3; }
+[data-theme='dark'] #article-container a,
+[data-theme='dark'] #article-container a:hover { color: #ff6b00; }
+[data-theme='dark'] #article-container blockquote { background: #372e32; border-left-color: #ff6b00; color: #eaedf3; }
+[data-theme='dark'] #article-container figure.highlight,
+[data-theme='dark'] #article-container .highlight,
+[data-theme='dark'] #article-container code:not([class*='language-']) { background: #282c34; border-color: #ab4b08; color: #eaedf3; }
+[data-theme='dark'] #footer { border-top-color: #3b4354; background: #212737; background-image: none; color: #eaedf3; }
+[data-theme='dark'] #footer .footer-flex .footer-flex-title { color: #eaedf3; }
+[data-theme='dark'] #footer .footer-flex-content a,
+[data-theme='dark'] #footer .footer-flex-content > div,
+[data-theme='dark'] #footer .footer-other .footer-copyright,
+[data-theme='dark'] #footer .footer-other .copyright,
+[data-theme='dark'] #footer .footer-other .framework-info,
+[data-theme='dark'] #footer .footer_custom_text { color: #aeb7c8; }
+[data-theme='dark'] #footer .footer-flex-content a:hover,
+[data-theme='dark'] #footer .footer-other a { color: #ff6b00; }
+[data-theme='dark'] #footer .footer-other { border-top-color: #3b4354; background: #282c34; }
+
+/* ============================================================
+ * 导航栏与下拉菜单 —— 最终态（必须留在文件末尾）
+ * ------------------------------------------------------------
+ * 背景：本文件历史上被反复追加过好几组「导航状态覆盖」规则
+ * （约 551 / 674 / 723 行三处），它们的内容互相矛盾且都在
+ * 第 9 节最终主题覆盖之前，于是出现两个 bug：
+ *
+ *   bug 1 · 顶部状态下 #nav 到底透不透明，看的是最后一条同名规则。
+ *           早期写「透明叠图」，后来又写「rgba(253,253,253,.96)」，
+ *           后写的赢 → 顶部变成一整条接近纯白的实心条，压在手绘
+ *           横幅上既突兀、又和横幅浅色区域糊在一起看不清。
+ *
+ *   bug 2 · 下拉菜单 .menus_item_child 是独立浅色面板，但通用的
+ *           `#nav i` / `#nav .site-page` 选择器带 !important 且写在
+ *           后面，把「白色文字 + 深色投影」一起刷到了面板里的链接和
+ *           图标上 → 白字白底，面板看着就是一块什么都没有的白方块。
+ *
+ * 处理方式：不再和前面那堆规则打补丁，直接在文件最末重写一次，
+ * 用足够高的特异性 + !important 定死。上面那些旧规则留着不动，
+ * 对结果没有影响（被这里覆盖），改动风险最小。
+ * ============================================================ */
+
+/* --- 1. 顶部（未吸顶）：真正的透明叠图，白色文字只作用于导航本体 --- */
+#page-header:not(.nav-fixed) #nav {
+  background: transparent !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* 只给「会压在图片上」的元素加白字和投影。
+   注意这里不再包含 `#nav i` —— 图标改成按位置精确指定，
+   避免把下拉面板里的图标也一起刷白。 */
+#page-header:not(.nav-fixed) #nav > #blog-info,
+#page-header:not(.nav-fixed) #nav > #blog-info .site-name,
+#page-header:not(.nav-fixed) #nav > #menus > #search-button .site-page,
+#page-header:not(.nav-fixed) #nav > #menus > .menus_items > .menus_item > .site-page,
+#page-header:not(.nav-fixed) #nav > #menus > .menus_items > .menus_item > .site-page i,
+#page-header:not(.nav-fixed) #nav > #menus > #toggle-menu .site-page {
+  color: #fff !important;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, .6);
+}
+
+/* 顶部时给导航本体垫一层很淡的顶部压暗渐变：
+   横幅图偏亮时白字会糊，压一下保证任何图上都读得清，
+   但仍然看得出来是「叠在图上」而不是一条实心白条。 */
+#page-header:not(.nav-fixed) #nav::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(0, 0, 0, .28) 0%, rgba(0, 0, 0, .12) 62%, transparent 100%);
+  content: '';
+  pointer-events: none;
+  /* 不需要 z-index：伪元素按规范渲染在子元素之前，
+     #blog-info / #menus 天然压在它上面。 */
+}
+
+/* 让渐变层待在文字下面、文字保持在上面。
+ *
+ * ⚠️ 这里**只给 #blog-info 加 position: relative**，绝不能给 #menus 加。
+ *    原因：.menus_items 是靠 position:absolute + left:50% 相对导航栏居中的，
+ *    它参照的是「最近的已定位祖先」。一旦 #menus 有了 position:relative，
+ *    菜单就会改成相对 #menus 居中 —— 而 #menus 被 #blog-info 的
+ *    margin-right:auto 推在右侧，结果是「在右侧那一小块里居中」，
+ *    视觉上整体偏右。更麻烦的是这条规则带 :not(.nav-fixed)，
+ *    于是顶部不居中、吸顶后才居中，两种状态布局不一致（实测踩到过）。
+ *    #menus 的层级另外用 z-index 处理即可，不需要建立定位上下文。 */
+#page-header:not(.nav-fixed) #nav > #blog-info {
+  position: relative;
+  z-index: 1;
+}
+
+/* --- 2. 吸顶后：半透明浅色底 + 深色文字 --- */
+#page-header.nav-fixed #nav {
+  background: rgba(253, 253, 253, .92) !important;
+  box-shadow: 0 5px 12px -8px rgba(0, 0, 0, .35) !important;
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  backdrop-filter: saturate(140%) blur(10px);
+}
+
+#page-header.nav-fixed #nav > #blog-info,
+#page-header.nav-fixed #nav > #blog-info .site-name,
+#page-header.nav-fixed #nav > #menus > #search-button .site-page,
+#page-header.nav-fixed #nav > #menus > .menus_items > .menus_item > .site-page,
+#page-header.nav-fixed #nav > #menus > #toggle-menu .site-page {
+  color: #282728 !important;
+  text-shadow: none;
+}
+
+[data-theme='dark'] #page-header.nav-fixed #nav {
+  background: rgba(33, 39, 55, .92) !important;
+  box-shadow: 0 5px 12px -8px rgba(0, 0, 0, .85) !important;
+}
+
+[data-theme='dark'] #page-header.nav-fixed #nav > #blog-info,
+[data-theme='dark'] #page-header.nav-fixed #nav > #blog-info .site-name,
+[data-theme='dark'] #page-header.nav-fixed #nav > #menus > #search-button .site-page,
+[data-theme='dark'] #page-header.nav-fixed #nav > #menus > .menus_items > .menus_item > .site-page,
+[data-theme='dark'] #page-header.nav-fixed #nav > #menus > #toggle-menu .site-page {
+  color: #eaedf3 !important;
+}
+
+/* --- 3. 下拉面板：独立浅色卡片，文字/图标一律深色 ---
+   选择器写到 `ul.menus_item_child` 并以 `#page-header #nav` 起头，
+   特异性高于上面所有通用的 `#nav i` / `#nav .site-page` 规则，
+   即使它们也带 !important 也能压住。 */
+#page-header #nav ul.menus_item_child {
+  padding: 5px 0;
+  border: 1px solid #ece9e9;
+  border-radius: 10px;
+  background: #fff !important;
+  box-shadow: 0 12px 28px -10px rgba(15, 35, 55, .28), 0 3px 10px -4px rgba(15, 35, 55, .12);
+}
+
+/* ★ 下拉面板改为「相对触发项居中」
+ *
+ * 主题原来给的是 right: 0：
+ *     #nav .menus_items .menus_item .menus_item_child { right: 0 }
+ * 即面板**右缘**对齐触发项右缘。但面板通常比触发项宽得多
+ * （「工具」约 76px，面板约 200px），于是面板整体向左伸出一大截，
+ * 看起来就是"没在正下方、偏了"。
+ *
+ * 现改为：面板水平中心 = 触发项中心。
+ *   触发项 .menus_item 是 position: relative（主题已设），
+ *   面板 position: absolute 相对它定位，所以
+ *       left: 50%          -> 面板左缘移到触发项中点
+ *       translateX(-50%)   -> 再左移面板自身宽的一半，使二者中心重合
+ *   right 必须显式置 auto，否则主题的 right:0 会与 left 同时生效、
+ *   把面板拉伸到 left 与 right 之间的整个宽度。
+ *
+ * ⚠️ 必须同时处理主题的展开动画，否则居中会失效
+ *   主题给面板挂了：
+ *       animation: sub_menus .3s .1s ease both;
+ *       @keyframes sub_menus {
+ *         0%   { opacity:0; transform: translateY(10px) }
+ *         100% { opacity:1; transform: translateY(0) }
+ *       }
+ *   动画的 transform 优先级高于普通声明，而 100% 帧的 translateY(0)
+ *   配合 fill-mode: both 会**永久覆盖**这里的 translateX(-50%) ——
+ *   面板会在动画结束后跳回偏右一半的位置。
+ *   因此这里把动画改为只做透明度与纵向位移以外的效果：
+ *   实际做法是直接覆盖 animation，用只含 opacity 的关键帧，
+ *   纵向位移动画交给 margin-top 的过渡来近似（视觉差异极小）。
+ *
+ * 特异性：主题是 `#nav .menus_items .menus_item .menus_item_child`
+ *         （1 id + 3 class），这里是 2 id + 3 class，更高，能稳定压住。
+ *
+ * 注：本站菜单整体居中于页面，触发项离视口左右边缘都很远，
+ *     按此居中不会让面板溢出屏幕，因此暂不做额外的边界钳制。
+ */
+#page-header #nav .menus_items .menus_item .menus_item_child {
+  right: auto;
+  left: 50%;
+  margin-top: 8px;
+  transform: translateX(-50%);
+}
+
+/* ============================================================
+ * 下拉面板：修复「鼠标移不过去、面板瞬间消失」
+ * ------------------------------------------------------------
+ * 现象：从触发项往下移动到面板时，鼠标稍微歪一点面板就没了，
+ *       很难点中（实测反馈）。
+ *
+ * 原因：主题的展开靠 :hover 直接切换 display：
+ *     #nav .menus_items .menus_item:hover .menus_item_child { display: block }
+ *     （未悬停时 display: none）
+ *   鼠标一旦离开 .menus_item 的盒子范围，面板**立刻**消失，没有任何缓冲。
+ *   主题原本用面板上的 ::before 做了一段 8px 高的桥接：
+ *     .menus_item_child:before { top:-8px; left:0; width:100%; height:20px }
+ *   但它只覆盖「面板正上方」，而面板居中对齐后比触发项宽得多
+ *   （触发项约 76px、面板约 190px），鼠标斜向移动时容易从桥接区两侧
+ *   绕出去；何况人手的移动本就不是直线，于是频频断掉。
+ *
+ * 修复（两条一起做）：
+ *   1. 用 visibility + opacity 替代 display 控制显隐，并给「关闭」加
+ *      0.22s 延迟 —— 鼠标离开后，面板会多停留约 0.22 秒，足够把指针
+ *      挪进面板（一旦进入，hover 恢复，面板不会消失）。开启则不加延迟，
+ *      悬停反馈依然跟手。
+ *   2. 桥接热区加高加宽：20px -> 44px 高，左右各向外扩 24px，
+ *      真正覆盖住斜向移动的轨迹。
+ *
+ * ★ 必须同时覆盖 display
+ *   主题那两条 display 规则特异性是 (1 id + 3 class)，
+ *   本文件用 (2 id + 3 class) 压住：默认改为 display:block，
+ *   始终参与布局（面板本身是 absolute，不占位，无副作用），
+ *   显隐完全交给 visibility/opacity —— 这样才能做延迟关闭，
+ *   否则 display:none 会让 visibility/opacity 失去意义。
+ *
+ * ★ 同时注意主题的展开动画
+ *   主题给面板挂了 animation: sub_menus（关键帧含 transform），
+ *   它会覆盖这里的 translateX(-50%) 导致居中失效，故显式 animation: none。
+ *   展开效果统一改由下面的 opacity / transform 过渡实现，更可控。
+ * ============================================================ */
+
+#page-header #nav .menus_items .menus_item .menus_item_child {
+  display: block;                 /* 覆盖主题的 display:none */
+  visibility: hidden;
+  opacity: 0;
+  /* ★ 必须显式关掉主题的展开动画
+     主题给面板挂了 animation: sub_menus .3s .1s ease both，
+     而它的关键帧里带 transform（translateY(10px) -> translateY(0)）。
+     CSS 动画的 transform 优先级高于普通声明，配合 fill-mode: both
+     会**永久覆盖**上面那句 translateX(-50%)，面板就会跑偏半个身位、
+     不再居中。这里直接 animation: none 关掉，
+     展开效果改由下面的 opacity / transform 过渡实现。
+     ⚠️ 早先是用另一条动画去覆盖它，后来删掉那条时忘了补 animation:none，
+        导致居中一度失效 —— 注释记下来，别再重复。 */
+  animation: none;
+  transition:
+    visibility 0s linear .22s,   /* 关闭：延迟 0.22s 才真正隐藏 */
+    opacity .18s ease .22s,       /* 关闭：先淡出，同样带延迟 */
+    transform .18s ease .22s;
+}
+
+/* 悬停时显示：不加延迟，立即响应 */
+#page-header #nav .menus_items .menus_item:hover .menus_item_child {
+  display: block;
+  visibility: visible;
+  opacity: 1;
+  transition:
+    visibility 0s linear 0s,
+    opacity .2s ease 0s,
+    transform .2s ease 0s;
+}
+
+/* 桥接热区：加高加宽，接住斜向移动的鼠标轨迹 */
+#page-header #nav .menus_items .menus_item .menus_item_child::before {
+  top: -16px;
+  left: -24px;
+  width: calc(100% + 48px);
+  height: 44px;
+}
+
+/* ★ 下拉面板尺寸收紧
+   主题的下拉项是 padding: 8px 16px，字号继承 #nav 的 1.3em（20.8px）——
+   对下拉菜单来说明显偏大，面板显得笨重（实测反馈）。
+   这里收到与导航栏文字接近的尺寸：字号 .72em（≈15px）、行高 1.4、
+   内边距 6px 14px，整体高度从约 40px 降到约 32px。 */
+#page-header #nav ul.menus_item_child li > a.site-page {
+  padding: 6px 14px;
+  font-size: .72em;
+  line-height: 1.4;
+}
+
+#page-header #nav ul.menus_item_child li > a.site-page,
+#page-header #nav ul.menus_item_child li > a.site-page i,
+#page-header #nav ul.menus_item_child li > a.site-page span {
+  color: #282728 !important;
+  text-shadow: none !important;
+}
+
+/* 图标宽度交给主题自带的 .fa-fw（width:1.25em; text-align:center）和
+   Font Awesome 自己的 --fa-width 变量，这里不再覆盖 width / display，
+   只补一点点与文字的间距。 */
+#page-header #nav ul.menus_item_child li > a.site-page i {
+  margin-right: 2px;
+}
+
+#page-header #nav ul.menus_item_child li:hover {
+  background: #f0f4f7;
+}
+
+#page-header #nav ul.menus_item_child li > a.site-page:hover,
+#page-header #nav ul.menus_item_child li > a.site-page:hover i {
+  color: #006cac !important;
+}
+
+[data-theme='dark'] #page-header #nav ul.menus_item_child {
+  border-color: #3b4354;
+  background: #282c34 !important;
+  box-shadow: 0 12px 28px -10px rgba(0, 0, 0, .7), 0 3px 10px -4px rgba(0, 0, 0, .45);
+}
+
+[data-theme='dark'] #page-header #nav ul.menus_item_child li > a.site-page,
+[data-theme='dark'] #page-header #nav ul.menus_item_child li > a.site-page i,
+[data-theme='dark'] #page-header #nav ul.menus_item_child li > a.site-page span {
+  color: #eaedf3 !important;
+}
+
+[data-theme='dark'] #page-header #nav ul.menus_item_child li:hover {
+  background: #3b4354;
+}
+
+[data-theme='dark'] #page-header #nav ul.menus_item_child li > a.site-page:hover,
+[data-theme='dark'] #page-header #nav ul.menus_item_child li > a.site-page:hover i {
+  color: #ff6b00 !important;
+}
+
+/* --- 4. 展开箭头：跟随所在状态的颜色，不再被通用图标规则干扰 --- */
+#page-header #nav .menus_item > .site-page > i.fa-chevron-down {
+  margin-left: 2px;
+  font-size: .8em;
+  opacity: .85;
+}
+
+/* --- 5. 图标：这里什么都不要动 ---
+ *
+ * ⚠️ 踩坑记录（别再往里加规则）
+ * 曾经在这里写过：
+ *     #page-header #nav i[class*='fa-'] { font-style: normal; min-width: 1em; ... }
+ * 本意是「图标挤在一起时兜底」，结果是**所有图标变成豆腐块**。
+ *
+ * 原因：Font Awesome 7 的图标不是文字，而是靠元素上的
+ *     .fa-xxx { --fa: "\f0c1" }   +   :before { content: var(--fa) }
+ * 把「私有区码点」塞进伪元素，再交给自带 webfont 渲染。
+ * 伪元素的字体族来自 .fa / .fas 等类（var(--_fa-family)），
+ * 一旦被外层规则改写 font 相关属性（尤其 font-style / font-family /
+ * font-weight 这些 FA 用来拼 @font-face 匹配条件的属性），
+ * 字形就匹配不上，浏览器只能显示成「口」。
+ *
+ * 所以：图标的宽度/居中都由主题自带的 .fa-fw（width:1.25em;
+ * text-align:center）负责，这里不需要、也不应该再补任何东西。
+ * 只允许改「颜色」和「间距」，不要碰 font-* 和 display。 --- */
+
+/* 顶部/吸顶两种状态下的悬停反馈（原来只有默认色，hover 没变化） */
+#page-header:not(.nav-fixed) #nav > #menus > .menus_items > .menus_item > .site-page:hover,
+#page-header:not(.nav-fixed) #nav > #menus > .menus_items > .menus_item > .site-page:hover i,
+#page-header:not(.nav-fixed) #nav > #menus > #search-button .site-page:hover {
+  color: #b9e2ff !important;
+}
+
+#page-header.nav-fixed #nav > #menus > .menus_items > .menus_item > .site-page:hover,
+#page-header.nav-fixed #nav > #menus > .menus_items > .menus_item > .site-page:hover i,
+#page-header.nav-fixed #nav > #menus > #search-button .site-page:hover {
+  color: #006cac !important;
+}
+
+[data-theme='dark'] #page-header.nav-fixed #nav > #menus > .menus_items > .menus_item > .site-page:hover,
+[data-theme='dark'] #page-header.nav-fixed #nav > #menus > .menus_items > .menus_item > .site-page:hover i,
+[data-theme='dark'] #page-header.nav-fixed #nav > #menus > #search-button .site-page:hover {
+  color: #ff6b00 !important;
+}
+
+/* ============================================================
+ * 文章页阅读进度条（配合 source/js/read-progress.js）
+ * ------------------------------------------------------------
+ * 与站点自带的 pace 加载条共用「页面最顶部」这一条位置，
+ * 由 JS 控制分时段出现，两者永不同时可见：
+ *   加载中 → pace 显示，本条约 .zrp-on 未加、保持隐藏
+ *   加载完 → pace 收掉，本脚本给它加 .zrp-on，接管同一条位置
+ *
+ * ★ 两条怎么区分（用户反馈「分不清加载好没好」后的调整）
+ * ------------------------------------------------------------
+ * 原先两条完全同款（3px、蓝→青渐变、发光、白亮点），虽然交替无缝，
+ * 但用户无法从样式判断「页面还在加载」还是「已经可以读了」。
+ * 现在从三个维度拉开差异：
+ *
+ *   维度        加载条 pace（来源）        阅读条（本文件）
+ *   ---------   -----------------------   ---------------------------
+ *   颜色        蓝→青渐变（跟主题主色）    青绿单色 #00c4b6（静态）
+ *   动态        流动高光，一直在扫         完全静态，只跟滚动变化
+ *   粗细        3px                        2px（更细，像"就绪"的下划线）
+ *
+ * 语义上也更合理：流动 = 系统忙；静止 = 已就绪。
+ * 两条仍共用顶部同一位置，加载完由阅读条无缝接管。
+ *
+ * 实现上不用 width 而用 transform:scaleX()，避免每帧触发布局重排
+ * （滚动时的性能考虑，和 pace 自己用 translate3d 是同一个思路）。
+ * ============================================================ */
+
+#zzcReadProgress {
+  position: fixed;
+  z-index: 2999;              /* 比 pace 的 3000 低一档：万一真同时出现，让 pace 压在上面 */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;                /* 比加载条的 3px 细一档，作为区分维度之一 */
+  pointer-events: none;       /* 绝不能挡住顶部导航的点击 */
+  opacity: 0;                 /* 默认隐藏，由 JS 加 .zrp-on 才显示 */
+  transition: opacity .3s ease;
+  /* 从左往右长：transform-origin 定在左侧 */
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  /* 单色青绿，与 theme_color.toc_color 同色（该键不进 CSS 变量，换色时同步改）。
+     ⚠️ 不用渐变、不用动画 —— 静态是它与「加载中」最关键的区分特征。 */
+  background-color: #00c4b6;
+  border-radius: 0 2px 2px 0;
+  box-shadow: 0 0 6px rgba(0, 196, 182, .45);   /* 同色系发光，比加载条弱一点 */
+}
+
+#zzcReadProgress.zrp-on {
+  opacity: 1;
+}
+
+/* 前沿亮点：贴在进度头部，跟随 scaleX 一起被压缩，视觉上是个收尾高光 */
+#zzcReadProgress > .zzcReadProgress-inner {
+/* 前沿亮点：已移除。
+ *
+ * 原先在这里放了一条 14px 的白色渐变收尾，但父元素用的是
+ * transform: scaleX() 缩放，子元素会被一起压扁 —— 进度很小的时候
+ * 这点高光缩成一根几乎看不见的线，形态失真。
+ *
+ * 更重要的是：阅读条现在刻意走「完全静态」来和加载条的「流动高光」
+ * 区分，再挂一个亮点会削弱这个特征。保持纯色更干净。
+ *
+ * 注：脚本仍会创建一个 .zzcReadProgress-inner 占位元素（无害），
+ * 这里不给它样式即可，不必改 JS。 */
+#zzcReadProgress > .zzcReadProgress-inner {
+  display: none;
+}
+
+/* 打印时不显示 */
+@media print {
+  #zzcReadProgress { display: none !important; }
+}
+
+/* 尊重系统的「减少动态效果」：不做淡入过渡（进度本身仍跟随滚动） */
+@media (prefers-reduced-motion: reduce) {
+  #zzcReadProgress { transition: none; }
+}
+
+/* ============================================================
+ * 代码块「复制成功」提示气泡（修复看不清）
+ * ------------------------------------------------------------
+ * 主题的 .copy-notice（source 见 themes/.../_highlight/highlight.styl）：
+ *     .copy-notice {
+ *       background: var(--hltools-bg);   ← 代码块工具栏底色，实测 #1c1c1c
+ *       font-size: 12px;
+ *       /* 没有 color！ */
+ *     }
+ * 它只设了背景、没设文字色，于是文字继承了正文的 --font-color（#282728 深灰），
+ * 变成「近黑底 + 深灰字」——对比度只有约 1.6:1，基本看不见。
+ *
+ * 这里补上白字 + 轻微投影（让它从代码块上浮出来）、调大内边距和字号，
+ * 并顺手做圆角与字重微调。暗色模式下代码块底色本来就深，
+ * 气泡改用浅底深字，与页面整体反转关系保持一致。
+ *
+ * 注意：只有在 _config.butterfly.yml 的 snackbar.enable 为 false 时，
+ * 才会走这个 .copy-notice 气泡；开启 snackbar 时提示由 btf.snackbarShow 接管。
+ * ============================================================ */
+
+.copy-notice {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: #1c1c1c;                 /* 与 --hltools-bg 一致，显式写出避免变量缺失 */
+  color: #fff;                         /* ← 关键：补上文字色 */
+  font-family: "Source Han Sans SC", "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: .02em;
+  box-shadow: 0 4px 14px -4px rgba(0, 0, 0, .45);
+}
+
+/* 暗色模式：代码块底色已经是深色，气泡反过来用浅底深字，避免和代码块糊在一起 */
+[data-theme='dark'] .copy-notice {
+  background: #eaedf3;
+  color: #212737;
+  box-shadow: 0 4px 14px -4px rgba(0, 0, 0, .6);
+}
+
+/* ============================================================
+ * 页脚字号整体上调（放在文件末尾以确保生效）
+ * ------------------------------------------------------------
+ * 背景：本文件历史上对页脚追加过好几轮样式，font-size 分散在多处
+ * （约 987 / 1346 / 1462 行等），互相覆盖后最终值是：
+ *     栏目标题 1.02em(16.3px) / 栏目链接 .94em(15px)
+ *     版权行   .9em(14.4px)  / 自定义文案 .86em(13.8px)
+ * 中文在 14px 以下阅读偏吃力（舒适下限约 14px，正文级建议 15~16px），
+ * 页脚整体显得小、发闷。
+ *
+ * 处理：不在历史规则里逐个改（容易漏、也容易被后面覆盖），
+ * 直接在末尾按「标题 > 链接 > 版权 > 文案」的层级重写一次，
+ * 整体上移一档（基准 1em = 16px）：
+ *     栏目标题 1.1em(17.6px) / 栏目链接 1em(16px)
+ *     版权行   .96em(15.4px) / 自定义文案 .92em(14.7px)
+ * 层级关系与原来一致，只是整体变大、更舒展。
+ * ============================================================ */
+
+/* 栏目标题：最大，与下面链接拉开层级 */
+#footer .footer-flex .footer-flex-title {
+  font-size: 1.1em;
+}
+
+/* 栏目链接 / 说明文字：提到基准字号 16px，中文最好读 */
+#footer .footer-flex-content a,
+#footer .footer-flex-content > div {
+  font-size: 1em;
+}
+
+/* 版权行：次要信息，略小于链接 */
+#footer .footer-copyright,
+#footer .footer-other .footer-copyright,
+#footer .footer-other .copyright,
+#footer .footer-other .framework-info {
+  font-size: .96em;
+}
+
+/* 自定义文案：最次要，仅比原来微调 */
+#footer .footer_custom_text,
+#footer .footer-other .footer_custom_text {
+  font-size: .92em;
+}
+
+/* ============================================================
+ * 夜间模式：侧边栏标签云的文字配色（修复看不清）
+ * ------------------------------------------------------------
+ * 问题：标签颜色由主题脚本随机生成（themes/.../helpers/page.js
+ * 的 getRandomColor），算法是 r/g/b 各取 0~200、下限夹到 50。
+ * 这个范围是**为白底设计的** —— 在亮色模式下对比度不错（实测多在
+ * 5~12:1），但放到夜间卡片（--card-bg: #333c52）上就大面积失效：
+ * 实测 28 个标签里有 22 个（79%）对比度低于 AA 的 4.5:1，
+ * 最差的 rgb(87,50,99) 只有 1.07:1、rgb(50,50,50) 只有 1.17:1，
+ * 基本等于和卡片同色、看不见。
+ *
+ * 为什么不能直接改主题的随机算法：那会同时影响标签页 /tags/ 等处，
+ * 且随机色每次构建都会变，改脚本属于侵入主题。
+ *
+ * 处理：夜间模式把侧边栏标签的文字色统一接管，用一组**为深色底挑的**
+ * 高对比色按 nth-child 循环分配。这样既保证可读性，又保留「多彩」
+ * 观感（色相覆盖蓝粉绿黄紫青橙）。实测全部 >=4.5:1（4.96 ~ 6.65）。
+ * 亮色模式维持原样，不受影响。
+ *
+ * ⚠️ 必须带 !important：标签颜色是构建期写在内联 style 上的
+ *    （<a ... style="color: rgb(...)">），内联样式优先级最高。
+ * ⚠️ 色板与 nth-child 的数量要一致，错位会导致颜色分布不均；
+ *    这里 10 个一组循环，与下面 10 条 nth-child 规则对应。
+ * ============================================================ */
+
+[data-theme='dark'] #aside-content .card-tag-cloud a:nth-child(10n + 1) {
+  color: #7fb3e3 !important;   /* 蓝   4.96:1 */
+}
+
+[data-theme='dark'] #aside-content .card-tag-cloud a:nth-child(10n + 2) {
+  color: #e39ec1 !important;   /* 粉   5.20:1 */
+}
+
+[data-theme='dark'] #aside-content .card-tag-cloud a:nth-child(10n + 3) {
+  color: #9fd88f !important;   /* 绿   6.65:1 */
+}
+
+[data-theme='dark'] #aside-content .card-tag-cloud a:nth-child(10n + 4) {
+  color: #e3c76f !important;   /* 黄   6.63:1 */
+}
+
+[data-theme='dark'] #aside-content .card-tag-cloud a:nth-child(10n + 5) {
+  color: #c0a8f0 !important;   /* 紫   5.29:1 */
+}
+
+[data-theme='dark'] #aside-content .card-tag-cloud a:nth-child(10n + 6) {
+  color: #7fd8d0 !important;   /* 青   6.62:1 */
+}
+
+[data-theme='dark'] #aside-content .card-tag-cloud a:nth-child(10n + 7) {
+  color: #f0a882 !important;   /* 橙   5.57:1 */
+}
+
+[data-theme='dark'] #aside-content .card-tag-cloud a:nth-child(10n + 8) {
+  color: #a8c8e8 !important;   /* 浅蓝 6.33:1 */
+}
+
+[data-theme='dark'] #aside-content .card-tag-cloud a:nth-child(10n + 9) {
+  color: #d8a8d8 !important;   /* 浅紫 5.51:1 */
+}
+
+[data-theme='dark'] #aside-content .card-tag-cloud a:nth-child(10n + 10) {
+  color: #8fd8b8 !important;   /* 浅绿 6.64:1 */
+}
+
+/* 悬停时给个统一的强调色，避免被上面 nth-child 的 !important 压住反馈 */
+[data-theme='dark'] #aside-content .card-tag-cloud a:hover {
+  color: #ffffff !important;
+  opacity: .92;
+}
+
+/* ============================================================
+ * 导航栏三段式布局：标题居左 / 菜单居中 / 搜索居右（仅大屏）
+ * ------------------------------------------------------------
+ * 主题原本是「标题左 + 菜单右」的两段式：
+ *     #nav { display: flex }
+ *     #blog-info { flex: 1 }   ← 标题吃掉左侧全部剩余空间，把菜单顶到最右
+ * 所以菜单**不可能**居中，除非改布局。
+ *
+ * 做法（不改主题文件，全部靠 CSS 覆盖）：
+ *   1. 让 #blog-info 不再抢空间：
+ *         flex: 0 1 auto + margin-right: auto
+ *      这样它按内容宽度靠左站，并把剩余空间全部推给后面的 #menus。
+ *   2. #menus 本身继续靠右（承接推过来的空间），于是其中的 #search-button
+ *      自然停在最右侧。
+ *   3. 把菜单 .menus_items 单独抽出来做**绝对定位居中**：
+ *         left: 50%; transform: translateX(-50%)
+ *      相对 #nav 居中。因为脱离了文档流，菜单变长变短都不会推挤
+ *      左右两侧的标题与搜索按钮，这是「真正居中」而不是「看起来差不多」。
+ *
+ * ★ 为什么用绝对定位而不是 justify-content: center：
+ *   三个块（标题 / 菜单 / 搜索）宽度不等，用 flex 居中会让菜单的
+ *   "视觉中心" 依赖两侧宽度差而偏移；绝对定位是相对整个导航栏的中点，
+ *   与左右内容宽度无关，标题再长菜单也不歪。
+ *
+ * ★ 窄屏（<=768px）不启用：
+ *   主题在窄屏下会把 .menus_items 收进汉堡按钮（&.hide-menu）。
+ *   若此时仍强制绝对定位，会与该机制打架。故整套居中只在
+ *   min-width 769px 生效，窄屏完全保持主题原行为。
+ *
+ * ⚠️ 与文件前面那些 `#nav > #menus > .menus_items > .menus_item > .site-page`
+ *    的配色规则不冲突：那些管颜色，这里只动布局。
+ * ============================================================ */
+
+@media (min-width: 993px) {
+  /* ------------------------------------------------------------
+   * 导航栏菜单：水平中心对齐「左侧文章卡片区」的中心
+   *
+   * ★ 要解决的问题
+   * 之前菜单是相对**整个导航栏**居中的（left:50%）。但本站是左右两栏：
+   *     .layout            { max-width: 60%; margin: 0 auto }  ← 内容区居中
+   *     .layout > div:first-child { width: 74% }               ← 左侧卡片区
+   *     #aside-content     { width: 26% }                      ← 右侧边栏
+   * 于是「导航栏中点」落在内容区的 50% 处，而左侧卡片区的中心在内容区的
+   * 37% 处（74% ÷ 2）。两者相差 13% 个内容区宽 —— 导航栏居中时，菜单
+   * 其实悬在卡片区右半部分的上方，与正文不同轴。
+   *
+   * ★ 怎么算
+   * 需要让菜单中心 = 内容区左边缘 + 内容区宽的 37%。
+   * 内容区宽 = 60% 视口、水平居中，所以
+   *     内容区左边缘 = 视口宽的 20%
+   *     目标中心     = 20% + 60% × 37% = 42.2% 视口宽
+   * 但 .menus_items 是绝对定位，left 的百分比相对 **#nav 的 padding box**
+   * （内宽 = 视口 - 72px padding），与视口基准不同，不能直接写 42.2%。
+   * 故改用 vw 单位（始终相对视口），并对 padding 做补偿：
+   *     left: calc(42.2vw - 36px + 36px) = 42.2vw
+   * 因为 #nav 的 padding 左右各 36px，绝对定位的 left 从 padding box
+   * 左边缘起算，而 padding box 左边缘就在视口 x=36px 处，所以
+   *     left = 42.2vw（视口坐标）- 36px（转成 padding box 坐标）
+   * 再用 translateX(-50%) 把菜单自身中心对到该点。
+   *
+   * ★ 断点
+   * .layout 的 max-width 只在宽屏生效；窄屏（<=768px）主题会切换成
+   * 单栏且菜单收进汉堡按钮，故整套规则只在 min-width:769px 生效。
+   * 900px 以下内容区不再是 60%，改用「随视口收缩的对齐」会更稳，
+   * 所以额外用 1200px 断点区分两档。
+   *
+   * ⚠️ 不能用 display: contents 把 #menus 拆开：主题 main.js 第 14 行读
+   *    document.getElementById('menus').children 的 offsetWidth 计算
+   *    headerContentWidth，据此判断菜单是否折叠进汉堡按钮。容器不生成
+   *    盒子会让该测量失准、折叠逻辑被破坏。故 #menus 的盒模型必须保留。
+   * ------------------------------------------------------------ */
+
+  /* 左侧：标题按内容宽靠左（不参与菜单定位） */
+  #page-header #nav > #blog-info {
+    flex: 0 1 auto;
+    margin-right: auto;
+    min-width: 0;          /* 长标题按 .limit-one-line 截断，不撑开导航 */
+  }
+
+  /* 菜单：中心对齐左侧卡片区中心（见上方推导） */
+  #page-header #nav > #menus > .menus_items {
+    position: absolute;
+    display: block;
+    width: max-content;
+  }
+
+  /* 菜单项收紧：左内距 14 -> 10，整体省下约 32px 横向空间 */
+  #page-header #nav > #menus > .menus_items > .menus_item {
+    padding-left: 10px;
+  }
+
+  /* 菜单文字略收一档（16.2px -> 15.4px），既省宽也更精致 */
+  #page-header #nav > #menus > .menus_items > .menus_item > .site-page {
+    font-size: .74em;
+  }
+
+  /* 右侧：搜索按钮紧跟菜单之后（不再甩到导航栏最右端）
+   *
+   * ★ 为什么之前搜索会飘到很远
+   *   .menus_items 是绝对定位（为了对齐卡片轴线），已脱离文档流；
+   *   而 #search-button 仍在流内、靠 margin-left:auto 被推到 #menus 最右。
+   *   两者一个脱流、一个流内，位置互不相干 —— 于是菜单居中、搜索贴到
+   *   导航栏最右端，中间隔着一大段空白，看起来很散。
+   *
+   * ★ 解决：让「菜单 + 搜索」待在同一个流里，永远相邻
+   *   把 #menus 整体改为绝对定位（宽度收缩到内容），内部用 flex 横排：
+   *   .menus_items 在前、#search-button 紧随其后。
+   *
+   * ★ 随之而来的坐标基准变化（重要，别照着旧注释理解）
+   *   改动前：#menus 是 static，.menus_items 直接相对 #nav 定位，
+   *           所以 left 就是「菜单左边缘」到 #nav padding box 左边缘的距离。
+   *   改动后：#menus 成了定位祖先，left 变成「#menus 左边缘」的位置，
+   *           而 #menus 的宽度 = 菜单 + 间距 + 搜索。
+   *
+   *   因此要让**菜单部分的中心**（而不是整块的中心）落在轴线上，
+   *   需要把整块右移半个搜索宽度（含间距）：
+   *       #menus.left = 轴线目标 + (搜索宽 + 间距) / 2 - 菜单宽 / 2
+   *   下面各断点给的 left 值即按此校正，补偿量 = (14 + 88) / 2 = 51px。
+   *
+   * ★ 生效区间必须 >=993px，不能是 >=769px（重要）
+   *   主题的 main.js 在「标题+菜单+搜索 的宽度 > 导航栏宽 - 120」时
+   *   会给 #nav 加 .hide-menu，并把 .menus_items 整个 display:none
+   *   收进汉堡按钮。实测本站在视口 <=992px 时就会触发折叠。
+   *   而 #menus 一旦被设为绝对定位，其 left 是按「菜单存在」算出来的，
+   *   菜单被隐藏后汉堡+搜索会被摆到那个偏移位置 —— 位置就错了。
+   *   所以整套绝对定位居中只在菜单**确实展开**的区间启用（>=993px），
+   *   993px 以下恢复成普通流内布局（靠右），与主题机制和平共处。
+   */
+  #page-header #nav > #menus {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    width: fit-content;
+  }
+
+  #page-header #nav > #menus > .menus_items {
+    position: static;       /* 回到流内，由 #menus 统一承载定位 */
+    flex: 0 0 auto;
+    order: 2;
+  }
+
+  #page-header #nav > #menus > #search-button {
+    flex: 0 0 auto;
+    order: 3;
+    margin-left: 14px;      /* 菜单与搜索之间的间距 */
+  }
+
+  /* 汉堡按钮：显式排在最后。菜单展开时它是 display:none（不占位），
+     菜单折叠时它是唯一入口，必须排在搜索图标之前、且不受 order 默认值
+     影响 —— 之前没给 order，排序依赖默认 0，很容易被其它规则挤乱。 */
+  #page-header #nav > #menus > #toggle-menu {
+    flex: 0 0 auto;
+    order: 1;
+  }
+}
+
+/* ------------------------------------------------------------
+ * 菜单对齐左侧卡片区中心 —— 按内容区的三种宽度分档
+ *
+ * ★ 先把内容区的真实规则搞清楚（这步很关键，别照抄旧注释）
+ *   .layout {
+ *     max-width: 1200px;      ← 默认值，不是 60%
+ *     padding: 40px 15px;
+ *     margin: 0 auto;
+ *   }
+ *   @media (min-width: 2000px) { .layout { max-width: 60%; } }
+ *   .layout > div:first-child { width: 74%; }   ← 左侧卡片区
+ *   #aside-content { width: 26%; }              ← 右侧边栏
+ *
+ * 于是内容区宽度分三段，卡片区中心占视口的比例**并不恒定**：
+ *   视口 < 1230px     内容区 = 100% 视口    -> 卡片中心 ≈ 37.4vw（基本恒定）
+ *   1230 ~ 2000px     内容区 = 固定 1200px  -> 卡片中心从 37.6vw 漂到 42.4vw
+ *   >= 2000px         内容区 = 60% 视口     -> 卡片中心 ≈ 42.4vw
+ *
+ * 所以中间那段**不能用固定百分比**，要用 calc 把「固定 1200px 居中」表达出来。
+ *
+ * ★ 公式（设视口宽 W）
+ *   卡片区中心 = (W - 1200)/2 + 15 + (1200 - 30) × 0.74 / 2
+ *              = W/2 - 152.1
+ *   即  50vw - 152.1px
+ *
+ * ★ 换算成 left（基准与补偿共同决定，容易搞反，推导写全）
+ *   设：MENU = 菜单宽，SEARCH = 搜索按钮宽(约88px)，GAP = 两者间距(14px)
+ *       BLOCK = #menus 整块宽 = MENU + GAP + SEARCH
+ *       A = 目标轴线（视口坐标）
+ *       PAD = #nav 左内边距 36px
+ *
+ *   浏览器行为：#menus 绝对定位，其左边缘 = (left 值 + PAD)，
+ *              再叠加 transform: translateX(-50%) 左移自身宽的一半，
+ *              故 #menus 左边缘 = left + PAD - BLOCK/2
+ *   菜单在最前面，所以菜单左边缘 = #menus 左边缘，
+ *              菜单中心 = left + PAD - BLOCK/2 + MENU/2
+ *
+ *   要求菜单中心 = A，解出：
+ *       left = A - PAD + BLOCK/2 - MENU/2
+ *            = A - PAD + (GAP + SEARCH)/2
+ *            = A - 36 + 51
+ *            = A + 15
+ *
+ *   ⚠️ 补偿是 **+15px**（右移），不是负数 —— 因为整块比菜单宽，
+ *      居中整块会让菜单偏左，需要右移半个(间距+搜索)来纠正。
+ *      （曾把方向写反成 -87px，导致菜单整体左偏约 100px。）
+ * ------------------------------------------------------------ */
+
+/* 1230 ~ 2000px：内容区固定 1200px 居中（最常见的区间）
+   轴线 A = 50vw - 152.1px  ->  left = 50vw - 152.1 + 15 = 50vw - 137.1px */
+@media (min-width: 1200px) and (max-width: 1999px) {
+  #page-header #nav > #menus {
+    left: calc(50vw - 137.1px);
+    transform: translateX(-50%);
+  }
+}
+
+/* >= 2000px：内容区为 60% 视口，卡片中心固定在 42.35vw
+   left = 42.35vw + 15px - 36px = 42.35vw - 21px */
+@media (min-width: 2000px) {
+  #page-header #nav > #menus {
+    left: calc(42.35vw + 15px);
+    transform: translateX(-50%);
+  }
+}
+
+/* < 1230px：内容区铺满视口，卡片中心稳定在 37.4vw
+   left = 37.4vw - 21px */
+@media (min-width: 993px) and (max-width: 1199px) {
+  #page-header #nav > #menus {
+    left: calc(37.4vw + 15px);
+    transform: translateX(-50%);
+  }
+}
+
+/* ============================================================
+ * 窄屏 / 菜单折叠态（<=992px）：交还给主题机制
+ * ------------------------------------------------------------
+ * 为什么上限是 992px 而不是 768px：
+ *   主题 main.js 的折叠判定是
+ *       headerContentWidth > $nav.offsetWidth - 120
+ *   实测本站 993px 起才装得下「标题 + 菜单 + 搜索」，992px 及以下
+ *   主题会给 #nav 加 .hide-menu，把 .menus_items 整个 display:none
+ *   收进汉堡按钮。所以 >=993px 才是菜单真正展开的区间。
+ *
+ * 这里把上面那套绝对定位居中全部还原，改回普通流内布局，
+ * 让主题原有的「标题左 + 菜单/搜索右」在折叠态下正常工作。
+ *
+ * 关于 display:flex —— 显式保留（不还原成 block）：
+ *   菜单折叠后 #menus 里只剩 #toggle-menu（汉堡）与 #search-button，
+ *   用 flex + align-items:center 能保证两者垂直对齐、并按 order
+ *   稳定排序（汉堡 order:1 在搜索 order:3 之前）。
+ * ============================================================ */
+@media (max-width: 992px) {
+  #page-header #nav > #blog-info {
+    flex: 1;
+    margin-right: 0;
+  }
+
+  #page-header #nav > #menus {
+    position: static;
+    display: flex;
+    align-items: center;
+    width: auto;
+    transform: none;
+  }
+
+  #page-header #nav > #menus > .menus_items {
+    position: static;
+    width: auto;
+    transform: none;
+  }
+
+  #page-header #nav > #menus > #search-button {
+    margin-left: 0;
+  }
+}
+
+/* ============================================================
+ * 首页（full_page banner）：菜单改为相对导航栏居中
+ * ------------------------------------------------------------
+ * 为什么首页要单独处理：
+ *   上面那套「对齐左侧卡片区中心」是按正文卡片的轴线定位的。
+ *   但首页是 full_page —— 全屏横幅铺满整个视口，**下方看不到任何卡片**，
+ *   那个"卡片轴线"在视觉上并不存在。此时菜单按卡片中心放置（约占视口
+ *   42% 处）就会显得偏左，看起来就是"没居中"。
+ *
+ *   所以首页改用最朴素的对齐方式：相对 #nav 居中。
+ *   #nav 的 padding 左右对称（0 36px），绝对定位的包含块是 padding box，
+ *   故轴线 A = 50vw；再按上面的补偿规则 +15px，得 left = 50vw + 15px。
+ *
+ * 判定条件用 #page-header.full_page —— 主题只给首页加这个类
+ * （实测：首页 class="full_page fixed"，其它页 class="not-home-page fixed"）。
+ *
+ * 同样用 >=993px 包裹：993px 以下菜单已收进汉堡，绝对定位不再适用
+ * （原因见上面窄屏块里的说明）。
+ *
+ * 放在文件末尾：上面三段媒体查询里有同样特异性的 left 声明，
+ * 靠书写顺序胜出。
+ * ============================================================ */
+
+@media (min-width: 993px) {
+  #page-header.full_page #nav > #menus {
+    left: calc(50vw + 15px);
+    transform: translateX(-50%);
+  }
+}

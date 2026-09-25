@@ -1,0 +1,1770 @@
+/* ==========================================================================
+   拾遗录 · LX 音乐播放器样式
+   --------------------------------------------------------------------------
+   配色一律走 Butterfly 5.7.1 真实存在的 CSS 变量，明暗自动跟随主题：
+     --card-bg / --font-color / --tab-border-color / --light-grey / --global-bg
+   主题强调色由构建期注入为 --lx-accent（取 _config.butterfly.yml → theme_color.main）。
+   注意：主题色在 Butterfly 里**不是** CSS 变量，而 --btn-bg 在暗黑模式下会被改成
+   深灰，所以不能拿它当强调色用，必须单独注入。
+   ========================================================================== */
+
+.lx-music {
+  --lx-accent: #49B1F5;
+  --lx-border: var(--tab-border-color, #f0f0f0);
+  --lx-surface: var(--card-bg, #fff);
+  --lx-text: var(--font-color, #4C4948);
+  --lx-dim: var(--card-meta, #858585);
+  --lx-hover: rgba(0, 0, 0, .045);
+  --lx-shadow: 0 10px 34px rgba(7, 17, 27, .16);
+  --lx-radius: 14px;
+
+  /* 贴边图标（挡板）的位置 / 尺寸 / 配色。
+     --lx-x / --lx-y 由 JS 实时改写（拖动 + 初始化）；横向拖动时跟手，
+     松手后吸附到左沿或右沿，纵向自由。其余是纯样式，媒体查询里再调。
+     下面的初值只是 JS 没跑起来时的兜底，按「左下角、离底边 24px」写。 */
+  --lx-x: 0px;
+  --lx-y: calc(100vh - var(--lx-rail-h) - 24px);
+  --lx-rail-w: 38px;
+  --lx-rail-h: 44px;
+  --lx-rail-fg: #22c55e;
+  --lx-rail-bg: rgba(255, 255, 255, .94);
+  /* 收藏爱心。「喜欢」在中文用户心里就是红的，所以不跟着主题强调色走 */
+  --lx-heart: #e5484d;
+
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--lx-text);
+}
+
+.lx-music > * { pointer-events: auto; }
+
+/* ------------------------------------------------- 初始化保护（防首帧闪烁）
+   JS 一挂上节点就带 .lx-boot，等「位置 + 收起态」全部算定才摘掉。期间：
+     · visibility: hidden —— 不绘制，但**保留布局盒**，所以 place() 里读
+       offsetWidth / offsetHeight / getBoundingClientRect 拿到的都是真实尺寸；
+     · transition: none —— 双保险。即使某个浏览器仍算了一次样式，也不会出现
+       「面板从展开态滑到屏外 + 挡板滑进来」的过渡动画。
+   不这么做的话，首帧会先按下面的 CSS 兜底值（--lx-panel-off: 0 = 面板展开、
+   停在屏幕左侧中间）画一次，再由 JS 改成收起态 —— 观感上就是
+   「一进站面板一闪而过才被隐藏」。 */
+.lx-music.lx-boot { visibility: hidden; }
+.lx-music.lx-boot .lx-panel,
+.lx-music.lx-boot .lx-rail { transition: none !important; }
+
+.lx-music button { font-family: inherit; }
+.lx-music input { font-family: inherit; }
+
+/* --------------------------------------------------------- 面板外壳 */
+.lx-panel {
+  position: absolute;
+  /* 位置由 JS 算好：围绕挡板垂直居中、贴在挡板内侧、并整体夹在视口内 */
+  left: var(--lx-panel-x, 16px);
+  top: var(--lx-panel-y, 50%);
+  display: flex;
+  flex-direction: column;
+  width: 360px;
+  max-height: min(620px, calc(100vh - 150px));
+  overflow: hidden;
+  background: var(--lx-surface);
+  border: 1px solid var(--lx-border);
+  border-radius: var(--lx-radius);
+  box-shadow: var(--lx-shadow);
+  transform: translateX(var(--lx-panel-off, 0px));
+  transition: left .28s ease-out, top .28s ease-out,
+    transform .34s cubic-bezier(.4, 0, .2, 1), opacity .28s ease;
+}
+
+/* 收起：面板朝「挡板那一侧」滑出屏幕。
+   ★ 真正的位移量由 JS 按「面板到屏幕边缘的实际距离」写入 --lx-panel-off 的内联样式
+     （挡板被拖到屏幕中间时，下面的固定值不够用，会留一截在屏幕里）。
+     这两条只作 JS 没跑起来时的兜底。 */
+.lx-music[data-collapsed='true'] .lx-panel {
+  --lx-panel-off: calc(-100% - var(--lx-rail-w) - 12px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 挡板在右半屏 → 面板在它左边，收起方向相反 */
+.lx-music[data-side='right'][data-collapsed='true'] .lx-panel {
+  --lx-panel-off: calc(100% + var(--lx-rail-w) + 12px);
+}
+
+.lx-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--lx-border);
+  /* 标题栏就是面板的拖动手柄 */
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.lx-head .lx-ibtn { cursor: pointer; }
+
+.lx-head-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--lx-accent);
+  box-shadow: 0 0 0 3px rgba(73, 177, 245, .22);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--lx-accent) 22%, transparent);
+  flex: 0 0 auto;
+}
+
+.lx-head-title {
+  flex: 1 1 auto;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.lx-ibtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  padding: 0;
+  color: var(--lx-dim);
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color .18s, background-color .18s, transform .18s;
+}
+.lx-ibtn svg { width: 16px; height: 16px; }
+.lx-ibtn:hover { color: var(--lx-accent); background: var(--lx-hover); }
+.lx-ibtn:active { transform: scale(.92); }
+.lx-ibtn[data-on='1'] { color: var(--lx-accent); background: var(--lx-hover); }
+
+/* --------------------------------------------------------- Tab */
+.lx-tabs {
+  display: flex;
+  gap: 2px;
+  flex: 0 0 auto;
+  padding: 6px 8px 0;
+  border-bottom: 1px solid var(--lx-border);
+}
+
+.lx-tab {
+  flex: 1 1 0;
+  padding: 7px 4px 9px;
+  font-size: 13px;
+  color: var(--lx-dim);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color .18s, border-color .18s;
+}
+.lx-tab:hover { color: var(--lx-text); }
+.lx-tab[data-on='1'] {
+  color: var(--lx-accent);
+  border-bottom-color: var(--lx-accent);
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------- 搜索区 */
+.lx-panes {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  /* ★ 硬保证：任何情况下子元素都不许画到下面的播放条上。
+     之前这里是 visible，而 .lx-main 写着 min-height:132px —— 面板一被压扁，
+     列表就顶破这个盒子、直接叠到下面那一块（当时的歌词框）上（实测重叠 53.8~203.8px）。 */
+  overflow: hidden;
+}
+
+.lx-pane {
+  /* 搜索框那一块永不被压缩；空间不够时只压缩下面的列表 */
+  flex: 0 0 auto;
+}
+.lx-pane[hidden] { display: none; }
+
+.lx-searchbar {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 10px 12px 6px;
+}
+
+.lx-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 7px 12px;
+  font-size: 13px;
+  color: var(--lx-text);
+  background: var(--lx-hover);
+  border: 1px solid transparent;
+  border-radius: 9px;
+  outline: none;
+  transition: border-color .18s, background-color .18s;
+}
+.lx-input::placeholder { color: var(--lx-dim); }
+.lx-input:focus {
+  background: var(--lx-surface);
+  border-color: var(--lx-accent);
+}
+.lx-input::-webkit-search-cancel-button { filter: grayscale(1); opacity: .5; }
+
+.lx-go {
+  flex: 0 0 auto;
+  padding: 7px 14px;
+  font-size: 13px;
+  color: #fff;
+  background: var(--lx-accent);
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: filter .18s, transform .18s;
+}
+.lx-go:hover { filter: brightness(1.08); }
+.lx-go:active { transform: scale(.97); }
+
+.lx-hot {
+  display: flex;
+  /* 单行横向滚动：原来是 wrap，8 个标签占 3 行共 83px，
+     歌词一开就把列表挤没了。单行只要 ~36px，且标签一个都不少。 */
+  flex-wrap: nowrap;
+  gap: 6px;
+  flex: 0 0 auto;
+  padding: 2px 12px 10px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.lx-hot::-webkit-scrollbar { display: none; }
+.lx-hot[hidden] { display: none; }
+
+.lx-chip {
+  /* 不许被压扁，否则标签会挤成一堆省略号而不是横向滚动 */
+  flex: 0 0 auto;
+  max-width: 100%;
+  padding: 3px 10px;
+  font-size: 12px;
+  color: var(--lx-dim);
+  background: var(--lx-hover);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  transition: color .18s, background-color .18s;
+}
+.lx-chip:hover {
+  color: #fff;
+  background: var(--lx-accent);
+}
+
+.lx-crumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--lx-border);
+}
+.lx-crumb[hidden] { display: none; }
+
+.lx-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: 0 0 auto;
+  padding: 3px 8px 3px 4px;
+  font-size: 12px;
+  color: var(--lx-dim);
+  background: var(--lx-hover);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color .18s, background-color .18s;
+}
+.lx-back svg { width: 12px; height: 12px; }
+.lx-back:hover { color: var(--lx-accent); }
+
+.lx-crumb-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--lx-dim);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* --------------------------------------------------------- 列表 */
+.lx-main {
+  flex: 1 1 auto;
+  /* 原为 132px —— 正是它顶着不让缩，才把列表挤到歌词框上面。
+     列表自己 overflow-y:auto，压小只是少露几行，不会溢出，所以下限给 0。 */
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px 8px 8px;
+}
+
+.lx-main::-webkit-scrollbar { width: 5px; }
+.lx-main::-webkit-scrollbar-thumb {
+  background: var(--lx-border);
+  border-radius: 3px;
+}
+.lx-main::-webkit-scrollbar-thumb:hover { background: var(--lx-dim); }
+
+/* 歌曲行 */
+.lx-song {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background-color .15s;
+}
+.lx-song:hover { background: var(--lx-hover); }
+.lx-song[data-on='1'] { background: rgba(73, 177, 245, .12); }
+.lx-song[data-on='1'] { background: color-mix(in srgb, var(--lx-accent) 12%, transparent); }
+
+.lx-song-no {
+  flex: 0 0 auto;
+  width: 18px;
+  font-size: 11px;
+  color: var(--lx-dim);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.lx-song[data-on='1'] .lx-song-no { color: var(--lx-accent); }
+
+.lx-song-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.lx-song-name {
+  font-size: 13px;
+  color: var(--lx-text);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.lx-song[data-on='1'] .lx-song-name { color: var(--lx-accent); font-weight: 600; }
+.lx-song-singer {
+  font-size: 11px;
+  color: var(--lx-dim);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.lx-song-badge {
+  flex: 0 0 auto;
+  padding: 1px 6px;
+  font-size: 10px;
+  color: var(--lx-dim);
+  border: 1px solid var(--lx-border);
+  border-radius: 5px;
+  text-transform: uppercase;
+}
+
+/* 行内爱心：默认压低声量（否则整列爱心把列表弄得很花），
+   划过整行、或已收藏时才亮起来。空心 / 实心两个 svg 常驻，由 [data-fav] 挑一个显示 ——
+   与播放按钮同一套做法，切换不重建 DOM、不丢事件。
+   ⚠️ 这里刻意**不用 opacity / transform** 来表达「低调」（虽然更省事）：
+   它们会把按钮提升成独立合成层，实测在无 GPU 的 headless 里命中测试会漏掉这个层、
+   点击直接落到下面的歌曲行上（在真机上也会给输入链路平添不确定性）。
+   反正颜色本来就能表达强弱，没必要引入层。 */
+.lx-song-fav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  color: color-mix(in srgb, var(--lx-dim) 45%, transparent);
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: color .15s, background-color .15s;
+}
+.lx-song-fav svg { width: 15px; height: 15px; }
+.lx-song-fav svg:nth-of-type(2) { display: none; }
+.lx-song-fav[data-fav='1'] { color: var(--lx-heart); }
+.lx-song-fav[data-fav='1'] svg:nth-of-type(1) { display: none; }
+.lx-song-fav[data-fav='1'] svg:nth-of-type(2) { display: block; }
+.lx-song:hover .lx-song-fav { color: var(--lx-heart); }
+.lx-song:hover .lx-song-fav:hover { background: var(--lx-hover); }
+/* 正在取链的那一行，爱心让位给转圈，别互相挤 */
+.lx-song[data-loading='1'] .lx-song-fav { color: color-mix(in srgb, var(--lx-dim) 20%, transparent); }
+
+/* 播放图标 / 转圈的**共用槽位**：宽度固定，两个图标叠在同一格里，靠 visibility 切换。
+   ★ 绝不能改回 display 切换 —— 图标一显隐就会改变行内宽度、把左边的爱心挤走，
+     而鼠标「按下」与「抬起」之间目标已经移位，浏览器会把这次 click 判给
+     两者的共同祖先（整行 div），表现就是「点爱心却开始播放」。
+     用 visibility 还有个附带好处：加载态与播放态切换时整行宽度纹丝不动。 */
+.lx-song-act {
+  position: relative;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+}
+.lx-song-pick,
+.lx-song-spin {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 18px;
+  height: 18px;
+  color: var(--lx-accent);
+  visibility: hidden;
+}
+.lx-song-pick svg,
+.lx-song-spin svg { width: 18px; height: 18px; }
+.lx-song:hover .lx-song-pick,
+.lx-song[data-on='1'] .lx-song-pick { visibility: visible; }
+
+/* 正在取播放地址的那一行：转圈替换掉「播放」图标 + 淡淡高亮 */
+.lx-song[data-loading='1'] {
+  background: color-mix(in srgb, var(--lx-accent) 8%, transparent);
+}
+.lx-song[data-loading='1'] .lx-song-pick { visibility: hidden; }
+.lx-song[data-loading='1'] .lx-song-spin { visibility: visible; }
+
+/* 「我的」列表头：我喜欢 / 最近播放 两个胶囊 + 清空。
+   它挂在滚动容器 .lx-main 里，做成 sticky —— 翻长列表时也能随手切子标签。
+   负的 margin / top 是为了吃掉 .lx-main 的 padding，让底色铺满整条。 */
+/* 「当前播放列表」的列表头：左边来源、右边「共 N 首 · 正在播第几首」。
+   与 .lx-mine-head 同一套做法（sticky，长列表滚动时标题常驻）。 */
+.lx-queue-head {
+  position: sticky;
+  top: -6px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: -6px -8px 6px;
+  padding: 9px 10px 7px;
+  font-size: 11.5px;
+  background: var(--lx-surface);
+}
+.lx-queue-src {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+.lx-queue-num {
+  flex: 0 0 auto;
+  color: var(--lx-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.lx-mine-head {
+  position: sticky;
+  top: -6px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -6px -8px 6px;
+  padding: 9px 10px 7px;
+  background: var(--lx-surface);
+}
+
+/* 子标签类名刻意不叫 .lx-chip —— 那个名字被「热搜词」按钮占着（.lx-hot .lx-chip），
+   重名会让两处样式互相污染。 */
+.lx-seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  font-size: 12px;
+  color: var(--lx-dim);
+  background: var(--lx-hover);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color .15s, background-color .15s, border-color .15s;
+}
+.lx-seg:hover { color: var(--lx-text); }
+.lx-seg[data-on='1'] {
+  color: var(--lx-accent);
+  background: color-mix(in srgb, var(--lx-accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--lx-accent) 35%, transparent);
+  font-weight: 600;
+}
+.lx-seg-num { font-size: 10.5px; opacity: .75; font-variant-numeric: tabular-nums; }
+
+.lx-seg-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  margin-left: auto;
+  padding: 0;
+  color: var(--lx-dim);
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: color .15s, background-color .15s;
+}
+.lx-seg-clear svg { width: 13px; height: 13px; }
+.lx-seg-clear:hover { color: #E5564A; background: var(--lx-hover); }
+
+/* 榜单 / 歌单入口行 */
+.lx-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background-color .15s;
+}
+.lx-entry:hover { background: var(--lx-hover); }
+.lx-entry-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.lx-entry-go {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  color: var(--lx-dim);
+}
+.lx-entry-go svg { width: 14px; height: 14px; }
+.lx-entry:hover .lx-entry-go { color: var(--lx-accent); }
+
+/* 歌单网格 */
+.lx-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 4px;
+}
+
+.lx-card { cursor: pointer; }
+.lx-card-pic {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  background-color: var(--lx-hover);
+  background-size: cover;
+  background-position: center;
+  border-radius: 9px;
+  overflow: hidden;
+  transition: transform .18s;
+}
+.lx-card:hover .lx-card-pic { transform: translateY(-2px); }
+.lx-card-name {
+  margin-top: 5px;
+  font-size: 11px;
+  color: var(--lx-dim);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.lx-card:hover .lx-card-name { color: var(--lx-accent); }
+
+/* 空态 / 加载 / 更多 */
+.lx-empty {
+  padding: 26px 16px;
+  text-align: center;
+  color: var(--lx-dim);
+  font-size: 12px;
+}
+.lx-empty p { margin: 0 0 10px; }
+
+.lx-retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  font-size: 12px;
+  color: var(--lx-accent);
+  background: var(--lx-hover);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.lx-retry svg { width: 13px; height: 13px; }
+
+.lx-more {
+  display: block;
+  width: calc(100% - 8px);
+  margin: 6px 4px 2px;
+  padding: 7px;
+  font-size: 12px;
+  color: var(--lx-dim);
+  background: var(--lx-hover);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color .18s;
+}
+.lx-more:hover { color: var(--lx-accent); }
+.lx-more:disabled { cursor: wait; color: var(--lx-accent); }
+
+.lx-skeleton { padding: 4px; }
+.lx-busy-text {
+  margin: 8px 0 14px;
+  text-align: center;
+  color: var(--lx-dim);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.lx-sk-row {
+  height: 34px;
+  margin-bottom: 4px;
+  border-radius: 9px;
+  background: linear-gradient(90deg, var(--lx-hover) 25%, var(--lx-border) 37%, var(--lx-hover) 63%);
+  background-size: 400% 100%;
+  animation: lx-sk 1.3s ease-in-out infinite;
+}
+@keyframes lx-sk {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+/* 通用「正在加载」转圈（歌曲行 / 播放按钮共用一个图标）。
+   transform-origin 显式写 center：SVG 元素在不同内核下的默认旋转基点并不一致。 */
+.lx-spin {
+  transform-origin: center;
+  animation: lx-rot .8s linear infinite;
+}
+@keyframes lx-rot {
+  from { transform: rotate(0); }
+  to { transform: rotate(360deg); }
+}
+
+/* --------------------------------------------------------- 歌词浮层
+   独立于面板的一层：挂在 #lx-music 里 —— 那个根节点本身就是视口大小的 fixed 覆盖层，
+   所以这里跟着用视口坐标（position: fixed），悬浮版与内嵌版行为一致。
+   --lx-lrc-x / -y 由 JS 实时写入（拖动 + 初始化）；字号 / 三档颜色 / 光晕由 applyLrcStyle()
+   写成 CSS 变量，排版方向与字体族走 data-dir / data-font 属性 —— 所以改样式是零重绘的，
+   既不重建歌词列表，也不丢滚动位置。
+   ★ 默认「透明、只留歌词文字」：所以这一层自己 pointer-events: none —— 透明之后，浮层
+     矩形范围内的空白处必须让点击透到正文上去；只有头部把手、歌词行、齿轮弹板这些
+     「真有东西的地方」才重新打开。文字自带光晕（见 .lx-ch），压在正文上也读得清。
+   两种形态共用一份 DOM，靠 [data-mode] 切：
+     window = 多行窗（歌词列表，当前行高亮放大）
+     bar    = 单行条（当前句 + 翻译），只占一条 40px 的边 */
+.lx-lrc {
+  --lx-lrc-x: 16px;
+  --lx-lrc-y: 16px;
+  /* 下面这几个会被 applyLrcStyle() 覆盖；留在这里的默认值 = 「跟随主题」时的样子 */
+  --lx-lrc-size: 13px;
+  --lx-lrc-color: var(--lx-dim);
+  --lx-lrc-on: color-mix(in srgb, var(--lx-accent) 65%, transparent);
+  --lx-lrc-fill: var(--lx-accent);
+  --lx-lrc-halo: rgba(255, 255, 255, .9);
+  --lx-lrc-halo-on: rgba(255, 255, 255, .9);
+  --lx-lrc-halo-fill: rgba(255, 255, 255, .9);
+  position: fixed;
+  left: var(--lx-lrc-x);
+  top: var(--lx-lrc-y);
+  z-index: 3;              /* 与面板同级但排在它后面：拖过去能压住面板 */
+  display: flex;
+  flex-direction: column;
+  width: 264px;
+  max-width: calc(100vw - 16px);
+  overflow: hidden;
+  background: var(--lx-surface);
+  border: 1px solid var(--lx-border);
+  border-radius: var(--lx-radius);
+  box-shadow: var(--lx-shadow);
+  pointer-events: none;
+}
+.lx-lrc[hidden] { display: none; }
+.lx-lrc[data-lrc-theme='ink'] { background: #f5f7f6; border-color: #d7e0dd; }
+.lx-lrc[data-lrc-theme='night'] { background: #22313c; border-color: #3d5360; }
+.lx-lrc[data-lrc-theme='night'] { --lx-lrc-control: #f1f8fa; --lx-lrc-control-bg: #314754; }
+.lx-lrc[data-lrc-theme='ink'] { --lx-lrc-control: #26343e; --lx-lrc-control-bg: #e6eeeb; }
+
+/* 透明模式保留一条轻轮廓线；空白区域仍可穿透点击正文。 */
+.lx-lrc[data-bg='transparent'] {
+  background: none;
+  border-color: rgba(110, 125, 140, .22);
+  box-shadow: none;
+}
+html[data-theme='dark'] .lx-lrc[data-bg='transparent'] {
+  border-color: rgba(220, 230, 240, .18);
+}
+/* 入场只做一次很轻的淡入：动画的起点本身就是 opacity 0，
+   所以不存在「先按兜底样式画出来、再被改成目标态」的闪烁。 */
+.lx-lrc:not([hidden]) { animation: lx-lrc-in .18s ease-out; }
+@keyframes lx-lrc-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.lx-lrc-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;   /* 多行窗形态下头部只有图标按钮，一律靠右排 */
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  /* 整条头都是拖动手柄 */
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  /* ★ 浮层整体是 pointer-events: none，这条把手必须自己打开，否则拖不动 */
+  pointer-events: auto;
+}
+.lx-lrc[data-locked='1'] .lx-lrc-head { cursor: default; }
+.lx-lrc .lx-lrc-lock[data-on='1'] {
+  color: var(--lx-accent);
+  background: var(--lx-hover);
+}
+.lx-lrc-head .lx-ibtn {
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  opacity: 0;
+  /* 即使图标未显现也保留命中区：先移入歌词头部即可触发 hover，再显示按钮。 */
+  pointer-events: auto;
+  transition: opacity .18s, color .18s, background-color .18s, transform .18s;
+}
+.lx-lrc:hover .lx-lrc-head .lx-ibtn,
+.lx-lrc:focus-within .lx-lrc-head .lx-ibtn {
+  opacity: 1;
+  color: var(--lx-lrc-control, var(--lx-text));
+  background: var(--lx-lrc-control-bg, var(--lx-surface));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--lx-lrc-control, var(--lx-text)) 40%, transparent), 0 2px 8px rgba(0, 0, 0, .16);
+  pointer-events: auto;
+}
+.lx-lrc:hover .lx-lrc-head .lx-ibtn:hover,
+.lx-lrc:focus-within .lx-lrc-head .lx-ibtn:focus-visible {
+  color: var(--lx-accent);
+  background: var(--lx-hover);
+  box-shadow: 0 0 0 1px var(--lx-accent), 0 2px 10px rgba(0, 0, 0, .22);
+}
+.lx-lrc[data-locked='1'] .lx-lrc-gear,
+.lx-lrc[data-locked='1'] .lx-lrc-close {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+/*
+ * 触摸设备没有可靠的悬浮态，始终保留操作入口。
+ * 同时检查 pointer: coarse：部分移动浏览器（尤其平板/兼容模式）会错误地
+ * 报告 hover: hover，但它们仍然没有鼠标，不能把按钮藏起来让用户找不到。
+ */
+@media (hover: none), (pointer: coarse) {
+  .lx-lrc-head .lx-ibtn { opacity: 1; pointer-events: auto; }
+}
+
+/* 字体族：由 applyLrcStyle() 写成 .lx-lrc[data-font]，这里把每个档位映射成字体栈。
+   data-font='' （跟随主题）时这个变量不存在，下面用到的地方靠 var() 的兜底自动继承。 */
+.lx-lrc[data-font='hei'] { --lx-lrc-font: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", "Source Han Sans SC", "Noto Sans SC", sans-serif; }
+.lx-lrc[data-font='song'] { --lx-lrc-font: "Songti SC", "SimSun", "Noto Serif SC", "Source Han Serif SC", serif; }
+.lx-lrc[data-font='kai'] { --lx-lrc-font: "Kaiti SC", "KaiTi", "STKaiti", "楷体", serif; }
+.lx-lrc[data-font='yuan'] { --lx-lrc-font: "Yuanti SC", "YouYuan", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; }
+.lx-lrc[data-font='mono'] { --lx-lrc-font: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Courier New", monospace; }
+
+/* 单行条形态的正文（就放在头部里）：多行窗形态下整块藏起来 */
+.lx-lrc-one { display: none; flex: 1 1 auto; min-width: 0; }
+.lx-lrc-one-text {
+  display: block;
+  font-size: var(--lx-lrc-size);
+  font-family: var(--lx-lrc-font, inherit);
+  font-weight: 600;
+  color: var(--lx-lrc-on);
+  text-shadow: 0 0 1px var(--lx-lrc-halo-on), 0 0 3px var(--lx-lrc-halo-on),
+               0 0 6px var(--lx-lrc-halo-on), 0 1px 3px rgba(0, 0, 0, .4);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.lx-lrc-one-text .lx-ch { display: inline; color: var(--lx-lrc-on); font-style: normal; transition: color .12s, text-shadow .12s; }
+.lx-lrc-one-text .lx-ch[data-on='1'] { color: var(--lx-lrc-fill); text-shadow: 0 0 3px var(--lx-lrc-halo-fill), 0 0 7px var(--lx-lrc-halo-fill); }
+.lx-lrc-one-trans {
+  display: block;
+  font-size: calc(var(--lx-lrc-size) - 1px);
+  font-family: var(--lx-lrc-font, inherit);
+  color: var(--lx-lrc-color);
+  text-shadow: 0 0 3px var(--lx-lrc-halo), 0 1px 3px rgba(0, 0, 0, .4);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.lx-lrc-one-trans:empty { display: none; }
+
+.lx-lrc-lines {
+  flex: 1 1 auto;
+  /* ★ min-height: 0 不能省：flex 子项默认 min-height:auto，内容一高就把窗口顶穿 */
+  min-height: 0;
+  max-height: min(260px, 42vh);
+  /* ★ 不用原生滚动：透明背景上一条滚动槽很难看，而且竖排下 scrollLeft 是负向的，
+     位移会被 clamp 成 0（详见 JS 里 lrcScrollTo 的注释）。改由 JS 平移内层轨道。 */
+  overflow: hidden;
+  padding: 10px 12px;
+  /* 浮层默认透明，大片空白不能挡住正文的点击；行自己打开（行上有「点句子跳转」） */
+  pointer-events: none;
+}
+
+/* 内层轨道：位移由 JS 写成 transform（横排 translateY(-pos) / 竖排 translateX(pos)） */
+.lx-lrc-roll {
+  transition: transform .35s ease-out;
+  will-change: transform;
+}
+
+.lx-lrc-line {
+  padding: 7px 0;
+  font-size: var(--lx-lrc-size);
+  font-family: var(--lx-lrc-font, inherit);
+  color: var(--lx-lrc-color);
+  text-align: center;
+  cursor: pointer;      /* 点一句 = 跳到那一句 */
+  transition: color .2s, transform .2s;
+  pointer-events: auto;
+}
+/* ★ hover 得同时打到逐字 span 上：颜色一旦真落到 .lx-ch（已唱的字）上，
+   只改行自己的颜色是看不见变化的。 */
+.lx-lrc-line:hover,
+.lx-lrc-line:hover .lx-ch { color: var(--lx-text); }
+.lx-lrc-line[data-on='1'] {
+  color: var(--lx-lrc-on);
+  font-weight: 600;
+  transform: scale(1.04);
+}
+/* 当前句的 hover 不能被上面那条拉成普通文字色 —— 那等于把高亮抹掉了 */
+.lx-lrc-line[data-on='1']:hover,
+.lx-lrc-line[data-on='1']:hover .lx-ch { color: var(--lx-lrc-on); }
+
+/* 逐字 span：一句里「已经唱到」的字单独上填充色（卡拉OK）。
+   ★ 刻意不走 background-clip + 渐变裁剪那套：那种写法要按横排/竖排分别算渐变方向，
+     而逐字上色天然与书写方向无关，横竖两套排版共用同一份规则。
+   光晕列表只写一遍、用 --lx-halo 这个局部变量承接三档状态 —— 换档时只改 --lx-halo，
+   不必把几行 text-shadow 抄三遍。 */
+.lx-ch {
+  --lx-halo: var(--lx-lrc-halo);
+  white-space: pre;     /* 逐字拆开之后空格得自己保住，否则会被折叠掉 */
+  font-style: normal;   /* 用 <i> 只是图短，不该真的斜体 */
+  text-shadow: 0 0 1px var(--lx-halo), 0 0 3px var(--lx-halo),
+               0 0 6px var(--lx-halo), 0 1px 3px rgba(0, 0, 0, .4);
+  transition: color .12s linear;
+}
+.lx-lrc-line[data-on='1'] .lx-ch { --lx-halo: var(--lx-lrc-halo-on); }
+/* ★ 逐字填充色只在 data-karaoke='1' 时生效：关掉逐字后残留的 data-on 不能继续改颜色。
+   ★ 这条必须排在上面那条之后：两者优先级相同，靠源码顺序决胜 */
+.lx-lrc[data-karaoke='1'] .lx-lrc-line .lx-ch[data-on='1'] {
+  color: var(--lx-lrc-fill);
+  --lx-halo: var(--lx-lrc-halo-fill);
+}
+
+/* 「低调」用颜色表达、不用 opacity —— opacity < 1 会创建合成层，
+   headless（无 GPU）下命中测试不可靠，而这一行本身是可点的（失败时点一下重试）。 */
+.lx-lyric-dim { color: color-mix(in srgb, var(--lx-lrc-color) 72%, transparent); cursor: default; }
+.lx-lyric-text { display: block; }
+.lx-lyric-trans {
+  display: block;
+  margin-top: 1px;
+  font-size: calc(var(--lx-lrc-size) - 1px);
+  opacity: .8;
+  font-weight: 400;
+}
+/* 空态 / 加载中 / 失败：居中一块（图标 + 文案 + 失败时的重试按钮），
+   比原来一行小灰字好看；失败态整块可点，等于「重新获取」。 */
+.lx-lrc-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 12px;
+  text-align: center;
+  color: var(--lx-dim);
+  font-size: var(--lx-lrc-size);
+  cursor: default;
+}
+.lx-lrc-empty[data-type='fail'] { cursor: pointer; }
+.lx-lrc-empty-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--lx-hover);
+  color: var(--lx-dim);
+}
+.lx-lrc-empty-ic svg { width: 17px; height: 17px; }
+.lx-lrc-empty-msg { line-height: 1.6; }
+.lx-lrc-retry {
+  padding: 5px 16px;
+  font-size: 12px;
+  color: #fff;
+  background: var(--lx-accent);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform .15s, filter .15s;
+}
+.lx-lrc-retry:hover { filter: brightness(1.06); }
+.lx-lrc-retry:active { transform: scale(.95); }
+
+/* 设置面板与歌词浮层同级，避免歌词窗口的 overflow 与入场 transform 裁剪面板。 */
+.lx-lrc-pop {
+  position: fixed;
+  z-index: 6;              /* 盖过面板（3）与浮层本体（3） */
+  width: 280px;
+  max-width: calc(100vw - 16px);
+  max-height: min(540px, calc(100vh - 16px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 10px 12px 8px;
+  background: var(--lx-surface);
+  border: 1px solid var(--lx-border);
+  border-radius: var(--lx-radius);
+  box-shadow: var(--lx-shadow);
+  /* 浮层整体是 pointer-events:none —— 浮板是真控件，必须自己打开 */
+  pointer-events: auto;
+}
+.lx-lrc-pop[hidden] { display: none; }
+.lx-pop-title {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--lx-text);
+}
+.lx-pop-primary { padding-bottom: 3px; border-bottom: 1px solid var(--lx-border); }
+.lx-pop-primary .lx-pop-label { color: var(--lx-text); font-weight: 600; }
+.lx-pop-primary .lx-pop-segs .lx-seg { flex: 1 1 auto; padding: 6px 8px; }
+.lx-pop-section { margin: 10px 0 7px; font-size: 11.5px; font-weight: 600; color: var(--lx-text); }
+.lx-pop-themes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.lx-pop-theme { min-width: 0; padding: 5px; text-align: center; font-size: 11px; color: var(--lx-text); background: none; border: 1px solid var(--lx-border); border-radius: 7px; cursor: pointer; }
+.lx-pop-theme[data-on='1'] { border-color: var(--lx-accent); box-shadow: inset 0 0 0 1px var(--lx-accent); }
+.lx-pop-theme-sample { display: block; padding: 6px 2px; margin-bottom: 4px; border-radius: 4px; white-space: nowrap; font-size: 12px; }
+.lx-pop-theme-sample b { font-weight: 600; }
+.lx-pop-theme-sample[data-theme-sample='clear'] { background: #3d4953; color: #e2e8f0; }
+.lx-pop-theme-sample[data-theme-sample='clear'] b { color: #62d5ce; }
+.lx-pop-theme-sample[data-theme-sample='ink'] { background: #f5f7f6; color: #8b929b; }
+.lx-pop-theme-sample[data-theme-sample='ink'] b { color: #287f81; }
+.lx-pop-theme-sample[data-theme-sample='night'] { background: #22313c; color: #b7c7d5; }
+.lx-pop-theme-sample[data-theme-sample='night'] b { color: #82d8b0; }
+.lx-pop-theme-sample[data-theme-sample='rose'] { background: #523f4d; color: #f1cbd2; }
+.lx-pop-theme-sample[data-theme-sample='rose'] b { color: #ff9eab; }
+.lx-pop-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+.lx-pop-label {
+  flex: 0 0 44px;
+  font-size: 11.5px;
+  color: var(--lx-dim);
+}
+.lx-pop-segs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.lx-pop-segs .lx-seg { padding: 3px 9px; font-size: 11.5px; }
+
+/* 色板：一排小圆片 + 一个 hex 输入框。空值 = 跟随主题，用虚线圈表达。 */
+.lx-pop-swatches {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.lx-swatch {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 1px solid var(--lx-border);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 2px var(--lx-surface);
+  transition: transform .15s, border-color .15s, box-shadow .15s;
+}
+.lx-swatch.lx-swatch-follow {
+  background: transparent;
+  border-style: dashed;
+  box-shadow: none;
+}
+.lx-swatch:hover { transform: scale(1.12); }
+.lx-swatch[data-on='1'] {
+  border-color: var(--lx-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--lx-accent) 35%, transparent);
+}
+.lx-pop-hex {
+  flex: 1 1 74px;
+  min-width: 0;
+  padding: 3px 7px;
+  font-size: 11px;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  color: var(--lx-text);
+  background: var(--lx-hover);
+  border: 1px solid transparent;
+  border-radius: 7px;
+  outline: none;
+  transition: border-color .15s;
+}
+.lx-pop-hex:focus { border-color: var(--lx-accent); }
+.lx-pop-hex::placeholder { color: var(--lx-dim); }
+
+/* 字号滑杆：原生 range，只把轨道与滑块换成本播放器的强调色 */
+.lx-pop-range {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--lx-accent);
+  cursor: pointer;
+}
+.lx-pop-size-num {
+  flex: 0 0 26px;
+  font-size: 11px;
+  color: var(--lx-dim);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.lx-pop-foot { display: flex; justify-content: flex-end; margin-top: 2px; }
+.lx-pop-reset {
+  padding: 4px 12px;
+  font-size: 11.5px;
+  color: var(--lx-dim);
+  background: none;
+  border: 1px solid var(--lx-border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color .15s, border-color .15s;
+}
+.lx-pop-reset:hover { color: var(--lx-text); border-color: var(--lx-dim); }
+
+/* 单行条形态：只剩一条 40px 的边（正文就是头部里那个 .lx-lrc-one） */
+.lx-lrc[data-mode='bar'] {
+  width: min(420px, calc(100vw - 16px));
+  border-radius: 999px;
+}
+.lx-lrc[data-mode='bar'] .lx-lrc-lines { display: none; }
+.lx-lrc[data-mode='bar'] .lx-lrc-one {
+  display: block;
+  /* 右侧固定占着两个按钮（28 + 28 + 8 = 64px）：给左边补等宽内边距，
+     这样居中的才是「整条带子」，而不是「按钮以左那一块」。 */
+  padding-left: 64px;
+  text-align: center;
+}
+
+/* 竖排字（data-dir='vertical'）
+   -------------------------------------------------------------
+   只作用于多行窗：单行条是一条横着的带子，把里面唯一那一句竖过来毫无意义，
+   所以竖排相关规则一律带上 [data-mode='window']。
+   内容从右往左流（一列一列读），用 flex row-reverse 实现：
+     · 轨道宽度取 max-content —— 这样 offsetWidth 就是内容真实宽度，lrcScrollTo 的
+       clamp 才有正确上限。不能用 scrollWidth：row-reverse 的溢出发生在左侧，
+       而 scrollWidth 只统计「右 / 下」方向的溢出。
+     · 行用 align-items: stretch + writing-mode: vertical-rl：每行占满容器高度，
+       过长的句子会自动另起一列，读起来就是古籍那种竖排。 */
+.lx-lrc[data-dir='vertical'] { width: min(200px, calc(100vw - 16px)); }
+.lx-lrc[data-mode='window'][data-dir='vertical'] .lx-lrc-lines {
+  display: flex;
+  justify-content: flex-end;   /* 内容不够宽时靠右（流的起点在右边） */
+  height: min(320px, 50vh);
+  max-height: none;
+  padding: 12px 8px;
+}
+.lx-lrc[data-mode='bar'][data-dir='vertical'] .lx-lrc-head { min-height: 170px; align-items: stretch; }
+.lx-lrc[data-mode='bar'][data-dir='vertical'] .lx-lrc-one { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 12px 32px; writing-mode: vertical-rl; text-orientation: upright; }
+.lx-lrc[data-mode='bar'][data-dir='vertical'] .lx-lrc-one-text,
+.lx-lrc[data-mode='bar'][data-dir='vertical'] .lx-lrc-one-trans { white-space: normal; overflow: visible; max-height: 145px; }
+.lx-lrc[data-mode='window'][data-dir='vertical'] .lx-lrc-roll {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: stretch;
+  width: max-content;
+  min-width: max-content;
+}
+.lx-lrc[data-mode='window'][data-dir='vertical'] .lx-lrc-line {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  padding: 0 6px;
+}
+
+/* --------------------------------------------------------- 播放条 */
+.lx-bar {
+  flex: 0 0 auto;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--lx-border);
+}
+.lx-page-lyrics { display: none; }
+
+.lx-now {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.lx-cover {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  object-fit: cover;
+  background: var(--lx-hover);
+  border-radius: 10px;
+}
+.lx-cover[hidden] { display: none; }
+
+.lx-meta { flex: 1 1 auto; min-width: 0; }
+.lx-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--lx-text);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.lx-singer {
+  font-size: 11.5px;
+  color: var(--lx-dim);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 播放条上的状态提示（目前用于「正在加载…」）。
+   加在 meta 里的第三行，实际只让播放条长高几像素 —— .lx-now 的高度由 44px 封面撑着。 */
+.lx-hint {
+  margin-top: 1px;
+  font-size: 11px;
+  color: var(--lx-accent);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.lx-hint[hidden] { display: none; }
+
+/* 播放条上的爱心（当前这首歌的收藏状态）。放在歌名右侧、跳动条之前。
+   注意选择器带两个 class：.lx-ibtn:hover 会把颜色改成强调色，
+   这里必须以更高的特异性把 hover 拉回爱心红。 */
+.lx-bar-fav { flex: 0 0 auto; color: var(--lx-dim); }
+.lx-bar-fav svg { width: 17px; height: 17px; }
+.lx-bar-fav svg:nth-of-type(2) { display: none; }
+.lx-bar-fav[data-on='1'] { color: var(--lx-heart); }
+.lx-bar-fav[data-on='1'] svg:nth-of-type(1) { display: none; }
+.lx-bar-fav[data-on='1'] svg:nth-of-type(2) { display: block; }
+.lx-ibtn.lx-bar-fav:hover { color: var(--lx-heart); background: var(--lx-hover); }
+.lx-bar-fav[disabled] { opacity: .3; cursor: default; }
+.lx-bar-fav[disabled]:hover { color: var(--lx-dim); background: none; }
+
+/* 播放中的跳动条。与歌曲行同一个道理：用 visibility 而不是 display 收放，
+   否则「开始播放」这一下会改变播放条右侧宽度、把旁边的爱心按钮挤走，
+   正好在用户要点头像/爱心的时候让目标跑掉。 */
+.lx-eq {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+  flex: 0 0 auto;
+  visibility: hidden;
+}
+.lx-eq i {
+  display: block;
+  width: 2.5px;
+  border-radius: 2px;
+  background: var(--lx-accent);
+  animation: lx-eq .9s ease-in-out infinite;
+}
+.lx-eq i:nth-child(1) { height: 60%; animation-delay: 0s; }
+.lx-eq i:nth-child(2) { height: 100%; animation-delay: .18s; }
+.lx-eq i:nth-child(3) { height: 45%; animation-delay: .36s; }
+.lx-music.is-playing .lx-eq { visibility: visible; }
+@keyframes lx-eq {
+  0%, 100% { transform: scaleY(.4); }
+  50% { transform: scaleY(1); }
+}
+
+.lx-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.lx-tcur,
+.lx-tdur {
+  flex: 0 0 auto;
+  min-width: 34px;
+  font-size: 11px;
+  color: var(--lx-dim);
+  font-variant-numeric: tabular-nums;
+}
+.lx-tdur { text-align: right; }
+
+.lx-track {
+  position: relative;
+  flex: 1 1 auto;
+  height: 4px;
+  background: var(--lx-border);
+  border-radius: 2px;
+  cursor: pointer;
+  touch-action: none;
+}
+/* 把可点区域上下各撑开 7px，避免细条不好点 */
+.lx-track::after { content: ''; position: absolute; inset: -7px 0; }
+
+.lx-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 100%;
+  background: var(--lx-accent);
+  border-radius: 2px;
+}
+
+.lx-knob {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  margin-left: -5.5px;
+  border-radius: 50%;
+  background: var(--lx-accent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .28);
+  opacity: 0;
+  transform: translateY(-50%) scale(.7);
+  transition: opacity .18s, transform .18s;
+}
+.lx-track:hover .lx-knob { opacity: 1; transform: translateY(-50%) scale(1); }
+
+.lx-track:focus-visible { outline: 2px solid var(--lx-accent); outline-offset: 4px; }
+
+.lx-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.lx-play {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  margin: 0 4px;
+  padding: 0;
+  color: #fff;
+  background: var(--lx-accent);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(73, 177, 245, .42);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--lx-accent) 42%, transparent);
+  transition: transform .18s, filter .18s;
+}
+.lx-play svg { width: 17px; height: 17px; }
+/* 播放按钮里常驻三个图标（播放 / 暂停 / 加载中），一次只显示一个。
+   「加载中」与「播放/暂停」是两个正交状态，所以它的规则写在最后、优先级最高。 */
+.lx-play > svg { display: none; }
+.lx-play > svg:nth-of-type(1) { display: block; }
+.lx-play[data-on='1'] > svg:nth-of-type(1) { display: none; }
+.lx-play[data-on='1'] > svg:nth-of-type(2) { display: block; }
+.lx-play[data-loading='1'] > svg:nth-of-type(1),
+.lx-play[data-loading='1'] > svg:nth-of-type(2) { display: none; }
+.lx-play[data-loading='1'] > svg:nth-of-type(3) { display: block; }
+.lx-play:hover { filter: brightness(1.08); transform: scale(1.05); }
+.lx-play:active { transform: scale(.95); }
+
+.lx-spacer { flex: 1 1 auto; }
+
+.lx-vol {
+  width: 64px;
+  flex: 0 0 auto;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--lx-border);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+.lx-vol::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 11px;
+  height: 11px;
+  border: none;
+  border-radius: 50%;
+  background: var(--lx-accent);
+  cursor: pointer;
+}
+.lx-vol::-moz-range-thumb {
+  width: 11px;
+  height: 11px;
+  border: none;
+  border-radius: 50%;
+  background: var(--lx-accent);
+  cursor: pointer;
+}
+.lx-vol::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--lx-border);
+}
+
+/* 音质 */
+.lx-quality {
+  display: flex;
+  gap: 6px;
+  margin-top: 9px;
+}
+.lx-quality[hidden] { display: none; }
+
+.lx-q {
+  padding: 2px 9px;
+  font-size: 11px;
+  color: var(--lx-dim);
+  background: none;
+  border: 1px solid var(--lx-border);
+  border-radius: 6px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: color .18s, background-color .18s, border-color .18s;
+}
+.lx-q:hover { color: var(--lx-accent); border-color: var(--lx-accent); }
+.lx-q[data-on='1'] {
+  color: #fff;
+  background: var(--lx-accent);
+  border-color: var(--lx-accent);
+}
+
+/* --------------------------------------------------------- 提示条 */
+.lx-toast {
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #fff;
+  background: #E5564A;
+  text-align: center;
+}
+.lx-toast[hidden] { display: none; }
+/* 成功类提示（收藏 / 清空）：界面上一律红底会让人以为出错了 */
+.lx-toast[data-kind='ok'] { background: #22c55e; }
+
+/* --------------------------------------------------------- 贴边图标（挡板）
+   外观：白色（半透明）胶囊 + 绿色音符，贴边那一侧与屏幕边缘齐平、内侧做成半圆。
+   位置完全由 --lx-x / --lx-y 决定（默认左下角）；拖动中横纵跟手，
+   松手后横向吸附到最近的一侧（右侧的圆角与滑出方向由 data-edge 镜像）。
+   --------------------------------------------------------- */
+.lx-rail {
+  position: absolute;
+  left: var(--lx-x);
+  top: var(--lx-y);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--lx-rail-w);
+  height: var(--lx-rail-h);
+  padding: 0;
+  color: var(--lx-rail-fg);
+  background: var(--lx-rail-bg);
+  border: none;
+  /* 999px 而不是具体数值：改尺寸时右侧自动还是半圆 */
+  border-radius: 0 999px 999px 0;
+  box-shadow: 0 4px 18px rgba(7, 17, 27, .16);
+  cursor: grab;
+  /* 拖动要吃掉浏览器默认手势，否则移动端会变成滚页面 */
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  opacity: 0;
+  transform: translateX(var(--lx-rail-off, calc(-100% - 8px)));
+  transition: transform .34s cubic-bezier(.4, 0, .2, 1), opacity .28s ease,
+    box-shadow .2s ease, background-color .2s ease;
+}
+.lx-music[data-collapsed='true'] .lx-rail {
+  opacity: 1;
+  transform: translateX(0);
+}
+.lx-music[data-collapsed='true'] .lx-rail:hover {
+  transform: translateX(0);
+  box-shadow: 0 6px 22px rgba(7, 17, 27, .24);
+}
+/* 挡板在右半屏：圆角与滑入方向一起镜像 */
+.lx-music[data-edge='right'] .lx-rail {
+  --lx-rail-off: calc(100% + 8px);
+  border-radius: 999px 0 0 999px;
+}
+
+/* 拖动中：换抓手光标，并去掉过渡（否则跟手会有延迟感） */
+.lx-music.lx-dragging .lx-rail,
+.lx-music.lx-dragging .lx-head,
+.lx-music.lx-dragging .lx-lrc-head { cursor: grabbing; }
+.lx-music.lx-dragging .lx-rail,
+.lx-music.lx-dragging .lx-panel { transition: none; }
+
+.lx-rail-disc {
+  display: block;
+  width: 19px;
+  height: 19px;
+}
+.lx-rail-disc svg { width: 19px; height: 19px; }
+/* 播放中：音符轻微脉动（原来是整块旋转，白底上转起来很怪） */
+.lx-music.is-playing .lx-rail-disc { animation: lx-pulse 1.6s ease-in-out infinite; }
+@keyframes lx-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.14); opacity: .82; }
+}
+
+/* --------------------------------------------------------- 暗黑模式 */
+html[data-theme='dark'] .lx-music {
+  --lx-hover: rgba(255, 255, 255, .07);
+  --lx-shadow: 0 10px 34px rgba(0, 0, 0, .55);
+  --lx-rail-bg: rgba(38, 41, 48, .94);
+  /* 深色底上 #e5484d 偏闷，提亮一档 */
+  --lx-heart: #ff6b6b;
+}
+html[data-theme='dark'] .lx-panel {
+  border-color: rgba(255, 255, 255, .09);
+}
+html[data-theme='dark'] .lx-rail { box-shadow: 0 4px 18px rgba(0, 0, 0, .5); }
+html[data-theme='dark'] .lx-input:focus { background: var(--lx-hover); }
+html[data-theme='dark'] .lx-empty,
+html[data-theme='dark'] .lx-card-name,
+html[data-theme='dark'] .lx-song-singer { color: rgba(255, 255, 255, .5); }
+html[data-theme='dark'] .lx-go,
+html[data-theme='dark'] .lx-play,
+html[data-theme='dark'] .lx-q[data-on='1'] { color: #0d0d0d; }
+html[data-theme='dark'] .lx-q[data-on='1'] { font-weight: 600; }
+
+/* --------------------------------------------------------- 窄屏 */
+@media (max-width: 768px) {
+  .lx-panel {
+    width: min(340px, calc(100vw - 16px));
+    max-height: min(70vh, 520px);
+  }
+  /* 面板的 left/top 与收起位移现在都由 JS 变量 + --lx-rail-w 推导，
+     这里只改尺寸，不再直接覆盖定位 —— 否则会和拖动后的位置打架。 */
+  .lx-grid { grid-template-columns: repeat(3, 1fr); }
+  .lx-vol { width: 48px; }
+  .lx-lrc { width: min(260px, calc(100vw - 16px)); }   /* 窄屏别让它横着占太宽 */
+  .lx-lrc-lines { max-height: min(190px, 32vh); }
+  /* 竖排：窄屏再瘦一点、矮一点（这两条比上面的 .lx-lrc-lines 更具体，会盖住 max-height） */
+  .lx-lrc[data-mode='window'][data-dir='vertical'] { width: min(168px, calc(100vw - 16px)); }
+  .lx-lrc[data-mode='window'][data-dir='vertical'] .lx-lrc-lines { height: min(260px, 46vh); }
+}
+
+/* 矮屏（窗口高度不够）：先砍装饰，保住搜索框 + 列表 + 歌词都能看见 */
+@media (max-height: 720px) {
+  .lx-hot { display: none; }
+  .lx-bar { padding: 8px 12px 10px; }
+  .lx-now { margin-bottom: 6px; }
+  .lx-cover { width: 38px; height: 38px; }
+  .lx-lrc-lines { max-height: min(190px, 34vh); }
+}
+
+/* 极矮屏：音质选择那一行收起，换列表至少还能露一整行 */
+@media (max-height: 600px) {
+  .lx-quality { display: none; }
+  .lx-cover { width: 34px; height: 34px; }
+  .lx-lrc-lines { max-height: min(150px, 30vh); }
+}
+
+@media (max-width: 420px) {
+  /* 变量必须挂在 .lx-music 上：面板的收起位移也算 var(--lx-rail-w)，
+     写在 .lx-rail 上的话面板读不到（不会继承兄弟元素的自定义属性）。 */
+  .lx-music {
+    --lx-rail-w: 34px;
+    --lx-rail-h: 40px;
+  }
+  .lx-grid { grid-template-columns: repeat(2, 1fr); }
+  .lx-rail-disc,
+  .lx-rail-disc svg { width: 17px; height: 17px; }
+}
+
+/* 配置里 mobile: false 时，手机上整块隐藏 */
+.lx-music.lx-hide-mobile { display: none; }
+
+/* --------------------------------------------------------- 无障碍 */
+@media (prefers-reduced-motion: reduce) {
+  .lx-panel,
+  .lx-rail,
+  .lx-card-pic,
+  .lx-play,
+  .lx-ibtn,
+  .lx-song-fav,
+  .lx-knob { transition: none; }
+  .lx-music.is-playing .lx-rail-disc,
+  .lx-music.is-playing .lx-eq i { animation: none; }
+  .lx-sk-row { animation: none; }
+  /* 转圈是「还在干活」的唯一信号，直接停掉等于把信息删了 —— 改成慢速旋转 */
+  .lx-spin { animation-duration: 1.6s; }
+  .lx-lrc-lines { scroll-behavior: auto; }
+  /* 歌词：滚动改成平移轨道之后，要停的是轨道的过渡（JS 里也判了一次
+     prefers-reduced-motion，两处都留着 —— 这里保证不依赖 JS 也不动） */
+  .lx-lrc-roll,
+  .lx-lrc-line,
+  .lx-ch { transition: none; }
+  .lx-lrc:not([hidden]) { animation: none; }
+}
+
+.lx-music button:focus-visible,
+.lx-music .lx-song:focus-visible,
+.lx-music .lx-entry:focus-visible,
+.lx-music .lx-card:focus-visible {
+  outline: 2px solid var(--lx-accent);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   页面内嵌版（用于 /music/ 这类页面）
+   --------------------------------------------------------------------------
+   正文里放一个 <div id="lx-music-page"></div>，播放器就常驻嵌进该容器：
+   退出那个 fixed 全屏覆盖层 → 面板撑满容器、没有贴边挡板、没有收起按钮。
+   面板给一个跟视口挂钩的固定高度，让歌曲列表在自己的框里滚 ——
+   否则 30 条搜索结果会把页面拉得很长。
+   ★ 本节必须排在所有媒体查询之后：那几段里有直接改 .lx-panel 定位的规则，
+     这里靠 .lx-music.lx-embed 的双类特异性 + 末尾顺序一起盖住它们。
+   ========================================================================== */
+
+#lx-music-page { margin: 0; min-height: 480px; }
+
+/* Butterfly 给 #content-inner 加 1 秒 translateY 入场动画；动画期间 transform 会把
+   内嵌播放器里 position:fixed 的歌词当成页面子元素定位，造成先贴到页面再跳回视口。
+   仅音乐页禁用这层入场动画，不影响其他页面或歌词自身的淡入。 */
+#content-inner:has(#lx-music-page) { animation: none !important; }
+
+.lx-music.lx-embed {
+  position: static;
+  inset: auto;
+  z-index: auto;
+  pointer-events: auto;
+}
+
+.lx-music.lx-embed .lx-panel {
+  position: relative;
+  left: auto;
+  top: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 38%);
+  grid-template-rows: auto minmax(0, 1fr);
+  width: 100%;
+  height: clamp(480px, calc(100vh - 250px), 700px);
+  max-height: none;
+  border-radius: 6px;
+  transform: none;
+  opacity: 1;
+  pointer-events: auto;
+  transition: none;
+}
+.lx-music.lx-embed .lx-head { grid-column: 1 / -1; cursor: default; }
+.lx-music.lx-embed .lx-tabs { grid-column: 1; grid-row: 2; align-self: start; }
+.lx-music.lx-embed .lx-panes { grid-column: 1; grid-row: 2; min-height: 0; margin-top: 50px; }
+.lx-music.lx-embed .lx-bar {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border-top: 0;
+  border-left: 1px solid var(--lx-border);
+  background: color-mix(in srgb, var(--lx-accent) 3%, var(--lx-surface));
+}
+.lx-music.lx-embed .lx-bar .lx-now {
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 15px;
+  min-width: 0;
+  margin: 0;
+  padding: 24px 24px 20px;
+  border-bottom: 1px solid var(--lx-border);
+}
+.lx-music.lx-embed .lx-bar .lx-cover { width: 88px; height: 88px; border-radius: 6px; box-shadow: 0 6px 20px rgba(0, 0, 0, .13); }
+.lx-music.lx-embed .lx-bar .lx-name { font-size: 18px; line-height: 1.35; }
+.lx-music.lx-embed .lx-bar .lx-singer { margin-top: 5px; font-size: 13px; }
+.lx-music.lx-embed .lx-page-lyrics {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  padding: 18px 24px 10px;
+}
+.lx-music.lx-embed .lx-page-lyrics-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+  margin-bottom: 8px;
+  color: var(--lx-dim);
+  font-size: 11px;
+  font-weight: 700;
+}
+.lx-music.lx-embed .lx-page-lyrics-rule { flex: 1; height: 1px; background: var(--lx-border); }
+.lx-music.lx-embed .lx-page-lyrics-lines {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--lx-border) transparent;
+}
+.lx-music.lx-embed .lx-page-lyrics-roll { position: relative; padding: 12px 4px; }
+.lx-music.lx-embed .lx-page-lyrics .lx-lrc-line {
+  padding: 8px 0;
+  color: var(--lx-dim);
+  font-size: 13px;
+  text-align: left;
+  opacity: .72;
+  transform: none;
+}
+.lx-music.lx-embed .lx-page-lyrics .lx-lrc-line[data-on='1'] {
+  color: var(--lx-text);
+  font-size: 16px;
+  font-weight: 700;
+  opacity: 1;
+}
+.lx-music.lx-embed .lx-page-lyrics .lx-lrc-line:hover,
+.lx-music.lx-embed .lx-page-lyrics .lx-lrc-line:hover .lx-ch { color: var(--lx-accent); }
+.lx-music.lx-embed .lx-page-lyrics .lx-ch { text-shadow: none; }
+.lx-music.lx-embed .lx-page-lyrics[data-karaoke='1'] .lx-lrc-line .lx-ch[data-on='1'] { color: var(--lx-accent); }
+.lx-music.lx-embed .lx-page-lyrics .lx-lyric-trans { margin-top: 4px; font-size: 12px; line-height: 1.5; }
+.lx-music.lx-embed .lx-page-lyrics .lx-lrc-empty { align-items: flex-start; padding: 22px 4px; text-align: left; }
+.lx-music.lx-embed .lx-page-lyrics .lx-lrc-empty-ic { color: var(--lx-accent); }
+.lx-music.lx-embed .lx-bar .lx-progress { margin: 0; padding: 16px 24px 10px; border-top: 1px solid var(--lx-border); }
+.lx-music.lx-embed .lx-bar .lx-controls { padding: 0 20px 10px; }
+.lx-music.lx-embed .lx-bar .lx-quality { padding: 0 24px 20px; }
+.lx-music.lx-embed .lx-toast { position: absolute; z-index: 5; bottom: 0; left: 0; right: 0; }
+
+/* 跨页面挪动同一播放器时，面板直接切到目标形态；不播放从内嵌展开态到悬浮收起态的过渡。 */
+.lx-music.lx-mount-switch .lx-panel,
+.lx-music.lx-mount-switch .lx-rail { transition: none !important; }
+
+/* 内嵌版保留悬浮面板的收起属性，但始终显示完整播放器。 */
+.lx-music.lx-embed[data-collapsed='true'] .lx-panel {
+  --lx-panel-off: 0px;
+  transform: none;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 内嵌版用不到贴边挡板与收起按钮（渲染时就没生成，此处是双保险） */
+.lx-music.lx-embed .lx-rail,
+.lx-music.lx-embed .lx-collapse { display: none !important; }
+
+@media screen and (max-width: 768px) {
+  .lx-music.lx-embed .lx-panel {
+    left: auto;
+    display: flex;
+    width: 100%;
+    height: clamp(720px, calc(100vh - 80px), 900px);
+    max-height: none;
+  }
+  .lx-music.lx-embed .lx-panes { flex: 1 1 auto; margin-top: 0; }
+  .lx-music.lx-embed .lx-bar { flex: 0 0 350px; border-left: 0; border-top: 1px solid var(--lx-border); }
+  .lx-music.lx-embed .lx-bar .lx-now { padding: 10px 16px; gap: 10px; }
+  .lx-music.lx-embed .lx-bar .lx-cover { width: 48px; height: 48px; }
+  .lx-music.lx-embed .lx-bar .lx-name { font-size: 14px; }
+  .lx-music.lx-embed .lx-bar .lx-singer { margin-top: 1px; font-size: 11px; }
+  .lx-music.lx-embed .lx-page-lyrics { padding: 8px 16px 4px; }
+  .lx-music.lx-embed .lx-page-lyrics-title { margin-bottom: 2px; }
+  .lx-music.lx-embed .lx-page-lyrics-roll { padding: 2px 4px; }
+  .lx-music.lx-embed .lx-page-lyrics .lx-lrc-line { padding: 5px 0; font-size: 12px; }
+  .lx-music.lx-embed .lx-page-lyrics .lx-lrc-line[data-on='1'] { font-size: 14px; }
+  .lx-music.lx-embed .lx-bar .lx-progress { padding: 10px 16px 8px; }
+  .lx-music.lx-embed .lx-bar .lx-controls { padding: 0 12px 6px; }
+  .lx-music.lx-embed .lx-bar .lx-quality { padding: 0 16px 10px; }
+}
+
+/* 竖排单行条：工具按钮固定在顶部，歌词独占中间区域。
+   不能沿用横排单行条的头部 flex，否则窄屏下文字会被按钮挤成一根竖线。 */
+.lx-lrc[data-mode='bar'][data-dir='vertical'] {
+  width: min(132px, calc(100vw - 16px));
+  min-height: 300px;
+  border-radius: 18px;
+}
+.lx-lrc[data-mode='bar'][data-dir='vertical'] .lx-lrc-head {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 300px;
+  box-sizing: border-box;
+  padding: 44px 10px 12px;
+  cursor: grab;
+}
+.lx-lrc[data-mode='bar'][data-dir='vertical'] .lx-lrc-one {
+  display: flex;
+  width: 100%;
+  height: 244px;
+  min-height: 0;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0;
+  text-align: center;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+}
+.lx-lrc[data-mode='bar'][data-dir='vertical'] .lx-lrc-one-text,
+.lx-lrc[data-mode='bar'][data-dir='vertical'] .lx-lrc-one-trans {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  overflow: hidden;
+  white-space: normal;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+}
+.lx-lrc[data-mode='bar'][data-dir='vertical'] .lx-lrc-one-trans {
+  display: none;
+}
+.lx-lrc[data-mode='bar'][data-dir='vertical'] .lx-lrc-lock,
+.lx-lrc[data-mode='bar'][data-dir='vertical'] .lx-lrc-gear,
+.lx-lrc[data-mode='bar'][data-dir='vertical'] .lx-lrc-close {
+  position: absolute;
+  top: 10px;
+  z-index: 2;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+}
+.lx-lrc[data-mode='bar'][data-dir='vertical'] .lx-lrc-lock { left: 10px; }
+.lx-lrc[data-mode='bar'][data-dir='vertical'] .lx-lrc-gear { left: 44px; }
+.lx-lrc[data-mode='bar'][data-dir='vertical'] .lx-lrc-close { right: 10px; }
