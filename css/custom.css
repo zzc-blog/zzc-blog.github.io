@@ -2670,3 +2670,156 @@ body,
   background: inherit;
 }
 
+/* ============================================================
+ * 文章页导航栏标题：缩小字号 + 超长截断，始终不越过菜单
+ * ------------------------------------------------------------
+ * 【要解决的问题】
+ * 文章页 #blog-info 里有两个标题，主题用 JS 切换显隐：
+ *     .nav-site-title   站点名（拾遗录）     ← 主题默认在文章页显示这个
+ *     .nav-page-title   文章名（最长 42 字） ← 主题默认只在首页隐藏它
+ *
+ * 而 #menus 是绝对定位（为了对齐左侧卡片区轴线），在 flex 行内
+ * 不占宽度；文章名又长，于是标题一路铺开、压在菜单上，滚动后
+ * 进入 nav-fixed 状态时更明显。
+ *
+ * 【为什么不能只靠 max-width】
+ * 给 #blog-info 加 max-width 是无效的 —— 它只是容器，真正撑开宽度的
+ * 是内层 <span class="site-name">。必须给内层自己也设约束，这一条是
+ * 整件事的关键（第一版就是漏了它，才反复调断点都不生效）。
+ *
+ * 【本方案】
+ *   1) 字号缩一档，长标题能多放几个字；
+ *   2) 给标题一个「到菜单左缘为止」的最大宽度，超出显示省略号；
+ *   3) 宽度按断点用 vw 表达 —— 菜单的居中位置本身就是按 vw 分三段
+ *      算的（见文件上方那几条 left），跟着它走才对得齐。
+ *
+ * 【各断点可用宽度怎么来的】
+ * 实测（视口 → 菜单左缘 → 减左边距 36 与安全间隙 16）：
+ *     vw=1384 → 菜单左缘 182px → 标题可用 130px
+ *     vw=1904 → 菜单左缘 442px → 标题可用 390px
+ *     vw=2544 → 菜单左缘 720px → 标题可用 668px
+ * 即 菜单左缘 ≈ left − 372.5px（#menus 实测宽 745，含搜索按钮），
+ * 代入各断点的 left 公式，再减 52px 即得下面的 max-width。
+ *
+ * 【为什么不直接隐藏文章名】
+ * 隐藏后读者在导航栏看不到自己在读哪篇，会失去位置感。
+ * 保留 + 截断是更好的折中：窄屏显示开头几个字，宽屏能显示大半。
+ *
+ * ⚠️ !important 必须加：主题 main.js 用行内 style 切换 display，
+ *    行内样式优先级高于普通选择器，不加压不住。
+ * ============================================================ */
+
+/* 文章页：显示文章名，隐藏站点名（与主题默认相反） */
+#page-header #nav .nav-page-title {
+  display: inline-block !important;
+}
+
+#page-header #nav .nav-site-title {
+  display: none !important;
+}
+
+/* 首页没有 .nav-page-title，站点名必须保留，否则导航栏空白 */
+#page-header.full_page #nav .nav-site-title {
+  display: inline-block !important;
+}
+
+/* 标题容器：允许收缩，截断交给内层 */
+#page-header #nav > #blog-info .nav-page-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 标题文字：字号收一档 + 截断 */
+#page-header #nav > #blog-info .nav-page-title > .site-name:first-child {
+  display: inline-block;
+  font-size: .82em;          /* 比导航栏基准略小，长标题能多放 2~3 字 */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* ------------------------------------------------------------
+ * 分断点设置标题最大宽度（与 #menus 的 left 公式一一对应）
+ *   取值 = 菜单左缘 − 36px(左边距) − 16px(安全间隙)
+ * max(90px, …) 是兜底：窗口很窄时至少留 90px，
+ * 宁可截得短一些，也不让标题被压成看不见。
+ * ------------------------------------------------------------ */
+
+/* 993 ~ 1199px：菜单 left = 37.4vw + 15px
+   菜单左缘 ≈ 37.4vw + 15 − 372.5 = 37.4vw − 357.5
+   再减 52 → 37.4vw − 409.5 */
+@media (min-width: 993px) and (max-width: 1199px) {
+  #page-header #nav > #blog-info .nav-page-title {
+    max-width: max(90px, calc(37.4vw - 410px));
+  }
+}
+
+/* 1200 ~ 1999px：菜单 left = 50vw − 137.1px
+   菜单左缘 ≈ 50vw − 137.1 − 372.5 = 50vw − 509.6
+   再减 52 → 50vw − 561.6 */
+@media (min-width: 1200px) and (max-width: 1999px) {
+  #page-header #nav > #blog-info .nav-page-title {
+    max-width: max(90px, calc(50vw - 562px));
+  }
+}
+
+/* >= 2000px：菜单 left = 42.35vw + 15px
+   菜单左缘 ≈ 42.35vw + 15 − 372.5 = 42.35vw − 357.5
+   再减 52 → 42.35vw − 409.5 */
+@media (min-width: 2000px) {
+  #page-header #nav > #blog-info .nav-page-title {
+    max-width: calc(42.35vw - 410px);
+  }
+}
+
+/* ============================================================
+ * 993 ~ 1199px：主动把菜单收进汉堡按钮
+ * ------------------------------------------------------------
+ * 实测这一段菜单左缘只有 38~97px（几乎顶到导航栏最左边），
+ * 而标题从 36px 开始 —— 两者物理上争同一块地，
+ * 标题无论怎么截断都会撞上菜单。故这一段直接折叠。
+ *
+ * 主题的自动折叠判定（main.js）
+ *     headerContentWidth > navW − 120
+ * 其中 headerContentWidth 只统计「站点名」，文章页显示的是
+ * 「文章名」，后者不计入 —— 所以长标题的文章页永远不会触发
+ * 自动折叠。这里用纯 CSS 复刻 .hide-menu 的效果，不依赖 JS。
+ *
+ * 复刻内容对照主题 head.styl 的 &.hide-menu：
+ *   #toggle-menu   显示（汉堡）
+ *   .menus_items   隐藏
+ *   #search-button 只留图标、隐藏「搜索」文字
+ * ============================================================ */
+@media (min-width: 993px) and (max-width: 1199px) {
+  #page-header #nav > #menus > #toggle-menu {
+    display: inline-block !important;
+  }
+
+  #page-header #nav > #menus > #toggle-menu .site-page {
+    font-size: inherit;
+  }
+
+  #page-header #nav > #menus > .menus_items {
+    display: none;
+  }
+
+  #page-header #nav > #menus > #search-button span:not(.site-page) {
+    display: none;
+  }
+
+  /* 折叠后菜单不占位，标题可用整栏宽度，无需再截断 */
+  #page-header #nav > #blog-info .nav-page-title {
+    max-width: none;
+  }
+}
+
+/* 菜单折叠态（<=992px）：菜单已收进汉堡按钮，标题可用整栏宽度 */
+@media (max-width: 992px) {
+  #page-header #nav > #blog-info .nav-page-title {
+    max-width: none;
+  }
+}
