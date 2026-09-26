@@ -1331,13 +1331,72 @@
   // cur = 当前播放秒数；force = true 时即使下标没变也重算并重新滚动。
   // 打开浮层时必须 force —— 藏起来那段时间 timeupdate 早就把 state.lyricIdx 更新过了，
   // 不 force 的话这里会直接 return，浮层停在顶部、当前行落在可视区外，看着就像「没高亮」。
-  function syncLyric (cur, force) {
-    if (!state.lyric.length) return
+  //
+  // ★ 性能：这里原本每次调用都要「querySelectorAll 全部行 + 给全部行写 data-on」，
+  //   两个容器（浮层 + 内嵌页）各来一遍。一首 4 分钟的歌约 60~100 行，
+  //   而每次真正变化的只有「上一行熄灭、当前行点亮」这两行 ——
+  //   其余 98 行的 data-on 写进去的值和原来一模一样，纯属白写。
+  //   本函数由 timeupdate（~4Hz）与换行路径反复调用，累积起来很可观。
+  //
+  //   改法：只记住「上一次点亮的是哪个**元素**」，每次只熄灭它、点亮新的那行。
+  //   注意这里比对的是**元素引用**而不是下标 —— 元素引用天然覆盖了
+  //   「歌词被重建（切歌/换行重排）后旧引用失效」的情况：那时 prevEl 不再
+  //   是当前 DOM 里的节点，比对不上就会自然退回全量刷新，不需要额外的状态位。
+  //
+  // ★ 查找 idx 不再从 0 开始扫：歌词时间单调递增，从上次的 state.lyricIdx
+  //   继续往后走即可，播到第 3 分钟时不必每次重扫前 75 行。
+  //   但 seek / 切歌会让时间**倒退**，所以倒退时回退到全量扫描兜底
+  //   —— 单调推进只是快路径，正确性仍由全量扫描保证。
+  var lrcActiveEl = null      // 浮层里当前被点亮的那一行元素（null = 还没点亮过）
+  var pageActiveEl = null     // 内嵌页里同理
+
+  // 找出 cur 对应的歌词下标。hint 是上次的下标，用作单调推进的起点。
+  function findLyricIdx (cur, hint) {
+    var t = state.lyric
+    var n = t.length
+    var i
+    if (hint >= 0 && hint < n && t[hint].t <= cur + 0.15) {
+      // 快路径：时间只可能前进，从 hint 往后找，找到第一个「未来」的行即停
+      i = hint
+      while (i + 1 < n && cur + 0.15 >= t[i + 1].t) i++
+      return i
+    }
+    // 慢路径：hint 不可用（首次 / seek 倒退 / 切歌），全量扫描
     var idx = -1
-    for (var i = 0; i < state.lyric.length; i++) {
-      if (cur + 0.15 >= state.lyric[i].t) idx = i
+    for (i = 0; i < n; i++) {
+      if (cur + 0.15 >= t[i].t) idx = i
       else break
     }
+    return idx
+  }
+
+  // 把一个歌词容器的高亮从 prevEl 切到目标行。
+  //   · 目标行与 prevEl 相同 ⇒ 什么都不用做（最常见的「重复调用」情况）
+  //   · prevEl 仍在容器内   ⇒ 只熄灭它（热路径，O(1)）
+  //   · 否则（首次 / force / 容器被重建）⇒ 全量刷一遍兜底
+  // force 为真时强制走全量，保证「刚打开浮层」这种状态不确定的时刻一定正确。
+  function highlightLine (container, prevEl, idx, force) {
+    var lines = container.querySelectorAll('.lx-lrc-line')
+    var target = lines[idx] || null
+    if (!target) return prevEl
+
+    if (target === prevEl && !force) return prevEl
+
+    if (force || !prevEl || prevEl.parentNode !== container) {
+      for (var j = 0; j < lines.length; j++) {
+        var want = j === idx ? '1' : '0'
+        if (lines[j].getAttribute('data-on') !== want) lines[j].setAttribute('data-on', want)
+      }
+    } else {
+      if (prevEl.getAttribute('data-on') !== '0') prevEl.setAttribute('data-on', '0')
+      if (target.getAttribute('data-on') !== '1') target.setAttribute('data-on', '1')
+    }
+    return target
+  }
+
+  function syncLyric (cur, force) {
+    if (!state.lyric.length) return
+    var idx = findLyricIdx(cur, force ? -2 : state.lyricIdx)
     if (idx === state.lyricIdx && !force) return
     state.lyricIdx = idx
 
@@ -1347,21 +1406,23 @@
 
     var roll = $('.lx-lrc-roll')
     if (roll) {
-      var lines = roll.querySelectorAll('.lx-lrc-line')
-      for (var j = 0; j < lines.length; j++) lines[j].setAttribute('data-on', j === idx ? '1' : '0')
-      if (lines[idx] && lrcIsOpen()) lrcScrollTo(lines[idx], !!force)
+      lrcActiveEl = highlightLine(roll, lrcActiveEl, idx, !!force)
+      if (lrcActiveEl && lrcIsOpen()) lrcScrollTo(lrcActiveEl, !!force)
+    } else {
+      lrcActiveEl = null
     }
 
     var pageRoll = $('.lx-page-lyrics-roll')
     if (pageRoll) {
-      var pageLines = pageRoll.querySelectorAll('.lx-lrc-line')
-      for (var k = 0; k < pageLines.length; k++) pageLines[k].setAttribute('data-on', k === idx ? '1' : '0')
-      if (pageLines[idx] && isEmbed()) {
+      pageActiveEl = highlightLine(pageRoll, pageActiveEl, idx, !!force)
+      if (pageActiveEl && isEmbed()) {
         var box = $('.lx-page-lyrics-lines')
-        var top = pageLines[idx].offsetTop - (box.clientHeight - pageLines[idx].offsetHeight) / 2
+        var top = pageActiveEl.offsetTop - (box.clientHeight - pageActiveEl.offsetHeight) / 2
         if (force || lrcReduce) box.scrollTop = top
         else box.scrollTo({ top: top, behavior: 'smooth' })
       }
+    } else {
+      pageActiveEl = null
     }
   }
 
@@ -1429,6 +1490,11 @@
 
   var lrcKaraoke = { line: -1, n: 0, els: null }
   var pageKaraoke = { line: -1, n: 0, els: null }
+  // 单行条（.lx-lrc-one-text）的逐字游标，与上面两个多行窗的游标同构。
+  // 它也必须记「上一帧写到第几个字」，否则每帧全量重写（见 tickKaraoke 的说明）。
+  // ⚠️ 用 first（首字元素引用）而不是 NodeList 来识别「本行是否被重建」，
+  //    原因见 tickKaraoke 里的注释：NodeList 每次都是新对象，比较它恒为真。
+  var oneKaraoke = { line: -1, n: 0, first: null }
   var lrcRafId = 0
 
   // 把当前行已唱到的字点亮 / 未唱的字熄灭。游标只前进或回退跨过的那一段。
@@ -1461,16 +1527,57 @@
     if (!lrcStyle.karaoke) return
     var idx = state.lyricIdx
     if (idx < 0 || !state.lrcWords || !state.lrcWords[idx]) return
-    if (lrcIsOpen()) lrcKaraoke = tickKaraokeRoll($('.lx-lrc-roll'), lrcKaraoke)
+
     if (lrcIsOpen()) {
+      lrcKaraoke = tickKaraokeRoll($('.lx-lrc-roll'), lrcKaraoke)
+
+      /* 单行条：与上面多行窗同一套「游标推进」策略。
+       *
+       * ★ 这里原本是**每帧无条件全量重写**：
+       *     for (var oi = 0; oi < oneChars.length; oi++)
+       *       oneChars[oi].setAttribute('data-on', now >= oneTimes[oi] ? '1' : '0')
+       *   没有「值没变就跳过」的判断。而本函数由 requestAnimationFrame
+       *   以 ~60fps 驱动，于是一行 20 个字 → 每秒 1200 次 setAttribute，
+       *   其中绝大多数是重复写入同一个值。
+       *
+       *   为什么这种冗余写特别贵：.lx-ch[data-on='1'] 不只改 color，
+       *   还改 text-shadow（双层光晕，见 lx-music.css 第 806 行），
+       *   而 text-shadow 属于绘制属性，改动要重新栅格化字形；
+       *   再加上 CSS 里那两条 .12s 的 color/text-shadow 过渡，
+       *   浏览器每帧都在做样式重算 + 光晕重绘。
+       *   表现就是「刚播放还行、播一会儿 CPU 就爬上去」——
+       *   持续的重绘把渲染线程压满载了。
+       *
+       *   修法与多行窗完全一致：先算出「已唱到第几个字」n，
+       *   和上一帧的 n 相同就什么都不做（O(1) 提前返回）；
+       *   不同才只翻转 from..to 这一段。换行时重置游标。 */
       var one = $('.lx-lrc-one-text')
       var oneChars = one ? one.querySelectorAll('.lx-ch') : []
       var oneTimes = state.lrcWords[idx]
       if (oneChars.length && oneTimes) {
+        /* ⚠️ 判定「本行是不是换了一批新节点」必须用**首元素的引用**比较，
+         *    不能用 oneChars 本身 —— querySelectorAll 每次调用都返回一个
+         *    全新的 NodeList 对象，`oneKaraoke.els !== oneChars` 会**恒为真**，
+         *    于是每帧都把游标重置成 n:0，守卫形同虚设。
+         *    setLrcOne() 是用 innerHTML 重建这一行的（换行、force 同步时都会），
+         *    重建后首元素是新的引用，用它比较才准。 */
+        var firstChar = oneChars[0]
+        if (oneKaraoke.line !== idx || oneKaraoke.first !== firstChar) {
+          oneKaraoke = { line: idx, n: 0, first: firstChar }
+        }
         var now = audio.currentTime || 0
-        for (var oi = 0; oi < oneChars.length; oi++) oneChars[oi].setAttribute('data-on', now >= oneTimes[oi] ? '1' : '0')
+        var n = 0
+        while (n < oneChars.length && now >= oneTimes[n]) n++
+        if (n !== oneKaraoke.n) {
+          var from = Math.min(n, oneKaraoke.n)
+          var to = Math.max(n, oneKaraoke.n)
+          var on = n > oneKaraoke.n
+          for (var oi = from; oi < to; oi++) oneChars[oi].setAttribute('data-on', on ? '1' : '0')
+          oneKaraoke.n = n
+        }
       }
     }
+
     if (isEmbed()) pageKaraoke = tickKaraokeRoll($('.lx-page-lyrics-roll'), pageKaraoke)
   }
 
@@ -2357,6 +2464,29 @@
     playIndex(i)
   }
 
+  // 进度条相关节点的引用缓存 + 「上次写入值」记录。
+  // 作用域必须放在 bindAudio / bindSeek **之外**（同一个闭包里）：
+  //   bindAudio 里的 timeupdate 靠它决定「要不要写 DOM」，
+  //   而 bindSeek 里的拖动 seek 会直接改进度条、必须同步这个记录；
+  //   两者若各持一份就会脱节，进度条会在松手后卡住不动。
+  //
+  // 为什么值得缓存：timeupdate 约 4Hz，原本每次都做 4 次 elRoot.querySelector
+  // 再写 4 处 —— 其中 lx-tcur / lx-tdur 显示的是 mm:ss，**每秒最多变一次**，
+  // 也就是每 4 次里至少有 3 次是在重复写同一个字符串。
+  // ⚠️ 缓存的节点可能因为面板重建而脱离文档（isConnected 为假），
+  //    所以每次取用时校验一次，失效就重新查询。
+  var tuCache = { cur: null, dur: null, fill: null, knob: null }
+  var tuLast = { cur: '', dur: '', pct: -1 }
+
+  function tuEl (key, sel) {
+    var el = tuCache[key]
+    if (!el || !el.isConnected) {
+      el = $(sel)
+      tuCache[key] = el
+    }
+    return el
+  }
+
   function bindAudio () {
     audio = new Audio()
     audio.preload = 'metadata'
@@ -2364,14 +2494,38 @@
     // 而第三方音乐 CDN 通常不回 Access-Control-Allow-Origin，会导致整首歌直接加载失败。
     // 我们不需要读取音频数据（没接 Web Audio 分析），保持默认的 no-cors 即可。
 
+    // 进度条节点缓存与「上次写入值」记录见上方（提到 bindAudio 之外，
+    // 因为 bindSeek 的拖动路径也要同步 tuLast.pct）。
+
     audio.addEventListener('timeupdate', function () {
       var cur = audio.currentTime || 0
       var dur = audio.duration || 0
-      $('.lx-tcur').textContent = fmt(cur)
-      $('.lx-tdur').textContent = fmt(dur)
+
+      var s = fmt(cur)
+      if (s !== tuLast.cur) {
+        var elCur = tuEl('cur', '.lx-tcur')
+        if (elCur) elCur.textContent = s
+        tuLast.cur = s
+      }
+
+      s = fmt(dur)
+      if (s !== tuLast.dur) {
+        var elDur = tuEl('dur', '.lx-tdur')
+        if (elDur) elDur.textContent = s
+        tuLast.dur = s
+      }
+
       var pct = dur ? (cur / dur) * 100 : 0
-      $('.lx-fill').style.width = pct + '%'
-      $('.lx-knob').style.left = pct + '%'
+      // 百分比量化到 0.1%，避免浮点抖动导致的无效写入
+      pct = Math.round(pct * 10) / 10
+      if (pct !== tuLast.pct) {
+        var elFill = tuEl('fill', '.lx-fill')
+        if (elFill) elFill.style.width = pct + '%'
+        var elKnob = tuEl('knob', '.lx-knob')
+        if (elKnob) elKnob.style.left = pct + '%'
+        tuLast.pct = pct
+      }
+
       syncLyric(cur)
       // 逐字染色别只指望 rAF 循环：后台标签页里 rAF 会被节流到 0，
       // timeupdate（约 4Hz）是唯一还在走的节拍 —— 暂停/seek 之后的点亮也靠它。
@@ -2398,7 +2552,12 @@
       if (audio.src) toast('音频加载失败，换个音质试试')
     })
     audio.addEventListener('loadedmetadata', function () {
-      $('.lx-tdur').textContent = fmt(audio.duration)
+      var el = $('.lx-tdur')
+      var s = fmt(audio.duration)
+      if (el) el.textContent = s
+      // 同步缓存：否则 timeupdate 里会认为「值没变」而跳过，
+      // 导致缓存与实际显示脱节（后续 seek 后的首次刷新可能被误判为无变化）。
+      tuLast.dur = s
     })
   }
 
@@ -2413,8 +2572,16 @@
         audio.currentTime = ratio * audio.duration
       }
       var pct = ratio * 100
-      $('.lx-fill').style.width = pct + '%'
-      $('.lx-knob').style.left = pct + '%'
+      var elFill = $('.lx-fill')
+      if (elFill) elFill.style.width = pct + '%'
+      var elKnob = $('.lx-knob')
+      if (elKnob) elKnob.style.left = pct + '%'
+      // ★ 必须同步 timeupdate 的「上次写入值」缓存：
+      //   拖动 seek 会直接改进度条，而 timeupdate 那边是靠比对缓存来决定
+      //   要不要写的。不同步的话，松手后 pct 若与缓存值相同就会被跳过，
+      //   进度条会停在拖动时的位置不动（直到 pct 真正变化）。
+      //   这里按 timeupdate 的同一套量化规则（0.1%）写回。
+      tuLast.pct = Math.round(pct * 10) / 10
     }
 
     track.addEventListener('pointerdown', function (e) {
@@ -2540,11 +2707,27 @@
     }
   }
 
-  // 默认位置：左下角贴边，底部继续保留配置间距。
+  // 默认位置：桌面端左下角贴边、底部保留配置间距；
+  // 手机端改为「贴左沿 + 纵向落在配置比例处」。
+  //
+  // ★ 为什么手机端不能也用左下角
+  //   主题的「回顶 / 设置」按钮组就在右下角，手机屏幕矮、两者在纵向
+  //   几乎同一带，收起态的挡板会和它们挤在一起（实测反馈）。
+  //   改到左沿的中间偏下位置后，既离开了底部按钮群，又在单手拇指
+  //   够得到的范围内（0.58 ≈ 屏幕高度的 58% 处）。
   function defaultPos () {
+    var b = railBox()
+    if (isMobile()) {
+      var ratio = Number(CFG.mobile_pos_ratio)
+      if (!isFinite(ratio)) ratio = 0.58
+      ratio = Math.min(1, Math.max(0, ratio))
+      // 比例算的是「挡板中心」落在视口高度的哪里，再减半个高度得到上边缘，
+      // 这样调比例时挡板是整体平移，不会因为挡板变高变矮而偏移。
+      var centerY = window.innerHeight * ratio
+      return { x: 0, y: clampY(centerY - b.h / 2, b) }
+    }
     var gap = Number(CFG.bottom_gap)
     if (!isFinite(gap)) gap = 24
-    var b = railBox()
     return { x: 0, y: clampY(window.innerHeight - b.h - gap, b) }
   }
 
@@ -2614,7 +2797,24 @@
   }
 
   function initPos () {
-    var saved = CFG.remember === false ? null : loadPos()
+    var saved = null
+
+    // ★ 手机端**不读** localStorage 里保存的位置，每次都重新落到默认值。
+    //
+    //   为什么彻底不读、而不是「判断旧位置是不是贴底再作废」：
+    //   位置会随浏览器地址栏收放而变（innerHeight 抖动），旧默认值是
+    //   innerHeight - h - 24，每次进页面时这个值都不一样，任何基于
+    //   「y 落在哪个区间」的启发式都可能失配 —— 失配一次，用户看到的就是
+    //   老访客永远的旧位置，改动对他不生效（正是之前的现象）。
+    //
+    //   手机端屏幕小、用户基本不会去拖一个贴边胶囊（拖动的价值主要
+    //   在桌面端把它摆到自己顺手的角落），所以手机端放弃记忆位置、
+    //   每次固定落回中间默认值，是收益最稳、代价最小的做法。
+    //   桌面端（>768px）照旧读取记忆位置，不受影响。
+    if (!isMobile() && CFG.remember !== false) {
+      saved = loadPos()
+    }
+
     pos = snapPos(saved || defaultPos())
   }
 

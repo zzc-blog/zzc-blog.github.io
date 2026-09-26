@@ -21,7 +21,9 @@
   /* 贴边图标（挡板）的位置 / 尺寸 / 配色。
      --lx-x / --lx-y 由 JS 实时改写（拖动 + 初始化）；横向拖动时跟手，
      松手后吸附到左沿或右沿，纵向自由。其余是纯样式，媒体查询里再调。
-     下面的初值只是 JS 没跑起来时的兜底，按「左下角、离底边 24px」写。 */
+     下面的初值只是 JS 没跑起来时的兜底，按「左下角、离底边 24px」写。
+     ⚠️ JS 跑起来后手机端默认不在这里（见 lx-music.js 的 defaultPos()：
+        手机端贴左沿、纵向落在 mobile_pos_ratio 处，避开底部按钮群）。 */
   --lx-x: 0px;
   --lx-y: calc(100vh - var(--lx-rail-h) - 24px);
   --lx-rail-w: 38px;
@@ -827,10 +829,18 @@ html[data-theme='dark'] .lx-lrc[data-bg='transparent'] {
   pointer-events: none;
 }
 
-/* 内层轨道：位移由 JS 写成 transform（横排 translateY(-pos) / 竖排 translateX(pos)） */
+/* 内层轨道：位移由 JS 写成 transform（横排 translateY(-pos) / 竖排 translateX(pos)）
+ *
+ * ★ 这里原本有一条 `will-change: transform`，已移除。
+ *   will-change 会让浏览器**永久**为这个元素保留一个合成层，而歌词轨道
+ *   只在「切到下一句」的瞬间做一次 transform 过渡（每几秒一次，
+ *   .35s 就结束）。为一个偶发的短过渡长期占用显存与合成开销不划算。
+ *   现代浏览器对 transform 过渡本来就会自动提升为合成层，
+ *   这条声明属于「写了也没多大用、还一直占着资源」的那类。
+ *   （若将来发现某浏览器上滚动有掉帧，再考虑用 JS 在滚动前后
+ *   动态加上/摘掉 will-change，而不是常驻。） */
 .lx-lrc-roll {
   transition: transform .35s ease-out;
-  will-change: transform;
 }
 
 .lx-lrc-line {

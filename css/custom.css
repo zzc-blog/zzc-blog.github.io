@@ -263,95 +263,6 @@ textarea {
 }
 
 /* ============================================================
- * 6. 页脚：深蓝渐变底色，文字对比度拉到 WCAG AA
- * ------------------------------------------------------------
- * 主题原样：#footer 的底色取自 $light-blue（= theme_color.main，#49B1F5），
- * 文字是 var(--light-grey)（#EEEEEE）—— 对比度只有约 2.4:1，远低于 AA 的
- * 4.5:1，所以整块看着「发灰发脏」。更糟的是 #footer a:hover 的颜色同样
- * 取自 $light-blue，与背景**完全同色**：鼠标移上去链接直接消失。
- *
- * 这里保留蓝调的品牌感，但把底色压暗成深蓝渐变（白字对比度约 11:1），
- * 悬停改成高亮蓝 + 轻微右移，栏目标题下加一条主题色短线。
- *
- * ⚠️ 选择器长度必须和主题写的一致（主题用的是
- *    #footer .footer-flex .footer-flex-title 这种「id + 两段 class」），
- *    少写一段会因特异度不足被主题压掉。
- * ============================================================ */
-
-#footer {
-  /* 兜底色：万一浏览器不认多层背景，也不会退回亮蓝 */
-  background-color: #16293e;
-  background-image:
-    /* 左上角一团柔光，避免大面积纯色发闷 */
-    radial-gradient(900px 260px at 12% -35%, rgba(73, 177, 245, .40), transparent 65%),
-    linear-gradient(180deg, #295c8f 0%, #1c3d5f 42%, #16293e 100%);
-  background-repeat: no-repeat;
-  background-position: 0 0, 0 0;
-  background-size: auto, auto;
-}
-
-#footer > *,
-#footer a {
-  color: rgba(255, 255, 255, .82);
-}
-
-#footer a:hover {
-  color: #fff;
-}
-
-/* 栏目链接：悬停高亮 + 轻微右移（主题里它们是 display:block，可以 transform） */
-#footer .footer-flex a {
-  transition: color .25s ease, transform .25s ease;
-}
-
-#footer .footer-flex a:hover {
-  color: #9ad8ff;
-  transform: translateX(4px);
-}
-
-/* 栏目标题：纯白 + 字距，下方一条主题色短线 */
-#footer .footer-flex .footer-flex-title {
-  position: relative;
-  color: #fff;
-  padding-bottom: 9px;
-  margin-bottom: 13px;
-  letter-spacing: .06em;
-}
-
-#footer .footer-flex .footer-flex-title::after {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 26px;
-  height: 2px;
-  border-radius: 2px;
-  background-color: var(--default-bg-color);
-  content: '';
-}
-
-/* 底部版权条：比主体再暗一层，用内侧 1px 高光当分隔线 */
-#footer .footer-other {
-  padding: 12px 8px 16px;
-  background-color: rgba(0, 0, 0, .22);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .09);
-}
-
-#footer .footer-other a {
-  
-}
-
-#footer .footer-other .footer_custom_text {
-  
-  
-}
-
-/* 暗色模式下再压暗一档，免得页脚比整页还亮 */
-[data-theme='dark'] #footer {
-  
-  
-}
-
-/* ============================================================
  * 7. 小屏 / 无障碍
  * ============================================================ */
 
@@ -445,29 +356,6 @@ body,
 }
 
 
-#footer {
-  
-  
-  
-  
-  
-}
-
-#footer .footer-flex .footer-flex-title,
-#footer .footer-flex-content a,
-#footer .footer-flex-content > div,
-#footer .footer-other .footer-copyright,
-#footer .footer-other .copyright,
-#footer .footer-other .framework-info,
-#footer .footer_custom_text {
-  
-}
-
-#footer .footer-flex .footer-flex-title {  }
-#footer .footer-flex-content a { color: var(--zzc-day-muted); }
-#footer .footer-flex-content a:hover {  }
-#footer .footer-other {   }
-
 [data-theme='dark'] body,
 [data-theme='dark'] #page-header,
 [data-theme='dark'] #page-header #nav {
@@ -501,24 +389,6 @@ body,
 
 [data-theme='dark'] #article-container h2 { border-bottom-color: #3b4354; }
 [data-theme='dark'] #article-container blockquote {    }
-
-[data-theme='dark'] #footer {
-  
-  
-  
-  
-}
-
-[data-theme='dark'] #footer .footer-flex .footer-flex-title {  }
-[data-theme='dark'] #footer .footer-flex-content a,
-[data-theme='dark'] #footer .footer-flex-content > div,
-[data-theme='dark'] #footer .footer-other .footer-copyright,
-[data-theme='dark'] #footer .footer-other .copyright,
-[data-theme='dark'] #footer .footer-other .framework-info,
-[data-theme='dark'] #footer .footer_custom_text {  }
-[data-theme='dark'] #footer .footer-flex-content a:hover,
-[data-theme='dark'] #footer .footer-other a {  }
-[data-theme='dark'] #footer .footer-other {   }
 
 /* 导航状态最终覆盖：顶部透明叠图，滚动后使用半透明背景 */
 #page-header:not(.nav-fixed) #nav {
@@ -825,175 +695,6 @@ body,
   }
 }
 
-/* ============================================================
- * 9. 页脚视觉重做：夜空玻璃风
- *    比默认页脚更舒展，和站点的蓝色横幅、音乐页面保持统一。
- * ============================================================ */
-
-#footer {
-  position: relative;
-  isolation: isolate;
-  background-color: #f3f7fa;
-  background-image:
-    radial-gradient(760px 330px at 8% 0%, rgba(73, 177, 245, .12), transparent 68%),
-    linear-gradient(180deg, #f7fbfd 0%, #edf5fa 52%, #e8f0f6 100%);
-}
-
-#footer::before {
-  position: absolute;
-  z-index: -1;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(73, 177, 245, .32) 30%, rgba(73, 177, 245, .16) 70%, transparent);
-  content: '';
-}
-
-#footer::after {
-  
-  
-  
-  
-  
-  
-  
-}
-
-#footer .footer-flex {
-  
-  
-  
-  
-  
-  
-}
-
-#footer .footer-flex-items {
-  flex: 1 1 0;
-  min-width: 190px;
-  padding: 24px 26px 22px;
-  border: 1px solid rgba(72, 125, 164, .14);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, .46);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .72), 0 10px 28px rgba(54, 92, 120, .06);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(14px);
-  transition: border-color .3s ease, transform .3s ease, background .3s ease;
-}
-
-#footer .footer-flex-items:hover {
-  border-color: rgba(73, 145, 190, .28);
-  background: rgba(255, 255, 255, .68);
-  transform: translateY(-2px);
-}
-
-#footer .footer-flex .footer-flex-title {
-  display: block;
-  width: fit-content;
-  padding: 0 0 13px;
-  margin: 0 0 19px;
-  color: #294a68;
-  font-size: 1.16em;
-  letter-spacing: .12em;
-  text-shadow: 0 1px 4px rgba(48, 86, 112, .08);
-}
-
-#footer .footer-flex .footer-flex-title::before {
-  width: 6px;
-  height: 6px;
-  margin-right: 9px;
-  margin-bottom: 2px;
-  background: rgba(73, 177, 245, .72);
-  box-shadow: 0 0 6px rgba(73, 177, 245, .32);
-}
-
-#footer .footer-flex .footer-flex-title::after {
-  
-  
-  
-}
-
-#footer .footer-flex-item {
-  
-}
-
-#footer .footer-flex-content a,
-#footer .footer-flex-content > div {
-  
-  
-  
-}
-
-#footer .footer-flex-content a:hover {
-  
-  
-}
-
-#footer .footer-other {
-  
-  
-  
-  
-}
-
-#footer .footer-copyright {
-  color: #60788b;
-  font-size: .9em;
-  letter-spacing: .03em;
-}
-
-#footer .footer-other a {
-  
-}
-
-#footer .footer_custom_text {
-  padding-top: 13px;
-  margin-top: 12px;
-  color: #7990a1;
-  font-size: .86em;
-  letter-spacing: .16em;
-}
-
-#footer .footer_custom_text::before {
-  
-  
-}
-
-@media (max-width: 768px) {
-  #footer .footer-flex {
-    gap: 16px;
-    padding: 46px 18px 42px;
-  }
-
-  #footer .footer-flex-items {
-    flex-basis: calc(50% - 8px);
-    min-width: 0;
-    padding: 20px 18px 18px;
-    border-radius: 15px;
-  }
-
-  #footer .footer-flex-items:last-child {
-    flex-basis: 100%;
-  }
-
-  #footer .footer-flex .footer-flex-title {
-    margin-bottom: 14px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  #footer .footer-flex-items,
-  #footer .footer-flex-content a {
-    transition: none;
-  }
-
-  #footer .footer-flex-items:hover,
-  #footer .footer-flex-content a:hover {
-    transform: none;
-  }
-}
-
 /* 时间线最终布局覆盖：三列网格（左卡片 / 中轴 / 右卡片）。
  * 必须放在所有旧时间线规则之后，避免被前面的 padding 方案覆盖。 */
 .site-timeline .timeline-entry {
@@ -1136,71 +837,6 @@ body,
 [data-theme='dark'] .timeline-card { background: rgba(255,255,255,.035); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
 @media (max-width: 768px) { .site-timeline::before { left: 12px; } .timeline-entry { grid-template-columns: 31px minmax(0, 1fr); } .timeline-entry time { grid-column: 2; grid-row: 1; padding: 0 0 7px; text-align: left; } .timeline-dot { grid-column: 1; grid-row: 1 / span 2; margin: 22px 0 0 7px; } .timeline-card { grid-column: 2; grid-row: 2; margin: 0 0 24px; padding: 17px 17px 15px; } }
 
-/* 夜间主题沿用深色页脚，只覆盖颜色，不改变布局。 */
-[data-theme='dark'] #footer {
-  
-  
-}
-
-[data-theme='dark'] #footer::before {
-  background: linear-gradient(90deg, transparent, rgba(147, 222, 255, .42) 28%, rgba(188, 169, 255, .32) 72%, transparent);
-}
-
-[data-theme='dark'] #footer .footer-flex-items {
-  border-color: rgba(190, 226, 255, .07);
-  background: linear-gradient(145deg, rgba(255, 255, 255, .038), rgba(255, 255, 255, .012));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035), 0 12px 34px rgba(0, 7, 22, .08);
-}
-
-[data-theme='dark'] #footer .footer-flex-items:hover {
-  border-color: rgba(154, 216, 255, .18);
-  background: linear-gradient(145deg, rgba(255, 255, 255, .055), rgba(255, 255, 255, .018));
-}
-
-[data-theme='dark'] #footer .footer-flex .footer-flex-title {
-  
-  
-}
-
-[data-theme='dark'] #footer .footer-flex .footer-flex-title::before {
-  background: rgba(154, 216, 255, .72);
-  box-shadow: 0 0 7px rgba(112, 207, 255, .42);
-}
-
-[data-theme='dark'] #footer .footer-flex .footer-flex-title::after {
-  
-}
-
-[data-theme='dark'] #footer .footer-flex-content a,
-[data-theme='dark'] #footer .footer-flex-content > div {
-  
-}
-
-[data-theme='dark'] #footer .footer-flex-content a:hover {
-  
-}
-
-[data-theme='dark'] #footer .footer-other {
-  
-  
-}
-
-[data-theme='dark'] #footer .footer-copyright {
-  color: rgba(239, 248, 255, .72);
-}
-
-[data-theme='dark'] #footer .footer-other a {
-  
-}
-
-[data-theme='dark'] #footer .footer_custom_text {
-  color: rgba(221, 239, 255, .52);
-}
-
-[data-theme='dark'] #footer .footer_custom_text::before {
-  background: linear-gradient(90deg, transparent, rgba(154, 216, 255, .55), transparent);
-}
-
 /* 尊重系统的「减少动态效果」设置（站点的轮播脚本也做了同样处理） */
 @media (prefers-reduced-motion: reduce) {
   #recent-posts .recent-post-item {
@@ -1217,283 +853,6 @@ body,
   #aside-content .card-widget:not(#card-toc):hover,
   #article-container img:hover {
     transform: none;
-  }
-}
-
-/* ============================================================
- * 8. 页脚精修：收窄内容、增强层次，避免大屏出现大片空蓝
- * ============================================================ */
-
-#footer {
-  overflow: hidden;
-  border-top: 1px solid rgba(154, 216, 255, .22);
-}
-
-#footer::after {
-  position: absolute;
-  right: -8%;
-  bottom: -110px;
-  width: 420px;
-  height: 220px;
-  border: 1px solid rgba(154, 216, 255, .1);
-  border-radius: 50%;
-  box-shadow: 0 0 0 18px rgba(154, 216, 255, .035),
-              0 0 0 38px rgba(154, 216, 255, .025);
-  content: '';
-  pointer-events: none;
-}
-
-#footer .footer-flex {
-  position: relative;
-  z-index: 1;
-  box-sizing: border-box;
-  justify-content: center;
-  gap: clamp(36px, 9vw, 150px);
-  max-width: 1060px;
-  padding: 42px 36px 36px;
-}
-
-#footer .footer-flex-items {
-  min-width: 150px;
-}
-
-#footer .footer-flex-item {
-  
-}
-
-#footer .footer-flex .footer-flex-title {
-  display: inline-block;
-  padding: 0 0 10px;
-  margin-bottom: 10px;
-  font-size: 1.15em;
-  letter-spacing: .1em;
-}
-
-#footer .footer-flex .footer-flex-title::before {
-  display: inline-block;
-  width: 5px;
-  height: 5px;
-  margin: 0 8px 3px 0;
-  border-radius: 50%;
-  background: #9ad8ff;
-  box-shadow: 0 0 9px rgba(154, 216, 255, .8);
-  content: '';
-}
-
-#footer .footer-flex-content a,
-#footer .footer-flex-content > div {
-  
-  
-}
-
-#footer .footer-other {
-  position: relative;
-  z-index: 1;
-  padding: 17px 20px 20px;
-}
-
-#footer .footer-copyright {
-  font-size: .9em;
-  letter-spacing: .02em;
-}
-
-#footer .footer_custom_text {
-  position: relative;
-  display: inline-block;
-  padding-top: 10px;
-  font-size: .86em;
-  letter-spacing: .12em;
-}
-
-#footer .footer_custom_text::before {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 34px;
-  height: 1px;
-  background: rgba(154, 216, 255, .45);
-  content: '';
-  transform: translateX(-50%);
-}
-
-@media (max-width: 768px) {
-  #footer .footer-flex {
-    justify-content: flex-start;
-    gap: 24px 12px;
-    padding: 30px 24px 26px;
-  }
-
-  #footer .footer-flex-items {
-    flex: 1 1 calc(50% - 12px);
-    min-width: 0;
-  }
-
-  #footer .footer-flex-items:last-child {
-    flex-basis: 100%;
-  }
-}
-
-/* 页脚最终样式：以留白和排版分组，不再使用等高卡片。 */
-#footer,
-[data-theme='dark'] #footer {
-  font-family: "LXGW WenKai Screen", "LXGW WenKai", "Microsoft YaHei", sans-serif;
-  border-top: 1px solid rgba(75, 126, 163, .12);
-  background-color: #f2f7fb;
-  background-image: linear-gradient(180deg, #f8fbfd 0%, #edf4f9 100%);
-}
-
-#footer::before,
-#footer::after {
-  content: none;
-}
-
-#footer .footer-flex {
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 48px;
-  max-width: 1060px;
-  padding: 50px 42px 48px;
-}
-
-#footer .footer-flex-items,
-#footer .footer-flex-items:hover,
-[data-theme='dark'] #footer .footer-flex-items,
-[data-theme='dark'] #footer .footer-flex-items:hover {
-  flex: 1 1 0;
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-  transform: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-
-#footer .footer-flex .footer-flex-title {
-  display: block;
-  margin: 0 0 15px;
-  padding: 0 0 10px;
-  color: #274763;
-  font-size: 1.02em;
-  font-weight: 700;
-  letter-spacing: .08em;
-  text-shadow: none;
-}
-
-#footer .footer-flex .footer-flex-title::before {
-  content: none;
-}
-
-#footer .footer-flex .footer-flex-title::after {
-  width: 22px;
-  height: 2px;
-  background: #91bfda;
-}
-
-#footer .footer-flex-item {
-  margin: 0;
-}
-
-#footer .footer-flex-content a,
-#footer .footer-flex-content > div {
-  width: fit-content;
-  padding: 3px 0;
-  color: #61788a;
-  font-size: .94em;
-  line-height: 1.8;
-}
-
-#footer .footer-flex-content a:hover {
-  color: #287da9;
-  transform: translateX(3px);
-}
-
-#footer .footer-other {
-  padding: 18px 20px 22px;
-  border-top: 1px solid rgba(75, 126, 163, .12);
-  background: rgba(224, 235, 243, .34);
-  box-shadow: none;
-}
-
-#footer .footer-other .footer-copyright,
-#footer .footer-other .copyright,
-#footer .footer-other .framework-info {
-  color: #647b8c;
-}
-
-#footer .footer-other a {
-  color: #367fa9;
-}
-
-#footer .footer-other .footer_custom_text {
-  display: block;
-  margin-top: 6px;
-  padding: 0;
-  color: #75899a;
-  font-size: .86em;
-  letter-spacing: .08em;
-}
-
-#footer .footer-other .footer_custom_text::before {
-  content: none;
-}
-
-[data-theme='dark'] #footer {
-  border-top-color: rgba(181, 211, 235, .1);
-  background-color: #101f32;
-  background-image: linear-gradient(180deg, #162c45 0%, #102238 100%);
-}
-
-[data-theme='dark'] #footer .footer-flex .footer-flex-title {
-  color: #e8f1f9;
-  text-shadow: none;
-}
-
-[data-theme='dark'] #footer .footer-flex .footer-flex-title::after {
-  background: #6a9fc1;
-}
-
-[data-theme='dark'] #footer .footer-flex-content a,
-[data-theme='dark'] #footer .footer-flex-content > div {
-  color: #a7b8c8;
-}
-
-[data-theme='dark'] #footer .footer-flex-content a:hover {
-  color: #d1eaff;
-}
-
-[data-theme='dark'] #footer .footer-other {
-  
-  
-}
-
-[data-theme='dark'] #footer .footer-other .footer-copyright,
-[data-theme='dark'] #footer .footer-other .copyright,
-[data-theme='dark'] #footer .footer-other .framework-info,
-[data-theme='dark'] #footer .footer-other .footer_custom_text {
-  color: #9cabb9;
-}
-
-[data-theme='dark'] #footer .footer-other a {
-  color: #b4d9f2;
-}
-
-@media (max-width: 768px) {
-  #footer .footer-flex {
-    gap: 28px 22px;
-    padding: 38px 28px 34px;
-  }
-
-  #footer .footer-flex-items,
-  [data-theme='dark'] #footer .footer-flex-items {
-    flex: 1 1 calc(50% - 22px);
-  }
-
-  #footer .footer-flex-items:last-child,
-  [data-theme='dark'] #footer .footer-flex-items:last-child {
-    flex-basis: 100%;
   }
 }
 
@@ -1611,21 +970,17 @@ body,
 #article-container pre,
 #article-container code,
 #article-container kbd { font-family: "JetBrains Mono NL", "JetBrains Mono", Consolas, "Noto Sans SC", monospace; }
-#footer { font-family: "LXGW WenKai Screen", "LXGW WenKai", "Microsoft YaHei", sans-serif; border-top-color: #ece9e9; background: #fdfdfd; background-image: none; color: #282728; }
+/* 页脚：只保留站点的霞鹜文楷字体；配色、底色、间距、悬停全部交回主题默认 */
+#footer,
 #footer .footer-flex .footer-flex-title,
 #footer .footer-flex-content a,
 #footer .footer-flex-content > div,
 #footer .footer-other .footer-copyright,
 #footer .footer-other .copyright,
 #footer .footer-other .framework-info,
-#footer .footer_custom_text { font-family: "LXGW WenKai Screen", "LXGW WenKai", "Microsoft YaHei", sans-serif; }
-#footer .footer-flex .footer-flex-title { color: #282728; }
-#footer .footer-flex-content a,
-#footer .footer-flex-content > div { color: #748094; }
-#footer .footer-flex-content a:hover,
-#footer .footer-other a { color: #006cac; }
-#footer .footer-other { border-top-color: #ece9e9; background: #fafafa; }
-
+#footer .footer_custom_text {
+  font-family: "LXGW WenKai Screen", "LXGW WenKai", "Microsoft YaHei", sans-serif;
+}
 [data-theme='dark'] body,
 [data-theme='dark'] #page-header { background: #212737; color: #eaedf3; }
 [data-theme='dark'] #page-header.nav-fixed #nav {   }
@@ -1641,18 +996,6 @@ body,
 [data-theme='dark'] #article-container a,
 [data-theme='dark'] #article-container a:hover { color: #ff6b00; }
 [data-theme='dark'] #article-container blockquote { background: #372e32; border-left-color: #ff6b00; color: #eaedf3; }
-
-[data-theme='dark'] #footer { border-top-color: #3b4354; background: #212737; background-image: none; color: #eaedf3; }
-[data-theme='dark'] #footer .footer-flex .footer-flex-title { color: #eaedf3; }
-[data-theme='dark'] #footer .footer-flex-content a,
-[data-theme='dark'] #footer .footer-flex-content > div,
-[data-theme='dark'] #footer .footer-other .footer-copyright,
-[data-theme='dark'] #footer .footer-other .copyright,
-[data-theme='dark'] #footer .footer-other .framework-info,
-[data-theme='dark'] #footer .footer_custom_text { color: #aeb7c8; }
-[data-theme='dark'] #footer .footer-flex-content a:hover,
-[data-theme='dark'] #footer .footer-other a { color: #ff6b00; }
-[data-theme='dark'] #footer .footer-other { border-top-color: #3b4354; background: #282c34; }
 
 /* ============================================================
  * 导航栏与下拉菜单 —— 最终态（必须留在文件末尾）
@@ -2105,49 +1448,6 @@ body,
   background: #eaedf3;
   color: #212737;
   box-shadow: 0 4px 14px -4px rgba(0, 0, 0, .6);
-}
-
-/* ============================================================
- * 页脚字号整体上调（放在文件末尾以确保生效）
- * ------------------------------------------------------------
- * 背景：本文件历史上对页脚追加过好几轮样式，font-size 分散在多处
- * （约 987 / 1346 / 1462 行等），互相覆盖后最终值是：
- *     栏目标题 1.02em(16.3px) / 栏目链接 .94em(15px)
- *     版权行   .9em(14.4px)  / 自定义文案 .86em(13.8px)
- * 中文在 14px 以下阅读偏吃力（舒适下限约 14px，正文级建议 15~16px），
- * 页脚整体显得小、发闷。
- *
- * 处理：不在历史规则里逐个改（容易漏、也容易被后面覆盖），
- * 直接在末尾按「标题 > 链接 > 版权 > 文案」的层级重写一次，
- * 整体上移一档（基准 1em = 16px）：
- *     栏目标题 1.1em(17.6px) / 栏目链接 1em(16px)
- *     版权行   .96em(15.4px) / 自定义文案 .92em(14.7px)
- * 层级关系与原来一致，只是整体变大、更舒展。
- * ============================================================ */
-
-/* 栏目标题：最大，与下面链接拉开层级 */
-#footer .footer-flex .footer-flex-title {
-  font-size: 1.1em;
-}
-
-/* 栏目链接 / 说明文字：提到基准字号 16px，中文最好读 */
-#footer .footer-flex-content a,
-#footer .footer-flex-content > div {
-  font-size: 1em;
-}
-
-/* 版权行：次要信息，略小于链接 */
-#footer .footer-copyright,
-#footer .footer-other .footer-copyright,
-#footer .footer-other .copyright,
-#footer .footer-other .framework-info {
-  font-size: .96em;
-}
-
-/* 自定义文案：最次要，仅比原来微调 */
-#footer .footer_custom_text,
-#footer .footer-other .footer_custom_text {
-  font-size: .92em;
 }
 
 /* ============================================================
@@ -2808,4 +2108,467 @@ body,
   display: none !important;
 }
 
+/* ============================================================
+ * 页脚美化 · 最终态（必须留在文件末尾）
+ * ------------------------------------------------------------
+ * 【改前是什么样】
+ *   主题默认页脚就是一大块实心蓝（footer.styl 里
+ *   background-color: $light-blue，而 var.styl 第 38 行
+ *   $light-blue = $theme-color = #49B1F5），上白下浅灰两段：
+ *     上半  .footer-flex   三列纯文字链接（导航 / 其他 / 框架）
+ *     下半  .footer-other  版权行，底色 rgba(0,0,0,.1) 再压暗一点
+ *   问题有三个：
+ *     1. #49B1F5 是饱和度很高的亮蓝，整屏铺开又没有任何纹理或渐变，
+ *        面积一大就显得"廉价"，和站内已经统一过的 #fdfdfd / #212737
+ *        中性色体系完全脱节（页面是素白的，页脚突然一记重蓝）；
+ *     2. 三列链接只是普通 `display: block` 的 <a>，没有分组感、
+ *        没有悬停反馈，一列列看过去像没排过版的纯文本；
+ *     3. 大量留白（padding 40px 60px）但层次为零，标题和条目
+ *        字号只差 0.2em，视觉上看不出"这是分组的表头"。
+ *
+ * 【改后】
+ *   1. 底色换成「雪山林场」图（source/img/footer.jpg，1920×618，
+ *      已在本仓库里但一直没被引用 —— 通过 _config.butterfly.yml 的
+ *      footer_img 键启用，不写死在这里，方便随时改图）。
+ *      图上叠一层**品牌色渐变遮罩**：左上深蓝 → 右下近黑，
+ *      既压住原图偏亮的天空部分保证文字可读，又让它看起来
+ *      "跟站点是一套的"（渐变色取自本站 --zzc-day-link #006cac 的
+ *      深蓝系，和深色模式的 #212737 同族，不引入新色相）。
+ *   2. 三列标题加一条**短横线强调**（::after），并统一字重与字距，
+ *      让分组关系一眼可辨；条目悬停时左侧浮出一条竖线 + 文字右移，
+ *      给出"可点"的明确反馈。
+ *   3. 版权区与链接区之间加一条半透明白分隔线，版权行整体降调
+ *      （透明度略降、字号收一档），把视觉重心让给上面的链接。
+ *
+ * 【为什么整段贴在这里、而不是改主题 footer.styl】
+ *   本项目一贯约定「零主题文件修改」（见 scripts/footer-fix.js 顶部
+ *   的同款说明），主题升级时不产生冲突。inject.head 引入的
+ *   custom.css 渲染在主题 main.css 之后，同等特异性下这里必胜。
+ *
+ * ⚠️ 关于 !important 的取舍
+ *   主题那几条规则（#footer 的 background-color、a 的 color 等）
+ *   特异性都是 (1 id)/(1 id + 1 element)，本文件用同样或更高的
+ *   选择器 + 靠后的书写顺序即可压住，**默认不加 !important**。
+ *   只有一处例外：背景图/遮罩要盖掉主题那条带条件编译的
+ *   `&:before { background-color: var(--mark-bg) }`，见下方说明。
+ *
+ * ⚠️ 字体不在这里管
+ *   页脚字体在文件上方第 974 行附近已经统一声明为霞鹜文楷
+ *   （#footer, #footer .footer-flex-title, #footer a ... 那一组），
+ *   这里只做视觉层（底色 / 间距 / 交互），不要再写 font-family，
+ *   否则等于同一个属性有两个来源，往后调字体会漏改一处。
+ * ============================================================ */
 
+/* --- 1. 底图与遮罩 -------------------------------------------- */
+
+/* ★ 亮暗两套遮罩（用户反馈后重构）
+ * ------------------------------------------------------------
+ * 【原来的问题】
+ *   上一版只写了「一变体」：基础规则（= 白天模式）用的是
+ *   rgba(10,32,58,.78) → rgba(14,20,30,.9) 这种近乎黑的深蓝，
+ *   深色模式再在此基础上压得更深一点。等于**两种模式都偏夜店风**，
+ *   白天模式下页脚突然黑下来，跟上面素白的文章卡片完全断层。
+ *   （原注释写的是"跟随明暗切换"，但实际只切了"深"和"更深"。）
+ *
+ * 【现在怎么分】
+ *   白天：底色偏亮 —— 用白色为主的柔光遮罩，把底图压成"淡淡的
+ *         水墨"，文字改用深色，整体是浅色的收尾，接住上面的白卡片。
+ *   夜间：保留原来的深色玻璃感，文字继续用白色系。
+ *
+ * ★ 关键：亮/暗不只换遮罩，文字色必须一起换
+ *   遮罩变亮之后，原来那套 rgba(255,255,255,.82) 的白字压在白底上
+ *   会直接看不见。所以下面把「文字 / 分隔线 / 链接」也一并做成
+ *   两套变量，亮暗各一份，随 [data-theme] 整体切换。
+ *   这也是上一版漏掉的地方 —— 只改遮罩不改文字，等于白做完。
+ *
+ * ★ 为什么白天用"白色遮罩"而不是直接用原图
+ *   原图（雪山林场金昏）本身明暗跨度极大：左下角森林接近纯黑，
+ *   中间雪山又是高光。直接铺上去，同一段文字会一会儿看不清、
+ *   一会儿又还行。加一层足够厚的白色遮罩把对比度"拉平"，
+ *   既保留山峦的轮廓作为底纹，又保证任何位置的文字都稳定可读。
+ * ------------------------------------------------------------ */
+
+#footer {
+  /* 兜底底色：万一底图挂了，也不出现突兀的亮蓝。
+     白天用浅灰蓝（与站点 #fdfdfd 同族的冷灰），夜间用深蓝黑。 */
+  background-color: #eef3f8;
+
+  /* --- 白天：柔光白色遮罩 + 深色文字 --- */
+  --zzc-footer-veil-a: rgba(255, 255, 255, .92);
+  --zzc-footer-veil-b: rgba(244, 249, 253, .88);
+  /* 白天在亮底上，分隔线要用"深色极淡"才看得见，不能用白色 */
+  --zzc-footer-rule: rgba(40, 39, 40, .1);
+  --zzc-footer-strong: #1f2d3d;              /* 列标题 */
+  --zzc-footer-link: rgba(40, 39, 40, .74);  /* 链接常态 */
+  --zzc-footer-link-hover: #006cac;          /* 链接悬停：站点蓝 */
+  --zzc-footer-muted: rgba(40, 39, 40, .58); /* 版权行 / slogan */
+  --zzc-footer-accent: var(--default-bg-color, #49B1F5);
+  --zzc-footer-shadow: rgba(15, 35, 55, .06); /* 底图上压的柔光投影 */
+}
+
+/* 渐变遮罩：盖在底图之上、内容之下。
+ *
+ * ★ 为什么必须显式覆盖主题的 &:before
+ *   主题 footer.styl 第 8-14 行是：
+ *       if hexo-config('footer_img') != false && hexo-config('mask.footer')
+ *         &:before
+ *           position: absolute
+ *           width: 100%; height: 100%
+ *           background-color: var(--mark-bg)   ← 单色黑，alpha .3
+ *   本站 mask.footer 为 true，所以这层**始终存在**，是单色 30% 黑。
+ *   这里把它替换成渐变（保留 absolute + 尺寸，只换 background）。
+ *   特异性相同，靠书写顺序（本文件在主题之后）胜出，无需 !important。
+ *
+ * ★ 白天为什么是"上白下淡"而不是单纯铺白
+ *   原图的雪山顶在中上部、森林压在下沿。上重下轻的白，
+ *   能让画面上缘与文章区的白自然衔接，下沿仍透出一点森林的
+ *   冷绿灰，保留"这是一张图"的层次，不至于糊成一块纯白板。 */
+#footer:before {
+  background-color: transparent;
+  background-image: linear-gradient(
+    160deg,
+    var(--zzc-footer-veil-a) 0%,
+    rgba(250, 252, 255, .68) 45%,
+    var(--zzc-footer-veil-b) 100%
+  );
+}
+
+/* --- 夜间：深色玻璃，保留原来的观感 ---
+   页面底色本就是 #212737，页脚压深一档才稳得住页面底部；
+   文字与分隔线全部切回白色系。 */
+[data-theme='dark'] #footer {
+  background-color: #1c2a3a;
+  --zzc-footer-veil-a: rgba(10, 32, 58, .82);
+  --zzc-footer-veil-b: rgba(12, 18, 27, .92);
+  --zzc-footer-rule: rgba(255, 255, 255, .14);
+  --zzc-footer-strong: #ffffff;
+  --zzc-footer-link: rgba(255, 255, 255, .82);
+  --zzc-footer-link-hover: #ffffff;
+  --zzc-footer-muted: rgba(255, 255, 255, .62);
+  --zzc-footer-accent: var(--default-bg-color, #49B1F5);
+  --zzc-footer-shadow: rgba(0, 0, 0, .35);
+}
+
+/* 夜间的渐变中段也要跟着压深（白天那条中段是 .68 的白，
+   在夜间会形成一条发灰的横带）。 */
+[data-theme='dark'] #footer:before {
+  background-image: linear-gradient(
+    160deg,
+    var(--zzc-footer-veil-a) 0%,
+    rgba(12, 26, 44, .86) 45%,
+    var(--zzc-footer-veil-b) 100%
+  );
+}
+
+/* --- 2. 链接区：三列标题与条目 -------------------------------- */
+
+/* 主题给 .footer-flex 的 padding 是 40px 60px，两侧偏大、
+   在 1200px 容器里三列会被压得靠中间。收到 56px 34px，
+   并加大列间距（gap 13 -> 28px），让三列真正"散开"。 */
+#footer .footer-flex {
+  padding: 56px 34px 44px;
+  gap: 28px;
+}
+
+/* 列标题：小号大写字母间距 + 下方一条品牌色短横线。
+ *
+ * ★ 短横线用 ::after 而不是 border-bottom
+ *   主题的标题是 1.4em/600，若用 border-bottom 会画满整列宽度，
+ *   在三列布局里看着像三条表格线；改用固定 28px 宽的短横线，
+ *   是"标题装饰"而不是"分隔线"，更像杂志排版。 */
+#footer .footer-flex .footer-flex-title {
+  position: relative;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  font-size: 1.08em;
+  font-weight: 600;
+  letter-spacing: .06em;
+  color: var(--zzc-footer-strong);
+}
+
+#footer .footer-flex .footer-flex-title::after {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 28px;
+  height: 2px;
+  border-radius: 2px;
+  /* 品牌色取自主题主色变量；万一变量缺失兜底成站点的 #49B1F5 */
+  background: var(--default-bg-color, #49B1F5);
+  content: '';
+}
+
+/* 条目：统一行高 + 悬停左侧浮出竖线。
+ *
+ * 主题原本是 .footer-flex-item { margin: 10px 0 }，
+ * 条目之间的节奏靠外边距，条目自身没有可点区域的暗示。
+ * 这里把内边距给到 a 上（让整行都是热区），并留出 10px 左侧
+ * 空隙给悬停竖线 —— 竖线用绝对定位浮出，不参与布局，
+ * 所以不会因为悬停而把后面的条目顶下去。 */
+#footer .footer-flex .footer-flex-item {
+  margin: 2px 0;
+}
+
+#footer .footer-flex-content a {
+  position: relative;
+  padding: 7px 0 7px 12px;
+  color: var(--zzc-footer-link);
+  font-size: .95em;
+  line-height: 1.5;
+  letter-spacing: .01em;
+  transition: color .25s ease, padding-left .25s ease;
+}
+
+/* 悬停竖线：默认 0 高、透明，悬停时从中间向上下展开。
+   用 transform: scaleY 而不是改 height —— 前者不触发重排，
+   一列里悬停多个条目时也不会让相邻条目跳动。 */
+#footer .footer-flex-content a::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 2px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--default-bg-color, #49B1F5);
+  content: '';
+  opacity: 0;
+  transform: translateY(-50%) scaleY(0);
+  transition: opacity .25s ease, transform .25s cubic-bezier(.22, .61, .36, 1);
+}
+
+#footer .footer-flex-content a:hover {
+  padding-left: 16px;              /* 文字右移 4px，与竖线拉开 */
+  color: var(--zzc-footer-link-hover);
+}
+
+#footer .footer-flex-content a:hover::before {
+  opacity: 1;
+  transform: translateY(-50%) scaleY(1);
+}
+
+/* 「框架」那组是站外链接（Hexo / Butterfly 官网），
+   主题给它们加了 target="_blank"，这里补一条极淡的下划线，
+   让"会跳出去"这件事在视觉上可预期。
+   ⚠️ 下划线色用 currentColor 派生而不是写死白色 ——
+   白天底是浅色的，白下划线在白底上等于没有。 */
+#footer .footer-flex-content a[target='_blank'] {
+  text-decoration: underline;
+  text-decoration-color: var(--zzc-footer-rule);
+  text-underline-offset: 3px;
+}
+
+#footer .footer-flex-content a[target='_blank']:hover {
+  text-decoration-color: currentColor;
+}
+
+/* --- 3. 版权区 ------------------------------------------------ */
+
+/* 版权区原本是 rgba(0,0,0,.1) 的实心压暗块，在底图上会切出一条
+   生硬的横向色带。改成「极淡的底色 + 一条细线分隔」，
+   与上面的链接区在同一张图上自然分层。
+   ⚠️ 这里白天**不能**再用黑色叠加：底图已被白色遮罩提亮，
+     再压 16% 黑会变成一条发灰的脏带。改用 --zzc-footer-shadow，
+     白天它是极淡的冷色（几乎看不出），夜间才是实打实的压暗。 */
+#footer .footer-other {
+  padding: 22px 20px;
+  border-top: 1px solid var(--zzc-footer-rule);
+  background-color: var(--zzc-footer-shadow);
+}
+
+#footer .footer-other .copyright,
+#footer .footer-other .framework-info,
+#footer .footer-other .footer_custom_text {
+  color: var(--zzc-footer-muted);
+  font-size: .88em;
+  line-height: 1.9;
+}
+
+/* 版权行里的链接：比正文略实一点、悬停用品牌色。
+   注意主题给 #footer a 的统一色是 var(--light-grey)，
+   这里显式覆盖成随模式切换的变量，避免白天偏灰、夜间偏暗。 */
+#footer .footer-other a {
+  color: var(--zzc-footer-link);
+}
+
+#footer .footer-other a:hover {
+  color: var(--zzc-footer-link-hover);
+}
+
+/* 竖线分隔符（版权行里的 | ）调淡，别抢文字 */
+#footer .footer-separator {
+  margin: 0 6px;
+  color: var(--zzc-footer-rule);
+}
+
+/* 自定义文本「拾起遗落的，记下来。」——
+   它是全站唯一一句 slogan，单独给一行、拉开与版权线的距离，
+   字距放大一点，当作页脚的收尾落款。 */
+#footer .footer-other .footer_custom_text {
+  margin-top: 10px;
+  color: var(--zzc-footer-muted);
+  letter-spacing: .1em;
+}
+
+/* --- 4. 窄屏 ------------------------------------------------ */
+
+@media (max-width: 768px) {
+  #footer .footer-flex {
+    padding: 38px 22px 30px;
+    gap: 22px;
+  }
+
+  #footer .footer-other {
+    padding: 18px 16px;
+  }
+
+  /* 触屏没有 hover，横竖线只会在点击时闪一下，去掉更干净 */
+  #footer .footer-flex-content a:hover {
+    padding-left: 12px;
+  }
+
+  #footer .footer-flex-content a:hover::before {
+    opacity: 0;
+  }
+}
+
+/* --- 5. 无障碍 ---------------------------------------------- */
+
+/* 尊重系统的「减少动态效果」设置（与文件里其它动画的处理保持一致） */
+@media (prefers-reduced-motion: reduce) {
+  #footer .footer-flex-content a,
+  #footer .footer-flex-content a::before {
+    transition: none;
+  }
+}
+
+/* 打印时页脚底图会吃掉大量墨水且无意义，退回到纯色白底黑字 */
+@media print {
+  #footer,
+  #footer:before {
+    background-image: none !important;
+    background-color: #fff !important;
+  }
+
+  #footer .footer-flex .footer-flex-title,
+  #footer .footer-flex-content a,
+  #footer .footer-other .copyright,
+  #footer .footer-other a {
+    color: #000 !important;
+  }
+}
+
+/* ============================================================
+ * 右下角悬浮按钮组：修掉「黑色底板 + 中间夹一块白」的割裂感
+ * ------------------------------------------------------------
+ * 【现象】（用户反馈，滚到页脚时最明显）
+ *   右下角那组圆形按钮，背后透出一块黑色，中间还夹着一条白的，
+ *   整体像"没做完的半成品"。
+ *
+ * 【成因：两个独立的问题叠在一起】
+ *
+ *   问题 1 —— 黑底板 = 页脚深色渐变透过来的
+ *     主题的 #rightside 只是「透明定位容器」（rightside.styl 只给了
+ *     position: fixed / right / bottom / opacity，**没有任何背景**），
+ *     真正有底色的是它内部那一个个 35px 的 button。
+ *     而主题给按钮的间距是 `margin-bottom: 5px` —— 于是每两个按钮
+ *     之间都有 5px 的全透明缝隙。页面主体是浅色时看不出来，
+ *     但滚到页脚（我这次给它加了深色渐变底图）之后，
+ *     那几条缝隙里透出的就是深色，看上去就是"一块黑底"。
+ *
+ *   问题 2 —— 中间那块白 = 两个分组容器的背景色露出来了
+ *     本文件第 644 行那条规则给 #rightside-config-hide 和
+ *     #rightside-config-show **都**刷了白底（当时是为了让它们
+ *     在白卡片上不突兀）：
+ *         #card-toc, #rightside-config-hide, #rightside-config-show
+ *         { background: #ffffff }
+ *     但这两个容器只是"分组包装"，本身不该有可见底：
+ *       · -config-hide 收起时 height: 0，那层白被压扁、看不见；
+ *       · 展开（.show）后 height: auto，白底就跟着撑开，
+ *         在按钮之间的 5px 缝里露出一条白 —— 这正是截图里
+ *         "中间有一块白的"的来源。
+ *     同一屏里"缝里透黑"和"缝里透白"同时存在，所以显得特别乱。
+ *
+ * 【修法】
+ *   1. 把两个分组容器的背景**去掉**（transparent），
+ *      它们只负责分组和显隐，不该有可见外观；
+ *   2. 改为给外层 #rightside 一个**整体统一的胶囊底**：
+ *      半透明白 + 毛玻璃 + 圆角 + 细边 + 阴影。
+ *      这样无论它飘在浅色文章上还是深色页脚上，
+ *      背景都是自己这层稳定的底，不再受身后内容影响；
+ *      按钮之间的 5px 缝里透出的也是这层底，而不是页脚的黑。
+ *
+ * ★ 为什么给 #rightside 加内边距
+ *   按钮宽 35px，胶囊左右各留 4px 内边距，视觉上才包得住。
+ *   注意这会轻微影响主题的定位数值：主题用
+ *   `right: -48px` + `.rightside-show { transform: translate(-58px) }`
+ *   把整组滑入滑出。加了 padding 后整块变宽 8px，
+ *   收起时右移的 -58px 仍足以把 43px 宽的整体完全推出视口
+ *   （58 > 43），所以展开/收起的动画不受影响，不必改定位。
+ *
+ * ★ 为什么用半透明 + 毛玻璃而不是纯白
+ *   纯白胶囊压在深色页脚上会变成一个很跳的白块（和原来"那块白"
+ *   是同一类问题，只是换成了一大块）。半透明毛玻璃既保证按钮
+ *   图标始终可读，又能和身后任何底色自然融合。
+ *   深色模式下换成深色玻璃，同一套逻辑。
+ *
+ * ⚠️ 只动背景与圆角，不碰按钮本身的 size / color / hover，
+ *    那些由主题的 --btn-bg / --btn-color / --btn-hover-color 负责，
+ *    换主题色时会自动跟随。
+ * ============================================================ */
+
+#rightside {
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, .5);
+  border-radius: 12px;
+  /* 半透明白玻璃：.72 的白 + 10px 模糊，按钮图标在任何底色上都读得清 */
+  background: rgba(255, 255, 255, .72);
+  -webkit-backdrop-filter: saturate(150%) blur(10px);
+  backdrop-filter: saturate(150%) blur(10px);
+  box-shadow: 0 6px 20px -6px rgba(15, 35, 55, .28);
+}
+
+/* 两个分组容器不再有可见背景，交给外层胶囊统一承载。
+   ⚠️ 必须带 !important：第 644 行那条 `#rightside-config-hide,
+   #rightside-config-show { background: #ffffff }` 与本条特异性相同
+   （都是 1 id），靠书写顺序本来也能赢，但那条规则同时在文件里
+   承担「白色卡片」的语义、将来可能被挪位置，这里显式 !important
+   把它钉死，免得以后再被前面的规则反超。 */
+#rightside #rightside-config-hide,
+#rightside #rightside-config-show {
+  background: transparent !important;
+}
+
+/* 深色模式的玻璃：底色换成深色半透明，边框提一点亮度做出边界 */
+[data-theme='dark'] #rightside {
+  border-color: rgba(255, 255, 255, .12);
+  background: rgba(33, 39, 55, .72);
+  box-shadow: 0 6px 20px -6px rgba(0, 0, 0, .55);
+}
+
+/* 窄屏：胶囊会贴着屏幕右缘，内边距收一档，投影也收一点避免糊在边缘 */
+@media (max-width: 768px) {
+  #rightside {
+    padding: 3px;
+    border-radius: 10px;
+  }
+}
+
+/* 不支持 backdrop-filter 的浏览器（老 Firefox / 部分国产内核）：
+   半透明底会让按钮图标和身后内容打架，直接退回到不透明底。
+   用 @supports 取反判断，避免在不支持时还留着半透明。 */
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  #rightside {
+    background: #ffffff;
+  }
+
+  [data-theme='dark'] #rightside {
+    background: #333c52;
+  }
+}
+
+/* 打印时不显示这组悬浮按钮（主题本就不显示，这里跟随页脚的打印规则兜底） */
+@media print {
+  #rightside {
+    display: none !important;
+  }
+}
